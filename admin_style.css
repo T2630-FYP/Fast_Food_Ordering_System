@@ -1,0 +1,157 @@
+#admin-navbar
+{background-color:#2B2B2B;
+text-align:center;
+padding:10px;
+margin-bottom:20px;}
+
+#admin-navbar a
+{color:#FFD23F;
+font-weight:bold;
+font-family:Arial;
+text-decoration:none;
+padding:12px 18px 12px 18px;
+margin:0px 3px 0px 3px;}
+
+#admin-navbar a:hover
+{background-color:#FFFFFF;
+color:#9E0B22;
+border-radius:4px;}
+
+.welcome-box
+{background-color:#FFF3CD;
+border:1px solid #FFD23F;
+border-radius:8px;
+padding:15px 20px 15px 20px;
+margin-bottom:20px;}
+
+.welcome-box h3
+{color:#9E0B22;
+margin:0px;}
+
+.card
+{width:280px;
+background-color:#FFFFFF;
+border:2px solid #C8102E;
+border-radius:8px;
+box-shadow:2px 2px 5px #CCCCCC;
+padding:15px 20px 20px 20px;
+margin:10px;
+float:left;}
+
+.card h3
+{color:#C8102E;
+font-family:"Arial Narrow";
+margin-top:0px;}
+
+.card p
+{color:#666666;
+font-size:0.9em;}
+
+.card a.manage-btn
+{color:#FFFFFF;
+font-weight:bold;
+text-decoration:none;
+background-color:#C8102E;
+border-radius:5px;
+padding:8px 16px 8px 16px;}
+
+.card a.manage-btn:hover
+{background-color:#9E0B22;}
+
+#card-container
+{width:690px;
+margin:auto;}
+
+.stat-table
+{width:600px;
+margin:auto;}
+
+.stat-table th
+{background-color:#C8102E;
+color:#FFFFFF;}
+
+.manage-table
+{width:900px;
+margin:auto;
+margin-bottom:25px;}
+
+.manage-table th
+{background-color:#C8102E;
+color:#FFFFFF;
+padding:10px;}
+
+.manage-table td
+{padding:8px;
+text-align:center;}
+
+.update-btn
+{background-color:#FFC72C;
+color:#9E0B22;
+font-weight:bold;
+border:0px;
+border-radius:4px;
+padding:5px 12px 5px 12px;
+margin:2px;}
+
+.delete-btn
+{background-color:#C8102E;
+color:#FFFFFF;
+font-weight:bold;
+border:0px;
+border-radius:4px;
+padding:5px 12px 5px 12px;
+margin:2px;}
+
+.update-btn:hover,.delete-btn:hover
+{cursor:pointer;
+opacity:0.8;}
+
+.manage-form-box
+{width:600px;
+margin:auto;}
+
+.manage-form-box fieldset
+{background-color:#FFFFFF;
+border:2px solid #C8102E;
+border-radius:8px;
+box-shadow:2px 2px 5px #CCCCCC;
+padding:15px 25px 20px 25px;}
+
+.manage-form-box legend
+{color:#C8102E;
+font-family:"Arial Narrow";
+font-weight:bold;
+font-size:16pt;
+padding:0px 10px 0px 10px;}
+
+.manage-form-box label
+{float:left;
+width:140px;
+text-align:right;
+color:#9E0B22;
+font-weight:bold;
+font-size:0.85em;
+margin-right:10px;}
+
+.manage-form-box input[type="text"],.manage-form-box input[type="email"],.manage-form-box input[type="password"],.manage-form-box input[type="date"],.manage-form-box input[type="number"],.manage-form-box select
+{width:300px;
+border:1px solid #CCCCCC;
+border-radius:4px;
+padding:7px 10px 7px 10px;}
+
+.manage-form-box span.error
+{color:#C8102E;
+font-weight:bold;
+font-size:0.8em;}
+
+.save-btn
+{background-color:#C8102E;
+color:#FFFFFF;
+font-weight:bold;
+border:0px;
+border-radius:5px;
+padding:10px 20px 10px 20px;}
+
+.save-btn:hover
+{cursor:pointer;
+opacity:0.8;}
