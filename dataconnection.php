@@ -8,6 +8,17 @@ if(session_status() == PHP_SESSION_NONE)
 
 $connect = mysqli_connect("localhost","root","","easyorder");
 
+//Compare the submitted customer password with the plain-text value stored in
+//the member table. This mirrors the password-storage format requested for the
+//FYP demonstration database.
+if(!function_exists("easyorder_password_verify"))
+{
+	function easyorder_password_verify($plain_password,$stored_password)
+	{
+		return hash_equals((string)$stored_password,(string)$plain_password);
+	}
+}
+
 //check that a logged in member or staff account still exists and has not been deleted
 //only log the account out after a successful database check, so a connection problem is not mistaken for a deleted account
 if($connect)
@@ -53,7 +64,7 @@ if($connect)
 
 	$current_page = basename($_SERVER["PHP_SELF"] ?? "");
 	$admin_page = substr($current_page,0,6) == "admin_";
-	$member_pages = array("dashboard.php","cart.php","checkout.php","order_history.php","review.php","reward.php","view_review.php");
+	$member_pages = array("dashboard.php","change_password.php","cart.php","checkout.php","order_history.php","review.php","reward.php","view_review.php");
 
 	if($invalid_member)
 	{

@@ -91,10 +91,11 @@ CREATE TABLE `member` (
   `member_id` int(11) NOT NULL,
   `member_name` varchar(100) NOT NULL,
   `member_email` varchar(100) NOT NULL,
-  `member_password` varchar(50) NOT NULL,
+  `member_password` varchar(255) NOT NULL,
   `member_phone` varchar(15) NOT NULL,
   `member_gender` varchar(10) NOT NULL,
   `member_dob` date NOT NULL,
+  `member_address` varchar(140) NOT NULL DEFAULT '',
   `member_state` varchar(30) NOT NULL,
   `member_city` varchar(50) NOT NULL,
   `member_postcode` char(5) NOT NULL,
@@ -107,11 +108,11 @@ CREATE TABLE `member` (
 -- Dumping data for table `member`
 --
 
-INSERT INTO `member` (`member_id`, `member_name`, `member_email`, `member_password`, `member_phone`, `member_gender`, `member_dob`, `member_state`, `member_city`, `member_postcode`, `member_points`, `member_joindate`, `member_isDelete`) VALUES
-(1, 'Tan Mei Ling', 'meiling@email.com', 'member123', '0123344556', 'Female', '2000-05-12', 'Selangor', 'Shah Alam', '40000', 585, '2026-01-12', 0),
-(2, 'Muhammad Faiz', 'faiz@email.com', 'member123', '0198877665', 'Male', '1999-08-03', 'Kuala Lumpur', 'Kuala Lumpur', '50000', 233, '2026-02-03', 0),
-(3, 'Priya Devi', 'priya@email.com', 'member123', '0167788990', 'Female', '2001-02-21', 'Johor', 'Johor Bahru', '80000', 392, '2026-02-21', 0),
-(4, 'Wong Jia Hui', 'jiahui@email.com', 'member123', '0112233445', 'Female', '2000-03-09', 'Pulau Pinang', 'George Town', '10000', 188, '2026-03-09', 0);
+INSERT INTO `member` (`member_id`, `member_name`, `member_email`, `member_password`, `member_phone`, `member_gender`, `member_dob`, `member_address`, `member_state`, `member_city`, `member_postcode`, `member_points`, `member_joindate`, `member_isDelete`) VALUES
+(1, 'Tan Mei Ling', 'meiling@email.com', 'meiling123', '0123344556', 'Female', '2000-05-12', '', 'Selangor', 'Shah Alam', '40000', 585, '2026-01-12', 0),
+(2, 'Muhammad Faiz', 'faiz@email.com', 'faiz123', '0198877665', 'Male', '1999-08-03', '', 'Kuala Lumpur', 'Kuala Lumpur', '50000', 233, '2026-02-03', 0),
+(3, 'Priya Devi', 'priya@email.com', 'priya123', '0167788990', 'Female', '2001-02-21', '', 'Johor', 'Johor Bahru', '80000', 392, '2026-02-21', 0),
+(4, 'Wong Jia Hui', 'jiahui@email.com', 'jiahui123', '0112233445', 'Female', '2000-03-09', '', 'Pulau Pinang', 'George Town', '10000', 188, '2026-03-09', 0);
 
 -- --------------------------------------------------------
 

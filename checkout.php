@@ -12,6 +12,25 @@ $mid = $_SESSION["member_id"];
 
 $states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
 
+//Load the current member's saved default address. It is only a prefill for this order;
+//checkout never writes these temporary delivery changes back to the profile.
+$saved_address = array("address"=>"","state"=>"","city"=>"","postcode"=>"");
+$stmt = mysqli_prepare($connect,"SELECT member_address,member_state,member_city,member_postcode FROM member WHERE member_id=? AND member_isDelete=0 LIMIT 1");
+mysqli_stmt_bind_param($stmt,"i",$mid);
+mysqli_stmt_execute($stmt);
+$saved_address_result = mysqli_stmt_get_result($stmt);
+if($saved_address_row = mysqli_fetch_assoc($saved_address_result))
+{
+	$saved_address = array(
+		"address" => $saved_address_row["member_address"],
+		"state" => $saved_address_row["member_state"],
+		"city" => $saved_address_row["member_city"],
+		"postcode" => $saved_address_row["member_postcode"]
+	);
+}
+mysqli_stmt_close($stmt);
+$has_saved_address = $saved_address["address"]!=="" && $saved_address["city"]!=="" && $saved_address["state"]!=="" && $saved_address["postcode"]!=="";
+
 //check the redemption table exists (created by importing the latest easyorder.sql)
 $redemption_ready = false;
 $tbl_check = mysqli_query($connect,"SHOW TABLES LIKE 'redemption'");
@@ -595,16 +614,21 @@ if($has_reward)
 
 <h4>Delivery Address</h4>
 <p><input type="checkbox" name="delivery" value="Yes" onchange="toggle_delivery()"> Deliver this order to an address (+RM 5.00)</p>
+<?php if($has_saved_address) { ?>
+<p><span class="hint">Your saved profile address is ready below. You may change it for this order without changing your default.</span></p>
+<?php } else { ?>
+<p><span class="hint">No complete default street address is saved yet. You can enter one below or <a href="dashboard.php#profile">update your profile</a>.</span></p>
+<?php } ?>
 
 <div id="delivery_area"><!--Detailed delivery address fields-->
 <p>
 <label>Address *</label>
-<input type="text" name="delivery_address" maxlength="140" placeholder="House number, building, street and unit number">
+<input type="text" name="delivery_address" maxlength="140" placeholder="House number, building, street and unit number" value="<?php echo htmlspecialchars($saved_address["address"],ENT_QUOTES,"UTF-8"); ?>">
 </p>
 
 <p>
 <label>City *</label>
-<input type="text" name="delivery_city" maxlength="50" placeholder="e.g. Muar">
+<input type="text" name="delivery_city" maxlength="50" placeholder="e.g. Muar" value="<?php echo htmlspecialchars($saved_address["city"],ENT_QUOTES,"UTF-8"); ?>">
 </p>
 
 <p>
@@ -615,7 +639,7 @@ if($has_reward)
 foreach($states as $state_name)
 {
 ?>
-<option value="<?php echo $state_name; ?>"><?php echo $state_name; ?></option>
+<option value="<?php echo htmlspecialchars($state_name,ENT_QUOTES,"UTF-8"); ?>" <?php if($saved_address["state"]===$state_name) echo "selected"; ?>><?php echo htmlspecialchars($state_name,ENT_QUOTES,"UTF-8"); ?></option>
 <?php
 }
 ?>
@@ -624,7 +648,7 @@ foreach($states as $state_name)
 
 <p>
 <label>Postcode *<br><span class="hint">5 digits</span></label>
-<input type="text" name="delivery_postcode" maxlength="5" placeholder="e.g. 84000">
+<input type="text" name="delivery_postcode" maxlength="5" placeholder="e.g. 84000" value="<?php echo htmlspecialchars($saved_address["postcode"],ENT_QUOTES,"UTF-8"); ?>">
 </p>
 </div>
 

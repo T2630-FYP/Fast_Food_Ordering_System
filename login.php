@@ -146,26 +146,26 @@ function login_check()//Validate customer login form
 //check the login details against the member table
 if(isset($_POST["loginbtn"]))
 {
-	$email = mysqli_real_escape_string($connect,$_POST["user_email"]);
-	$password = mysqli_real_escape_string($connect,$_POST["user_password"]);
+	$email = trim((string)($_POST["user_email"] ?? ""));
+	$password = (string)($_POST["user_password"] ?? "");
+	$row = false;
 
-	//a failed query must not be passed to mysqli_num_rows()
-	try
+	$stmt = mysqli_prepare($connect,"SELECT * FROM member WHERE member_email=? AND member_isDelete=0 LIMIT 1");
+	if($stmt)
 	{
-		$result = mysqli_query($connect,"SELECT * FROM member WHERE member_email='$email' AND member_password='$password' AND member_isDelete=0");
+		mysqli_stmt_bind_param($stmt,"s",$email);
+		mysqli_stmt_execute($stmt);
+		$result = mysqli_stmt_get_result($stmt);
+		$row = mysqli_fetch_assoc($result);
+		mysqli_stmt_close($stmt);
 	}
-	catch(Throwable $error)
-	{
-		$result = false;
-	}
-	$count = $result ? mysqli_num_rows($result) : 0;
 
-	if($count==1)
+	if($row && easyorder_password_verify($password,$row["member_password"]))
 	{
 		//login success - remember the member in the session and go to the dashboard
-		$row = mysqli_fetch_assoc($result);
 		$_SESSION["member_id"] = $row["member_id"];
 		$_SESSION["member_name"] = $row["member_name"];
+		session_regenerate_id(true);
 		?>
 		<script>
 		window.location="dashboard.php";
