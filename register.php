@@ -187,7 +187,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 </div>
 
 <div id="navbar">
-<a href="index.html">Home</a>
+<a href="./">Home</a>
 <a href="login.php">Login</a>
 </div>
 

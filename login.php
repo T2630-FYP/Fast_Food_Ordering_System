@@ -100,7 +100,7 @@ function login_h($value)
 </div>
 
 <div id="navbar">
-<a href="index.html">Home</a>
+<a href="./">Home</a>
 <a href="register.php">Sign Up</a>
 </div>
 
