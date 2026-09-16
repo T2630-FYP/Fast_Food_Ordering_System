@@ -1,11 +1,21 @@
-<?php session_start(); include("dataconnection.php"); ?>
+<?php
+session_start();
+include("dataconnection.php");
+
+$password_reset_success = "";
+if(isset($_SESSION["password_reset_success"]))
+{
+	$password_reset_success = (string)$_SESSION["password_reset_success"];
+	unset($_SESSION["password_reset_success"]);
+}
+?>
 
 <!DOCTYPE html>
 <html>
 
 <head><!--Customer login page-->
 <title>Login</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260915-2">
 
 <style>
 #login-box
@@ -45,6 +55,24 @@ padding:8px 10px 8px 10px;}
 {color:#C8102E;
 font-weight:bold;
 font-size:0.75em;}
+
+.login-success
+{background-color:#E8F5E9;
+border:1px solid #4CAF50;
+color:#1B5E20;
+border-radius:5px;
+padding:10px 14px;
+text-align:center;}
+
+.forgot-password-link
+{display:block;
+text-align:right;
+font-size:0.82em;
+margin-top:8px;}
+
+.forgot-password-link a
+{color:#9E0B22;
+font-weight:bold;}
 </style>
 
 <script>
@@ -108,6 +136,9 @@ function login_check()//Validate customer login form
 <p class="intro">Login with your registered email and password to place orders and view your dashboard.</p>
 
 <div id="login-box"><!--Form section for user input-->
+<?php if($password_reset_success!=="") { ?>
+<p class="login-success"><?php echo htmlspecialchars($password_reset_success,ENT_QUOTES,"UTF-8"); ?></p>
+<?php } ?>
 <form name="loginfrm" method="post" action="" onsubmit="return login_check()">
 <fieldset>
 <legend>Login</legend>
@@ -119,6 +150,7 @@ function login_check()//Validate customer login form
 <label>Password</label>
 <input type="password" name="user_password" placeholder="Your password">
 <span class="error" id="err_password"></span>
+<span class="forgot-password-link"><a href="forgot_password.php">Forgot Password?</a></span>
 
 <p style="text-align:center; margin-top:18px;">
 <input type="submit" name="loginbtn" value="Login">

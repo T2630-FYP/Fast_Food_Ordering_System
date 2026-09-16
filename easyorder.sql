@@ -117,6 +117,23 @@ INSERT INTO `member` (`member_id`, `member_name`, `member_email`, `member_passwo
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `password_reset`
+--
+
+CREATE TABLE `password_reset` (
+  `reset_id` int(11) NOT NULL,
+  `member_id` int(11) NOT NULL,
+  `reset_code_hash` varchar(255) NOT NULL,
+  `expires_at` datetime NOT NULL,
+  `verified_at` datetime DEFAULT NULL,
+  `used_at` datetime DEFAULT NULL,
+  `attempt_count` tinyint(3) UNSIGNED NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `orders`
 --
 
@@ -349,6 +366,13 @@ ALTER TABLE `member`
   ADD UNIQUE KEY `uq_member_email` (`member_email`);
 
 --
+-- Indexes for table `password_reset`
+--
+ALTER TABLE `password_reset`
+  ADD PRIMARY KEY (`reset_id`),
+  ADD KEY `idx_password_reset_member_active` (`member_id`,`used_at`,`verified_at`,`expires_at`);
+
+--
 -- Indexes for table `orders`
 --
 ALTER TABLE `orders`
@@ -422,6 +446,12 @@ ALTER TABLE `member`
   MODIFY `member_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
+-- AUTO_INCREMENT for table `password_reset`
+--
+ALTER TABLE `password_reset`
+  MODIFY `reset_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
@@ -454,6 +484,12 @@ ALTER TABLE `review`
 --
 ALTER TABLE `orders`
   ADD CONSTRAINT `fk_orders_member` FOREIGN KEY (`order_member`) REFERENCES `member` (`member_id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `password_reset`
+--
+ALTER TABLE `password_reset`
+  ADD CONSTRAINT `fk_password_reset_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `order_items`
