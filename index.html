@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head><!--Home page of EasyOrder website-->
-<title>Home</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyOrder - Fast Food Ordering</title>
+<link rel="stylesheet" href="style.css?v=20260916-1">
 </head>
 
 <body>
@@ -15,32 +17,58 @@
 </div>
 
 <div id="navbar"><!--Customer navigation bar-->
-<a href="register.php">Sign Up</a>
+<a href="index.html">Home</a>
 <a href="login.php">Login</a>
+<a href="register.php">Sign Up</a>
 </div>
 
-<div id="main"><!--Main content section-->
+<main id="main"><!--Main content section-->
 
-<div id="hero">
-<img src="image/banner.jpg" width="960px" height="280px" alt="Delicious Fast Food Banner" title="Welcome to EasyOrder">
-<h2>Order Your Favourite Fast Food Online!</h2>
+<section id="hero" class="home-hero">
+<img src="image/banner.jpg" alt="A selection of fast food available from EasyOrder" title="Welcome to EasyOrder">
+<h2>Order Your Favourite Fast Food Online</h2>
 <p>Fresh, hot and delivered fast. Browse our menu and place your order in just a few clicks.</p>
-<p><a class="btn" href="login.php">Login to Order</a></p>
-</div>
+<p><a class="btn home-cta" href="login.php">Order Now</a></p>
+</section>
 
 <hr>
 
-<h2 class="section-title">Why Choose EasyOrder?</h2>
-<ul class="features">
-<li>Fast and easy online ordering</li>
-<li>Freshly cooked meals every single time</li>
-<li>Affordable prices and great daily deals</li>
-<li>Quick delivery right to your doorstep</li>
-</ul>
-
+<section aria-labelledby="why-easyorder">
+<h2 class="section-title" id="why-easyorder">Why Choose EasyOrder?</h2>
+<div class="home-card-grid">
+<article class="home-info-card">
+<h3>Easy Ordering</h3>
+<p>Choose your meal, update your cart and confirm your order in one connected flow.</p>
+</article>
+<article class="home-info-card">
+<h3>Fresh Meals</h3>
+<p>Browse freshly prepared fast-food favourites with clear prices and availability.</p>
+</article>
+<article class="home-info-card">
+<h3>Order Tracking</h3>
+<p>Use your member dashboard to review order history, account details and rewards.</p>
+</article>
 </div>
+</section>
+
+<section aria-labelledby="how-it-works">
+<h2 class="section-title" id="how-it-works">How It Works</h2>
+<ol class="home-steps">
+<li><strong>Create an account</strong><span>Register your customer details once.</span></li>
+<li><strong>Choose your food</strong><span>Log in, browse the menu and add items to your cart.</span></li>
+<li><strong>Place your order</strong><span>Confirm checkout and view the order in your history.</span></li>
+</ol>
+</section>
+
+</main>
 
 <footer><!--Footer section-->
+<nav class="footer-links" aria-label="Footer navigation">
+<a href="index.html">Home</a>
+<a href="login.php">Login</a>
+<a href="register.php">Sign Up</a>
+<a href="contact.php">Contact Us</a>
+</nav>
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>

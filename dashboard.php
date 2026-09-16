@@ -163,8 +163,10 @@ $member_points = (int)$member["member_points"];
 <html>
 
 <head><!--Customer dashboard page after login-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Dashboard</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260916-1">
 
 <style>
 #welcome-box
@@ -301,6 +303,7 @@ margin-left:8px;}
 <a href="category.php">Menu</a>
 <a href="cart.php">Cart</a>
 <a href="order_history.php">Order History</a>
+<a href="#profile">My Profile</a>
 <a href="reward.php">Rewards</a>
 <a href="view_review.php">View Reviews</a>
 <a href="about.html">About Us</a>

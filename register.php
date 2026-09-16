@@ -1,369 +1,297 @@
-<?php include("dataconnection.php"); ?>
+<?php
+include("dataconnection.php");
 
-<!DOCTYPE html>
-<html>
-
-<head><!--Customer sign up page with registration form-->
-<title>Sign Up</title>
-<link rel="stylesheet" href="style.css">
-
-<style>
-#register-box
-{width:640px;
-margin:auto;}
-
-#register-box fieldset
-{background-color:#FFFFFF;
-border:2px solid #C8102E;
-border-radius:8px;
-box-shadow:2px 2px 5px #CCCCCC;
-padding:15px 25px 20px 25px;}
-
-#register-box legend
-{color:#C8102E;
-font-family:"Arial Narrow";
-font-weight:bold;
-font-size:16pt;
-padding:0px 10px 0px 10px;}
-
-#register-box label
-{float:left;
-width:190px;
-text-align:right;
-color:#9E0B22;
-font-weight:bold;
-font-size:0.85em;
-margin-right:10px;}
-
-#register-box span.hint
-{display:block;
-color:#999999;
-font-weight:normal;
-font-size:0.7em;}
-
-#register-box span.error
-{color:#C8102E;
-font-weight:bold;
-font-size:0.75em;}
-
-#register-box select
-{border:1px solid #CCCCCC;
-border-radius:4px;
-padding:7px 10px 7px 10px;}
-</style>
-
-<script>
-function register_check()//Validate customer registration form
+if(isset($_SESSION["member_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
-	let name,email,confirm_email,password,confirm_password,phone,gender="",dob,state,city,postcode;
-	let i;
-	let name_status=false,email_status=false,cemail_status=false,password_status=false,cpassword_status=false;
-	let phone_status=false,gender_status=false,dob_status=false,state_status=false,city_status=false,postcode_status=false;
+	header("location:dashboard.php");
+	exit();
+}
 
-	name=document.registerfrm.cust_name.value;
-	email=document.registerfrm.cust_email.value;
-	confirm_email=document.registerfrm.cust_confirm_email.value;
-	password=document.registerfrm.cust_password.value;
-	confirm_password=document.registerfrm.cust_confirm_password.value;
-	phone=document.registerfrm.cust_phone.value;
-	dob=document.registerfrm.cust_dob.value;
-	state=document.registerfrm.state.value;
-	city=document.registerfrm.cust_city.value;
-	postcode=document.registerfrm.cust_postcode.value;
+$states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
+$register_errors = array();
+$register_values = array(
+	"name" => "",
+	"email" => "",
+	"confirm_email" => "",
+	"phone" => "",
+	"gender" => "",
+	"dob" => "",
+	"state" => "",
+	"city" => "",
+	"postcode" => ""
+);
 
-	for(i=0;i<document.registerfrm.gender.length;i++)
+function register_h($value)
+{
+	return htmlspecialchars((string)$value,ENT_QUOTES,"UTF-8");
+}
+
+if(!isset($_SESSION["register_csrf"]))
+{
+	$_SESSION["register_csrf"] = bin2hex(random_bytes(32));
+}
+
+if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
+{
+	$register_values = array(
+		"name" => trim((string)($_POST["cust_name"] ?? "")),
+		"email" => strtolower(trim((string)($_POST["cust_email"] ?? ""))),
+		"confirm_email" => strtolower(trim((string)($_POST["cust_confirm_email"] ?? ""))),
+		"phone" => trim((string)($_POST["cust_phone"] ?? "")),
+		"gender" => trim((string)($_POST["gender"] ?? "")),
+		"dob" => trim((string)($_POST["cust_dob"] ?? "")),
+		"state" => trim((string)($_POST["state"] ?? "")),
+		"city" => trim((string)($_POST["cust_city"] ?? "")),
+		"postcode" => trim((string)($_POST["cust_postcode"] ?? ""))
+	);
+	$password = (string)($_POST["cust_password"] ?? "");
+	$confirm_password = (string)($_POST["cust_confirm_password"] ?? "");
+	$submitted_token = (string)($_POST["register_csrf"] ?? "");
+
+	if($submitted_token==="" || !hash_equals($_SESSION["register_csrf"],$submitted_token))
 	{
-		if(document.registerfrm.gender[i].checked)
+		$register_errors["general"] = "Your registration form has expired. Please refresh the page and try again.";
+	}
+	if(strlen($register_values["name"])<2 || strlen($register_values["name"])>100)
+	{
+		$register_errors["name"] = "Enter your full name using 2 to 100 characters.";
+	}
+	if(!filter_var($register_values["email"],FILTER_VALIDATE_EMAIL) || strlen($register_values["email"])>100)
+	{
+		$register_errors["email"] = "Enter a valid email address.";
+	}
+	if($register_values["confirm_email"]==="" || !hash_equals($register_values["email"],$register_values["confirm_email"]))
+	{
+		$register_errors["confirm_email"] = "Email addresses do not match.";
+	}
+	if(strlen($password)<6 || strlen($password)>72)
+	{
+		$register_errors["password"] = "Use a password containing 6 to 72 characters.";
+	}
+	if($confirm_password==="" || !hash_equals($password,$confirm_password))
+	{
+		$register_errors["confirm_password"] = "Passwords do not match.";
+	}
+	if(!preg_match("/^\d{9,15}$/",$register_values["phone"]))
+	{
+		$register_errors["phone"] = "Enter a phone number containing 9 to 15 digits.";
+	}
+	if(!in_array($register_values["gender"],array("Male","Female"),true))
+	{
+		$register_errors["gender"] = "Select your gender.";
+	}
+
+	$dob = DateTime::createFromFormat("Y-m-d",$register_values["dob"]);
+	$dob_valid = $dob && $dob->format("Y-m-d")===$register_values["dob"] && $register_values["dob"]>="1900-01-01" && $register_values["dob"]<=date("Y-m-d");
+	if(!$dob_valid)
+	{
+		$register_errors["dob"] = "Enter a valid date of birth.";
+	}
+	if(!in_array($register_values["state"],$states,true))
+	{
+		$register_errors["state"] = "Select your state.";
+	}
+	if(strlen($register_values["city"])<2 || strlen($register_values["city"])>50)
+	{
+		$register_errors["city"] = "Enter your city or town using 2 to 50 characters.";
+	}
+	if(!preg_match("/^\d{5}$/",$register_values["postcode"]))
+	{
+		$register_errors["postcode"] = "Enter a valid 5-digit postcode.";
+	}
+
+	if(!isset($register_errors["email"]))
+	{
+		$stmt = mysqli_prepare($connect,"SELECT member_id FROM member WHERE member_email=? LIMIT 1");
+		if($stmt)
 		{
-			gender=document.registerfrm.gender[i].value;
+			mysqli_stmt_bind_param($stmt,"s",$register_values["email"]);
+			mysqli_stmt_execute($stmt);
+			mysqli_stmt_store_result($stmt);
+			if(mysqli_stmt_num_rows($stmt)>0)
+			{
+				$register_errors["email"] = "This email is already registered. Log in or use another email.";
+			}
+			mysqli_stmt_close($stmt);
 		}
 	}
 
-	if(name=="")
+	if(count($register_errors)===0)
 	{
-		document.getElementById("err_name").innerHTML="Please enter your full name";
-	}
-	else
-	{
-		document.getElementById("err_name").innerHTML="";
-		name_status=true;
-	}
+		$join_date = date("Y-m-d");
+		$stmt = mysqli_prepare($connect,"INSERT INTO member(member_name,member_email,member_password,member_phone,member_gender,member_dob,member_state,member_city,member_postcode,member_joindate) VALUES(?,?,?,?,?,?,?,?,?,?)");
+		$inserted = false;
+		if($stmt)
+		{
+			mysqli_stmt_bind_param(
+				$stmt,
+				"ssssssssss",
+				$register_values["name"],
+				$register_values["email"],
+				$password,
+				$register_values["phone"],
+				$register_values["gender"],
+				$register_values["dob"],
+				$register_values["state"],
+				$register_values["city"],
+				$register_values["postcode"],
+				$join_date
+			);
+			try
+			{
+				$inserted = mysqli_stmt_execute($stmt);
+			}
+			catch(mysqli_sql_exception $exception)
+			{
+				if((int)$exception->getCode()===1062)
+				{
+					$register_errors["email"] = "This email is already registered. Log in or use another email.";
+				}
+				else
+				{
+					$register_errors["general"] = "We could not create your account right now. Please try again.";
+				}
+			}
+			mysqli_stmt_close($stmt);
+		}
 
-	if(email=="")
-	{
-		document.getElementById("err_email").innerHTML="Please enter your email";
-	}
-	else
-	{
-		document.getElementById("err_email").innerHTML="";
-		email_status=true;
-	}
-
-	if(confirm_email=="")
-	{
-		document.getElementById("err_cemail").innerHTML="Please re-enter your email";
-	}
-	else if(confirm_email!=email)
-	{
-		document.getElementById("err_cemail").innerHTML="Email does not match";
-	}
-	else
-	{
-		document.getElementById("err_cemail").innerHTML="";
-		cemail_status=true;
-	}
-
-	if(password=="")
-	{
-		document.getElementById("err_password").innerHTML="Please enter a password";
-	}
-	else if(password.length<6)
-	{
-		document.getElementById("err_password").innerHTML="Password must be at least 6 characters";
-	}
-	else
-	{
-		document.getElementById("err_password").innerHTML="";
-		password_status=true;
-	}
-
-	if(confirm_password=="")
-	{
-		document.getElementById("err_cpassword").innerHTML="Please re-enter your password";
-	}
-	else if(confirm_password!=password)
-	{
-		document.getElementById("err_cpassword").innerHTML="Password does not match";
-	}
-	else
-	{
-		document.getElementById("err_cpassword").innerHTML="";
-		cpassword_status=true;
-	}
-
-	if(phone==""||isNaN(phone))
-	{
-		document.getElementById("err_phone").innerHTML="Please enter a valid phone number";
-	}
-	else
-	{
-		document.getElementById("err_phone").innerHTML="";
-		phone_status=true;
-	}
-
-	if(gender=="")
-	{
-		document.getElementById("err_gender").innerHTML="Please select your gender";
-	}
-	else
-	{
-		document.getElementById("err_gender").innerHTML="";
-		gender_status=true;
-	}
-
-	if(dob=="")
-	{
-		document.getElementById("err_dob").innerHTML="Please select your date of birth";
-	}
-	else
-	{
-		document.getElementById("err_dob").innerHTML="";
-		dob_status=true;
-	}
-
-	if(state=="0")
-	{
-		document.getElementById("err_state").innerHTML="Please select your state";
-	}
-	else
-	{
-		document.getElementById("err_state").innerHTML="";
-		state_status=true;
-	}
-
-	if(city=="")
-	{
-		document.getElementById("err_city").innerHTML="Please enter your city";
-	}
-	else
-	{
-		document.getElementById("err_city").innerHTML="";
-		city_status=true;
-	}
-
-	if(postcode==""||isNaN(postcode))
-	{
-		document.getElementById("err_postcode").innerHTML="Please enter a valid postcode";
-	}
-	else
-	{
-		document.getElementById("err_postcode").innerHTML="";
-		postcode_status=true;
-	}
-
-	if(name_status==true&&email_status==true&&cemail_status==true&&password_status==true&&cpassword_status==true&&phone_status==true&&gender_status==true&&dob_status==true&&state_status==true&&city_status==true&&postcode_status==true)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
+		if($inserted)
+		{
+			unset($_SESSION["register_csrf"]);
+			$_SESSION["registration_success"] = "Registration successful. You can now log in to your EasyOrder account.";
+			header("location:login.php");
+			exit();
+		}
+		else if(count($register_errors)===0)
+		{
+			$register_errors["general"] = "We could not create your account right now. Please try again.";
+		}
 	}
 }
-</script>
+?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Your Account</title>
+<link rel="stylesheet" href="style.css?v=20260916-1">
 </head>
-
 <body>
 
-<div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
+<div id="header">
+<img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
 <h1>EasyOrder</h1>
 <p>Your Favourite Fast Food, Just A Few Clicks Away</p>
 </div>
 
-<div id="navbar"><!--Customer navigation bar-->
-<a href="login.php">Login</a>
+<div id="navbar">
 <a href="index.html">Home</a>
+<a href="login.php">Login</a>
 </div>
 
-<div id="main"><!--Main content section-->
-
+<main id="main">
 <h2 class="section-title">Create Your Account</h2>
-<p class="intro">Sign up for a free EasyOrder account to start ordering your favourite fast food. Fields marked with * are required.</p>
+<p class="intro">Register once to order food, save your delivery details and track your orders.</p>
 
-<div id="register-box"><!--Form section for user input-->
-<form name="registerfrm" method="post" action="" onsubmit="return register_check()">
-<fieldset>
-<legend>Registration Form</legend>
+<div class="entry-card entry-card-wide">
+<?php if(isset($register_errors["general"])) { ?>
+<p class="form-message form-message-error" role="alert"><?php echo register_h($register_errors["general"]); ?></p>
+<?php } ?>
 
-<label>Full Name *<br><span class="hint">Your full name</span></label>
-<input type="text" name="cust_name" size="30" maxlength="50" placeholder="e.g. Ali bin Ahmad">
-<br><span class="error" id="err_name"></span>
+<form method="post" action="register.php" novalidate>
+<input type="hidden" name="register_csrf" value="<?php echo register_h($_SESSION["register_csrf"]); ?>">
 
-<br><br><label>Email *<br><span class="hint">Used for login</span></label>
-<input type="email" name="cust_email" size="30" placeholder="e.g. ali@email.com">
-<br><span class="error" id="err_email"></span>
+<div class="entry-grid">
+<div class="entry-field entry-field-full">
+<label for="cust_name">Full Name *</label>
+<input type="text" id="cust_name" name="cust_name" minlength="2" maxlength="100" autocomplete="name" value="<?php echo register_h($register_values["name"]); ?>" placeholder="e.g. Ali bin Ahmad" required>
+<?php if(isset($register_errors["name"])) { ?><span class="field-error"><?php echo register_h($register_errors["name"]); ?></span><?php } ?>
+</div>
 
-<br><br><label>Confirm Email *<br><span class="hint">Re-enter your email</span></label>
-<input type="email" name="cust_confirm_email" size="30">
-<br><span class="error" id="err_cemail"></span>
+<div class="entry-field">
+<label for="cust_email">Email *</label>
+<input type="email" id="cust_email" name="cust_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["email"]); ?>" placeholder="e.g. customer@email.com" required>
+<?php if(isset($register_errors["email"])) { ?><span class="field-error"><?php echo register_h($register_errors["email"]); ?></span><?php } ?>
+</div>
 
-<br><br><label>Password *<br><span class="hint">At least 6 characters</span></label>
-<input type="password" name="cust_password">
-<br><span class="error" id="err_password"></span>
+<div class="entry-field">
+<label for="cust_confirm_email">Confirm Email *</label>
+<input type="email" id="cust_confirm_email" name="cust_confirm_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["confirm_email"]); ?>" required>
+<?php if(isset($register_errors["confirm_email"])) { ?><span class="field-error"><?php echo register_h($register_errors["confirm_email"]); ?></span><?php } ?>
+</div>
 
-<br><br><label>Confirm Password *<br><span class="hint">Re-enter your password</span></label>
-<input type="password" name="cust_confirm_password">
-<br><span class="error" id="err_cpassword"></span>
+<div class="entry-field">
+<label for="cust_password">Password *</label>
+<input type="password" id="cust_password" name="cust_password" minlength="6" maxlength="72" autocomplete="new-password" required>
+<small>Use 6 to 72 characters.</small>
+<?php if(isset($register_errors["password"])) { ?><span class="field-error"><?php echo register_h($register_errors["password"]); ?></span><?php } ?>
+</div>
 
-<br><br><label>Phone Number *<br><span class="hint">Digits only</span></label>
-<input type="text" name="cust_phone" size="30" placeholder="e.g. 0123456789">
-<br><span class="error" id="err_phone"></span>
+<div class="entry-field">
+<label for="cust_confirm_password">Confirm Password *</label>
+<input type="password" id="cust_confirm_password" name="cust_confirm_password" minlength="6" maxlength="72" autocomplete="new-password" required>
+<?php if(isset($register_errors["confirm_password"])) { ?><span class="field-error"><?php echo register_h($register_errors["confirm_password"]); ?></span><?php } ?>
+</div>
 
-<br><br><label>Gender *</label>
-<input type="radio" name="gender" value="Male">Male
-<input type="radio" name="gender" value="Female">Female
-<br><span class="error" id="err_gender"></span>
+<div class="entry-field">
+<label for="cust_phone">Phone Number *</label>
+<input type="text" id="cust_phone" name="cust_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" autocomplete="tel" value="<?php echo register_h($register_values["phone"]); ?>" placeholder="e.g. 0123456789" required>
+<?php if(isset($register_errors["phone"])) { ?><span class="field-error"><?php echo register_h($register_errors["phone"]); ?></span><?php } ?>
+</div>
 
-<br><br><label>Date of Birth *</label>
-<input type="date" name="cust_dob" max="2008-12-31">
-<br><span class="error" id="err_dob"></span>
-
-<br><br><label>State *</label>
-<select name="state">
-<option value="0">Select your state</option>
-<option value="Johor">Johor</option>
-<option value="Kedah">Kedah</option>
-<option value="Kelantan">Kelantan</option>
-<option value="Melaka">Melaka</option>
-<option value="Negeri Sembilan">Negeri Sembilan</option>
-<option value="Pahang">Pahang</option>
-<option value="Perak">Perak</option>
-<option value="Perlis">Perlis</option>
-<option value="Pulau Pinang">Pulau Pinang</option>
-<option value="Sabah">Sabah</option>
-<option value="Sarawak">Sarawak</option>
-<option value="Selangor">Selangor</option>
-<option value="Terengganu">Terengganu</option>
-<option value="Kuala Lumpur">Kuala Lumpur</option>
-<option value="Labuan">Labuan</option>
-<option value="Putrajaya">Putrajaya</option>
-</select>
-<br><span class="error" id="err_state"></span>
-
-<br><br><label>City *<br><span class="hint">Your city or town</span></label>
-<input type="text" name="cust_city" size="30" placeholder="e.g. Muar">
-<br><span class="error" id="err_city"></span>
-
-<br><br><label>Postcode *<br><span class="hint">5-digit postcode</span></label>
-<input type="text" name="cust_postcode" size="30" maxlength="5" placeholder="e.g. 84000">
-<br><span class="error" id="err_postcode"></span>
-
-<div style="clear:both"></div>
-
-<p style="text-align:center;">
-<input type="submit" name="signupbtn" value="Sign Up">
-<input type="reset" name="clearbtn" value="Clear">
-</p>
-
+<fieldset class="entry-choice-group">
+<legend>Gender *</legend>
+<label><input type="radio" name="gender" value="Male" <?php if($register_values["gender"]==="Male") echo "checked"; ?>> Male</label>
+<label><input type="radio" name="gender" value="Female" <?php if($register_values["gender"]==="Female") echo "checked"; ?>> Female</label>
+<?php if(isset($register_errors["gender"])) { ?><span class="field-error"><?php echo register_h($register_errors["gender"]); ?></span><?php } ?>
 </fieldset>
+
+<div class="entry-field">
+<label for="cust_dob">Date of Birth *</label>
+<input type="date" id="cust_dob" name="cust_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>" autocomplete="bday" value="<?php echo register_h($register_values["dob"]); ?>" required>
+<?php if(isset($register_errors["dob"])) { ?><span class="field-error"><?php echo register_h($register_errors["dob"]); ?></span><?php } ?>
+</div>
+
+<div class="entry-field">
+<label for="state">State *</label>
+<select id="state" name="state" autocomplete="address-level1" required>
+<option value="">Select your state</option>
+<?php foreach($states as $state_name) { ?>
+<option value="<?php echo register_h($state_name); ?>" <?php if($register_values["state"]===$state_name) echo "selected"; ?>><?php echo register_h($state_name); ?></option>
+<?php } ?>
+</select>
+<?php if(isset($register_errors["state"])) { ?><span class="field-error"><?php echo register_h($register_errors["state"]); ?></span><?php } ?>
+</div>
+
+<div class="entry-field">
+<label for="cust_city">City *</label>
+<input type="text" id="cust_city" name="cust_city" minlength="2" maxlength="50" autocomplete="address-level2" value="<?php echo register_h($register_values["city"]); ?>" placeholder="e.g. Muar" required>
+<?php if(isset($register_errors["city"])) { ?><span class="field-error"><?php echo register_h($register_errors["city"]); ?></span><?php } ?>
+</div>
+
+<div class="entry-field">
+<label for="cust_postcode">Postcode *</label>
+<input type="text" id="cust_postcode" name="cust_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5" autocomplete="postal-code" value="<?php echo register_h($register_values["postcode"]); ?>" placeholder="e.g. 84000" required>
+<?php if(isset($register_errors["postcode"])) { ?><span class="field-error"><?php echo register_h($register_errors["postcode"]); ?></span><?php } ?>
+</div>
+</div>
+
+<div class="entry-actions">
+<input type="submit" name="signupbtn" value="Create Account">
+<input type="reset" value="Clear Form">
+</div>
 </form>
 </div>
 
-<p class="login-note">Already have an account? <a href="login.php">Login here</a>.</p>
+<p class="login-note">Already have an account? <a href="login.php">Log in here</a>.</p>
+</main>
 
-</div>
-
-<footer><!--Footer section-->
+<footer>
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
 
 </body>
-
 </html>
-
-<?php
-
-//save the new member into the database when the form is submitted
-if(isset($_POST["signupbtn"]))
-{
-	//escape submitted text before it is placed in an SQL string. This keeps
-	//ordinary characters such as apostrophes and backslashes as part of the value.
-	$name = mysqli_real_escape_string($connect,$_POST["cust_name"]);
-	$email = mysqli_real_escape_string($connect,$_POST["cust_email"]);
-	$password = mysqli_real_escape_string($connect,$_POST["cust_password"]);
-	$phone = mysqli_real_escape_string($connect,$_POST["cust_phone"]);
-	$gender = mysqli_real_escape_string($connect,$_POST["gender"]);
-	$dob = mysqli_real_escape_string($connect,$_POST["cust_dob"]);
-	$state = mysqli_real_escape_string($connect,$_POST["state"]);
-	$city = mysqli_real_escape_string($connect,$_POST["cust_city"]);
-	$postcode = mysqli_real_escape_string($connect,$_POST["cust_postcode"]);
-	$joindate = date("Y-m-d");//join date is set to today automatically
-
-	//check the email is not already registered
-	$check = mysqli_query($connect,"SELECT * FROM member WHERE member_email='$email'");
-	$count = mysqli_num_rows($check);
-
-	if($count != 0)
-	{
-		?>
-		<script>
-		alert("This email is already registered. Please use another email or login.");
-		</script>
-		<?php
-	}
-	else
-	{
-		mysqli_query($connect,"INSERT INTO member(member_name,member_email,member_password,member_phone,member_gender,member_dob,member_state,member_city,member_postcode,member_joindate)VALUES('$name','$email','$password','$phone','$gender','$dob','$state','$city','$postcode','$joindate')");
-		?>
-		<script>
-		alert("Registration successful! Welcome to EasyOrder. You may now login.");
-		window.location="login.php";
-		</script>
-		<?php
-	}
-}
-
-?>

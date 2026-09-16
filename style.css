@@ -27,6 +27,10 @@ margin:0px;}
 #navbar
 {background-color:#9E0B22;
 text-align:center;
+display:flex;
+justify-content:center;
+align-items:center;
+flex-wrap:wrap;
 padding:10px 0px 10px 0px;}
 
 #navbar a
@@ -51,7 +55,10 @@ padding:10px 0px 20px 0px;}
 padding:20px 0px 10px 0px;}
 
 #hero img
-{border-radius:8px;}
+{display:block;
+width:100%;
+height:auto;
+border-radius:8px;}
 
 #hero h2
 {color:#C8102E;
@@ -276,6 +283,11 @@ color:#8A071C;}
 border:1px solid #FFC72C;
 color:#6B4700;}
 
+.form-message-success
+{background-color:#E8F5E9;
+border:1px solid #4CAF50;
+color:#1B5E20;}
+
 .recovery-actions
 {display:flex;
 justify-content:center;
@@ -323,15 +335,184 @@ line-height:1.5;
 text-align:center;
 margin:20px 0px 0px 0px;}
 
-@media(max-width:600px)
+.home-cta
+{display:inline-block;
+margin-top:4px;}
+
+.home-card-grid
+{display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:18px;
+margin:20px 0px 30px 0px;}
+
+.home-info-card
+{background-color:#FFFFFF;
+border:1px solid #EEEEEE;
+border-radius:8px;
+box-shadow:2px 2px 5px #CCCCCC;
+padding:18px;
+text-align:center;}
+
+.home-info-card h3
+{color:#9E0B22;
+margin:0px 0px 8px 0px;}
+
+.home-info-card p
+{color:#555555;
+line-height:1.5;
+margin:0px;}
+
+.home-steps
+{display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:18px;
+padding:0px;
+margin:20px 0px;
+counter-reset:easyorder-step;
+list-style:none;}
+
+.home-steps li
+{background-color:#FFFFFF;
+border-left:5px solid #FF7A00;
+border-radius:6px;
+box-shadow:2px 2px 5px #CCCCCC;
+padding:18px;
+counter-increment:easyorder-step;}
+
+.home-steps li::before
+{content:counter(easyorder-step);
+display:inline-block;
+background-color:#C8102E;
+color:#FFFFFF;
+font-weight:bold;
+width:28px;
+height:28px;
+line-height:28px;
+border-radius:50%;
+text-align:center;
+margin-right:8px;}
+
+.home-steps strong
+{color:#9E0B22;}
+
+.home-steps span
+{display:block;
+color:#555555;
+line-height:1.5;
+margin-top:10px;}
+
+.footer-links
+{display:flex;
+justify-content:center;
+gap:18px;
+flex-wrap:wrap;
+margin-bottom:12px;}
+
+.entry-card
+{box-sizing:border-box;
+margin:auto;
+background-color:#FFFFFF;
+border:2px solid #C8102E;
+border-radius:8px;
+box-shadow:2px 2px 5px #CCCCCC;
+padding:24px 28px;}
+
+.entry-card-narrow
+{width:460px;}
+
+.entry-card-wide
+{width:760px;}
+
+.entry-grid
+{display:grid;
+grid-template-columns:1fr 1fr;
+gap:18px 22px;}
+
+.entry-field
+{display:flex;
+flex-direction:column;}
+
+.entry-field-full
+{grid-column:1 / -1;}
+
+.entry-field label,
+.entry-choice-group legend
+{color:#9E0B22;
+font-weight:bold;
+font-size:0.9em;
+margin-bottom:6px;}
+
+.entry-field input,
+.entry-field select
+{width:100%;
+box-sizing:border-box;}
+
+.entry-field select
+{border:1px solid #CCCCCC;
+border-radius:4px;
+padding:8px 10px;
+background-color:#FFFFFF;}
+
+.entry-field small
+{color:#777777;
+font-size:0.76em;
+margin-top:5px;}
+
+.entry-choice-group
+{box-sizing:border-box;
+border:1px solid #DDDDDD;
+border-radius:5px;
+padding:10px 12px;}
+
+.entry-choice-group label
+{display:inline-block;
+margin-right:18px;}
+
+.entry-actions
+{display:flex;
+justify-content:center;
+align-items:center;
+gap:18px;
+flex-wrap:wrap;
+margin-top:24px;}
+
+.forgot-password-link
+{align-self:flex-end;
+color:#9E0B22;
+font-size:0.82em;
+font-weight:bold;
+margin-top:8px;}
+
+@media(max-width:800px)
 {
 	#main
 	{width:94%;}
 
+	.entry-card,
 	.recovery-card
 	{width:100%;
 	padding:20px;}
 
+	.home-card-grid,
+	.home-steps
+	{grid-template-columns:1fr;}
+}
+
+@media(max-width:600px)
+{
+	#header
+	{padding:14px 10px;}
+
+	#navbar a
+	{padding:9px 10px;}
+
+	.entry-grid
+	{grid-template-columns:1fr;}
+
+	.entry-field-full
+	{grid-column:1;}
+
+	.entry-actions,
 	.recovery-actions
 	{flex-direction:column;}
 }
