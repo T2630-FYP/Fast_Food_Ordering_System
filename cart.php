@@ -7,6 +7,7 @@ if(!isset($_SESSION["member_id"]))
 	exit();
 }
 include("dataconnection.php");
+require_once("product_catalog_helpers.php");
 
 $mid = $_SESSION["member_id"];
 
@@ -118,6 +119,7 @@ if($cart_action!="")
 					mysqli_stmt_bind_param($stmt,"isi",$mid,$pid,$newqty);
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_close($stmt);
+					$_SESSION["cart_notice"] = $prow["product_name"]." has been added to your cart.";
 				}
 			}
 		}
@@ -165,6 +167,10 @@ if($cart_action!="")
 				mysqli_stmt_bind_param($stmt,"isi",$mid,$pid,$qty);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
+				if(!isset($_SESSION["cart_error"]))
+				{
+					$_SESSION["cart_notice"] = $prow["product_name"]." quantity has been updated.";
+				}
 			}
 		}
 		else if($cart_action=="remove")
@@ -179,6 +185,7 @@ if($cart_action!="")
 			mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
+			$_SESSION["cart_notice"] = "The selected item has been removed from your cart.";
 		}
 		else if($cart_action=="clear")
 		{
@@ -238,6 +245,7 @@ if($cart_action!="")
 			mysqli_stmt_bind_param($stmt,"i",$mid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
+			$_SESSION["cart_notice"] = "Your cart has been cleared.";
 		}
 		else if($cart_action=="remove_reward")
 		{
@@ -280,6 +288,7 @@ if($cart_action!="")
 				mysqli_stmt_bind_param($stmt,"ii",$redeem_id,$mid);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
+				$_SESSION["cart_notice"] = "The reward has been removed and its points have been returned.";
 			}
 		}
 
@@ -326,15 +335,17 @@ while($cart_row = mysqli_fetch_assoc($cart_result))
 }
 mysqli_stmt_close($stmt);
 
-//remove any saved cart items whose product is missing, deleted or no longer active
+//remove unavailable saved items and adjust quantities when stock has dropped
 $removed_items = array();
+$stock_adjustments = array();
 foreach($cart as $pid => $qty)
 {
-	$stmt = mysqli_prepare($connect,"SELECT product_name,product_price,product_stock FROM product WHERE product_id=? AND product_isDelete=0 AND product_status='Active'");
+	$stmt = mysqli_prepare($connect,"SELECT product_name,product_desc,product_category,product_price,product_stock,product_status FROM product WHERE product_id=? AND product_isDelete=0 AND product_status='Active'");
 	mysqli_stmt_bind_param($stmt,"s",$pid);
 	mysqli_stmt_execute($stmt);
 	$avail = mysqli_stmt_get_result($stmt);
-	if(mysqli_num_rows($avail) == 0)
+	$product_row = mysqli_fetch_assoc($avail);
+	if(!$product_row || (int)$product_row["product_stock"]<=0 || $qty<=0)
 	{
 		mysqli_stmt_close($stmt);
 		//keep the product name (if the record still exists) for the message, then drop it from the cart
@@ -360,53 +371,77 @@ foreach($cart as $pid => $qty)
 	}
 	else
 	{
-		$cart_products[$pid] = mysqli_fetch_assoc($avail);
 		mysqli_stmt_close($stmt);
+		$latest_stock = (int)$product_row["product_stock"];
+		if($qty>$latest_stock)
+		{
+			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+			mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
+			mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+			$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_member,cart_product,cart_qty) VALUES(?,?,?)");
+			mysqli_stmt_bind_param($stmt,"isi",$mid,$pid,$latest_stock);
+			mysqli_stmt_execute($stmt);
+			mysqli_stmt_close($stmt);
+
+			$cart[$pid] = $latest_stock;
+			$stock_adjustments[] = $product_row["product_name"]." was adjusted to ".$latest_stock." because the available stock changed.";
+		}
+		$cart_products[$pid] = $product_row;
 	}
 }
+
+//prepare the complete cart summary before rendering the page
+$has_normal = count($cart)>0;
+$reward_count = 0;
+$reward_result = false;
+if($redemption_ready)
+{
+	$stmt = mysqli_prepare($connect,"SELECT r.*,p.product_name FROM redemption r LEFT JOIN product p ON p.product_id=r.redeem_product WHERE r.redeem_member=? AND r.redeem_status='Cart' ORDER BY r.redeem_date DESC,r.redeem_id DESC");
+	mysqli_stmt_bind_param($stmt,"i",$mid);
+	mysqli_stmt_execute($stmt);
+	$reward_result = mysqli_stmt_get_result($stmt);
+	$reward_count = mysqli_num_rows($reward_result);
+	mysqli_stmt_close($stmt);
+}
+$has_reward = $reward_count>0;
+
+$cart_total = 0;
+$normal_item_count = 0;
+foreach($cart as $pid => $qty)
+{
+	if(isset($cart_products[$pid]))
+	{
+		$cart_total = $cart_total + ((float)$cart_products[$pid]["product_price"] * $qty);
+		$normal_item_count = $normal_item_count + $qty;
+	}
+}
+$cart_item_count = $normal_item_count + $reward_count;
+$clear_confirm = $has_reward ? "Clear your entire cart? All items and redeemed rewards will be removed, and your reward points will be returned to your account." : "Clear your entire cart?";
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
-<head><!--Shopping cart page-->
-<title>Cart</title>
-<link rel="stylesheet" href="style.css">
-
-<style>
-.reward-label
-{background-color:#FF7A00;
-color:#FFFFFF;
-font-weight:bold;
-font-size:8pt;
-border-radius:10px;
-padding:2px 8px 2px 8px;
-margin-left:6px;}
-
-tr.reward-item
-{background-color:#FFF3E6;}
-
-.free-price
-{color:#2E7D32;
-font-weight:bold;}
-
-.stock-note
-{font-size:8pt;
-color:#888888;}
-</style>
-
+<head><!--Database-backed shopping cart page-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Shopping Cart</title>
+<link rel="stylesheet" href="style.css?v=20260921-1">
 </head>
 
 <body>
 
 <div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
+<img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
 <h1>EasyOrder</h1>
 <p>Your Favourite Fast Food, Just A Few Clicks Away</p>
 </div>
 
 <div id="navbar"><!--Customer navigation bar-->
 <a href="category.php">Menu</a>
+<a href="cart.php">Cart</a>
 <a href="dashboard.php">My Dashboard</a>
 <a href="order_history.php">Order History</a>
 <a href="reward.php">Rewards</a>
@@ -416,175 +451,162 @@ color:#888888;}
 <a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
 </div>
 
-<div id="main"><!--Main content section-->
+<main id="main"><!--Main content section-->
 
+<div class="cart-page-heading">
+<div>
 <h2 class="section-title">Your Shopping Cart</h2>
-<p class="intro">Review the items in your cart below. You can change the quantity or remove items before checking out. Your cart is saved to your account, so it will still be here the next time you log in. Redeemed rewards appear here as free items.</p>
-
-<?php
-//if an add/update attempt produced a message (item not available, or stock limit reached), show it
-if(isset($cart_error))
-{
-?>
-<p class="msg"><?php echo htmlspecialchars($cart_error,ENT_QUOTES,"ISO-8859-1"); ?></p>
-<?php
-}
-?>
-
-<?php
-if(isset($cart_notice))
-{
-?>
-<p class="msg"><?php echo htmlspecialchars($cart_notice,ENT_QUOTES,"ISO-8859-1"); ?></p>
-<?php
-}
-?>
-
-<?php
-//let the member know if any unavailable items were removed from their cart
-if(count($removed_items) > 0)
-{
-?>
-<p class="msg">The following items are no longer available and have been removed from your cart: <?php echo implode(", ",$removed_items); ?>.</p>
-<?php
-}
-?>
-
-<?php
-//work out what is in the cart: normal items (database) and reward items (redemption table)
-$has_normal = count($cart) > 0;
-
-$reward_count = 0;
-if($redemption_ready)
-{
-	$stmt = mysqli_prepare($connect,"SELECT * FROM redemption WHERE redeem_member=? AND redeem_status='Cart' ORDER BY redeem_date DESC");
-	mysqli_stmt_bind_param($stmt,"i",$mid);
-	mysqli_stmt_execute($stmt);
-	$reward_result = mysqli_stmt_get_result($stmt);
-	$reward_count = mysqli_num_rows($reward_result);
-}
-$has_reward = $reward_count>0;
-
-//show the cart only if it has something in it (a normal item or a reward item)
-if($has_normal || $has_reward)
-{
-?>
-
-<table class="menu-table" width="100%" border="1"><!--Table section for displaying the cart items-->
-<tr>
-<th>Item</th>
-<th>Unit Price</th>
-<th>Quantity</th>
-<th>Subtotal</th>
-<th>Action</th>
-</tr>
-
-<?php
-$cart_total = 0;
-
-//----- normal items (from the saved cart in the database) -----
-if($has_normal)
-{
-	foreach($cart as $pid => $qty)
-	{
-		//safety check: skip anything the cleanup above did not already handle
-		if(!isset($cart_products[$pid]))
-		{
-			continue;
-		}
-
-		$row = $cart_products[$pid];
-		$pname = $row["product_name"];
-		$pprice = $row["product_price"];
-		$pstock = $row["product_stock"];
-		$subtotal = $pprice * $qty;
-		$cart_total = $cart_total + $subtotal;
-?>
-
-<tr>
-<td><?php echo $pname; ?></td>
-<td align="center">RM <?php echo number_format($pprice,2); ?></td>
-<td align="center">
-<form method="post" action="cart.php" style="display:inline;">
-<input type="hidden" name="product_id" value="<?php echo htmlspecialchars($pid,ENT_QUOTES,"ISO-8859-1"); ?>">
-<input type="number" name="qty" class="qty" min="1" max="<?php echo $pstock; ?>" value="<?php echo $qty; ?>">
-<input type="submit" name="updatebtn" value="Update">
-<br><span class="stock-note">Stock available: <?php echo $pstock; ?></span>
-</form>
-</td>
-<td align="center">RM <?php echo number_format($subtotal,2); ?></td>
-<td align="center">
-<form method="post" action="cart.php" style="display:inline;">
-<input type="hidden" name="product_id" value="<?php echo htmlspecialchars($pid,ENT_QUOTES,"ISO-8859-1"); ?>">
-<input class="btn-small" type="submit" name="removebtn" value="Remove">
-</form>
-</td>
-</tr>
-
-<?php
-	}
-}
-?>
-
-<?php
-//----- reward items (redeemed rewards waiting in the cart) -----
-if($has_reward)
-{
-	while($rrow = mysqli_fetch_assoc($reward_result))
-	{
-		$rd_id = $rrow["redeem_id"];
-		$rd_name = $rrow["redeem_reward"];
-?>
-
-<tr class="reward-item">
-<td><b><?php echo $rd_name; ?></b><span class="reward-label">FREE REWARD</span></td>
-<td align="center"><span class="free-price">FREE</span></td>
-<td align="center">1</td>
-<td align="center"><span class="free-price">RM 0.00</span></td>
-<td align="center">
-<form method="post" action="cart.php" style="display:inline;" onsubmit="return confirm('Remove this reward from your cart? Your points will be returned to your account.')">
-<input type="hidden" name="redeem_id" value="<?php echo (int)$rd_id; ?>">
-<input class="btn-small" type="submit" name="remove_rewardbtn" value="Remove">
-</form>
-</td>
-</tr>
-
-<?php
-	}
-}
-?>
-
-<tr>
-<td colspan="3" align="right"><b>Total</b></td>
-<td align="center"><span class="price">RM <?php echo number_format($cart_total,2); ?></span></td>
-<td align="center">
-<?php
-//if the cart holds any reward items, warn that their points will be returned
-$clear_confirm = $has_reward ? "Clear your entire cart? All items and redeemed rewards will be removed, and your reward points will be returned to your account." : "Clear your entire cart?";
-?>
-<form method="post" action="cart.php" style="display:inline;" onsubmit="return confirm('<?php echo $clear_confirm; ?>')">
-<input class="btn-small" type="submit" name="clearbtn" value="Clear">
-</form>
-</td>
-</tr>
-
-</table>
-
-<p style="text-align:center;"><a class="btn" href="category.php">Continue Shopping</a> &nbsp; <a class="btn" href="checkout.php">Proceed to Checkout</a></p>
-
-<?php
-}
-else
-{
-?>
-
-<p class="intro" style="text-align:center;">Your cart is empty. <a href="category.php">Start shopping</a> to add some items.</p>
-
-<?php
-}
-?>
-
+<p class="intro">Review your items, update quantities and check the order total before checkout.</p>
 </div>
+</div>
+
+<?php if(isset($cart_error)) { ?>
+<div class="form-message form-message-error cart-message" role="alert"><?php echo catalog_h($cart_error); ?></div>
+<?php } ?>
+
+<?php if(isset($cart_notice)) { ?>
+<div class="form-message form-message-success cart-message" role="status"><?php echo catalog_h($cart_notice); ?></div>
+<?php } ?>
+
+<?php if(count($removed_items)>0) { ?>
+<div class="form-message form-message-error cart-message" role="alert">Unavailable items were removed from your cart: <?php echo implode(", ",array_map("catalog_h",$removed_items)); ?>.</div>
+<?php } ?>
+
+<?php if(count($stock_adjustments)>0) { ?>
+<div class="form-message form-message-info cart-message" role="status"><?php echo implode(" ",array_map("catalog_h",$stock_adjustments)); ?></div>
+<?php } ?>
+
+<?php if($has_normal || $has_reward) { ?>
+<section class="cart-layout" aria-label="Shopping cart">
+<div class="cart-items-panel">
+<div class="cart-panel-header">
+<div>
+<h3>Cart Items</h3>
+<p><?php echo $cart_item_count; ?> item<?php echo $cart_item_count===1 ? "" : "s"; ?> in your cart</p>
+</div>
+<form class="cart-clear-form" method="post" action="cart.php" onsubmit="return confirm('<?php echo catalog_h($clear_confirm); ?>')">
+<input type="submit" name="clearbtn" value="Clear Cart">
+</form>
+</div>
+
+<?php if($has_normal) { ?>
+<?php foreach($cart as $pid => $qty) { ?>
+<?php
+if(!isset($cart_products[$pid]))
+{
+	continue;
+}
+$row = $cart_products[$pid];
+$pname = $row["product_name"];
+$pprice = (float)$row["product_price"];
+$pstock = (int)$row["product_stock"];
+$subtotal = $pprice * $qty;
+?>
+<article class="cart-item-card">
+<a class="cart-item-image" href="product.php?id=<?php echo rawurlencode($pid); ?>">
+<img src="<?php echo catalog_h(catalog_product_image($pname)); ?>" alt="<?php echo catalog_h($pname); ?>">
+</a>
+<div class="cart-item-content">
+<div class="cart-item-top">
+<div>
+<p class="cart-item-category"><?php echo catalog_h($row["product_category"]); ?></p>
+<h3><a href="product.php?id=<?php echo rawurlencode($pid); ?>"><?php echo catalog_h($pname); ?></a></h3>
+</div>
+<div class="cart-item-pricing">
+<span>Subtotal</span>
+<strong>RM <?php echo number_format($subtotal,2); ?></strong>
+</div>
+</div>
+<p class="cart-item-description"><?php echo catalog_h($row["product_desc"]); ?></p>
+<p class="cart-item-stock"><span class="catalog-status catalog-status-in">In Stock</span> <?php echo $pstock; ?> available &middot; RM <?php echo number_format($pprice,2); ?> each</p>
+<div class="cart-item-actions">
+<form class="cart-quantity-form" method="post" action="cart.php">
+<input type="hidden" name="product_id" value="<?php echo catalog_h($pid); ?>">
+<label for="qty-<?php echo catalog_h($pid); ?>">Quantity</label>
+<input id="qty-<?php echo catalog_h($pid); ?>" type="number" name="qty" min="1" max="<?php echo $pstock; ?>" value="<?php echo $qty; ?>" required>
+<input type="submit" name="updatebtn" value="Update">
+</form>
+<form class="cart-remove-form" method="post" action="cart.php" onsubmit="return confirm('Remove this item from your cart?')">
+<input type="hidden" name="product_id" value="<?php echo catalog_h($pid); ?>">
+<input type="submit" name="removebtn" value="Remove">
+</form>
+</div>
+</div>
+</article>
+<?php } ?>
+<?php } ?>
+
+<?php if($has_reward) { ?>
+<?php while($rrow = mysqli_fetch_assoc($reward_result)) { ?>
+<?php
+$rd_id = (int)$rrow["redeem_id"];
+$rd_name = $rrow["redeem_reward"];
+$rd_product_name = $rrow["product_name"] ?: $rd_name;
+?>
+<article class="cart-item-card cart-reward-card">
+<div class="cart-item-image">
+<img src="<?php echo catalog_h(catalog_product_image($rd_product_name)); ?>" alt="<?php echo catalog_h($rd_name); ?>">
+</div>
+<div class="cart-item-content">
+<div class="cart-item-top">
+<div>
+<p class="cart-item-category">EasyOrder Reward</p>
+<h3><?php echo catalog_h($rd_name); ?> <span class="cart-reward-label">FREE REWARD</span></h3>
+</div>
+<div class="cart-item-pricing cart-free-price">
+<span>Subtotal</span>
+<strong>RM 0.00</strong>
+</div>
+</div>
+<p class="cart-item-description">Redeemed using <?php echo (int)$rrow["redeem_points"]; ?> reward points. Quantity: 1.</p>
+<div class="cart-item-actions cart-reward-actions">
+<span class="cart-reward-note">Removing this reward returns the points to your account.</span>
+<form class="cart-remove-form" method="post" action="cart.php" onsubmit="return confirm('Remove this reward from your cart? Your points will be returned to your account.')">
+<input type="hidden" name="redeem_id" value="<?php echo $rd_id; ?>">
+<input type="submit" name="remove_rewardbtn" value="Remove">
+</form>
+</div>
+</div>
+</article>
+<?php } ?>
+<?php } ?>
+</div>
+
+<aside class="cart-summary-card" aria-label="Order summary">
+<h3>Order Summary</h3>
+<div class="cart-summary-row">
+<span>Items</span>
+<strong><?php echo $cart_item_count; ?></strong>
+</div>
+<div class="cart-summary-row">
+<span>Merchandise subtotal</span>
+<strong>RM <?php echo number_format($cart_total,2); ?></strong>
+</div>
+<?php if($has_reward) { ?>
+<div class="cart-summary-row cart-summary-reward">
+<span>Reward items</span>
+<strong>FREE</strong>
+</div>
+<?php } ?>
+<div class="cart-summary-total">
+<span>Total</span>
+<strong>RM <?php echo number_format($cart_total,2); ?></strong>
+</div>
+<p class="cart-summary-note">Delivery options and any applicable delivery fee will be confirmed during checkout.</p>
+<a class="cart-checkout-button" href="checkout.php">Proceed to Checkout</a>
+<a class="cart-continue-link" href="category.php">Continue Shopping</a>
+</aside>
+</section>
+<?php } else { ?>
+<section class="cart-empty-state">
+<div class="cart-empty-icon" aria-hidden="true">&#128722;</div>
+<h3>Your cart is empty</h3>
+<p>Browse the EasyOrder menu and add your favourite food to begin an order.</p>
+<a class="btn" href="category.php">Browse Menu</a>
+</section>
+<?php } ?>
+
+</main>
 
 <footer><!--Footer section-->
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
