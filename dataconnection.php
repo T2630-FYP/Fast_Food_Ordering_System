@@ -8,6 +8,13 @@ if(session_status() == PHP_SESSION_NONE)
 
 $connect = mysqli_connect("localhost","root","","easyorder");
 
+// Keep PHP and MariaDB order timestamps in Malaysian local time.
+date_default_timezone_set("Asia/Kuala_Lumpur");
+if($connect)
+{
+	mysqli_query($connect,"SET time_zone = '+08:00'");
+}
+
 //Compare the submitted customer password with the plain-text value stored in
 //the member table. This mirrors the password-storage format requested for the
 //FYP demonstration database.
