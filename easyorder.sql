@@ -140,9 +140,10 @@ CREATE TABLE `password_reset` (
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
   `order_member` int(11) NOT NULL,
-  `order_date` date NOT NULL,
+  `order_date` datetime NOT NULL,
   `order_total` decimal(7,2) NOT NULL,
   `order_payment` varchar(20) NOT NULL,
+  `order_payment_status` varchar(20) NOT NULL DEFAULT 'Pending',
   `order_delivery` varchar(5) NOT NULL,
   `order_address` varchar(255) NOT NULL,
   `order_status` varchar(20) NOT NULL,
@@ -153,12 +154,12 @@ CREATE TABLE `orders` (
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `order_member`, `order_date`, `order_total`, `order_payment`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`) VALUES
-(1, 1, '2026-05-20', 26.20, 'Online Banking', 'No', '', 'Delivered', 0),
-(2, 2, '2026-05-21', 23.30, 'Credit Card', 'No', '', 'Preparing', 0),
-(3, 3, '2026-05-22', 39.20, 'Cash on Delivery', 'Yes', 'No. 12, Jalan Mawar, Taman Pelangi, Johor Bahru', 'Preparing', 0),
-(4, 4, '2026-05-22', 18.80, 'E-Wallet', 'No', '', 'Out for Delivery', 0),
-(5, 1, '2026-05-23', 32.30, 'Credit Card', 'No', '', 'Picked Up', 0);
+INSERT INTO `orders` (`order_id`, `order_member`, `order_date`, `order_total`, `order_payment`, `order_payment_status`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`) VALUES
+(1, 1, '2026-05-20 00:00:00', 26.20, 'Online Banking', 'Pending', 'No', '', 'Delivered', 0),
+(2, 2, '2026-05-21 00:00:00', 23.30, 'Credit Card', 'Pending', 'No', '', 'Preparing', 0),
+(3, 3, '2026-05-22 00:00:00', 39.20, 'Cash on Delivery', 'Unpaid', 'Yes', 'No. 12, Jalan Mawar, Taman Pelangi, Johor Bahru', 'Preparing', 0),
+(4, 4, '2026-05-22 00:00:00', 18.80, 'E-Wallet', 'Pending', 'No', '', 'Out for Delivery', 0),
+(5, 1, '2026-05-23 00:00:00', 32.30, 'Credit Card', 'Pending', 'No', '', 'Picked Up', 0);
 
 -- --------------------------------------------------------
 
