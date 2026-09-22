@@ -71,7 +71,7 @@ if($connect)
 
 	$current_page = basename($_SERVER["PHP_SELF"] ?? "");
 	$admin_page = substr($current_page,0,6) == "admin_";
-	$member_pages = array("dashboard.php","change_password.php","cart.php","checkout.php","payment.php","order_history.php","review.php","reward.php","view_review.php");
+	$member_pages = array("dashboard.php","change_password.php","cart.php","checkout.php","payment.php","order_history.php","order_details.php","review.php","reward.php","view_review.php");
 
 	if($invalid_member)
 	{

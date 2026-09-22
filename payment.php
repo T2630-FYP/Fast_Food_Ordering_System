@@ -291,7 +291,7 @@ if($payment_available)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Card Payment</title>
-<link rel="stylesheet" href="style.css?v=20260922-1">
+<link rel="stylesheet" href="style.css?v=20260922-2">
 </head>
 
 <body>
@@ -334,8 +334,8 @@ if($payment_available)
 </dl>
 
 <div class="payment-success-actions">
-<a class="payment-primary-link" href="order_history.php">View Order History</a>
-<a class="payment-secondary-link" href="review.php">Leave a Review</a>
+<a class="payment-primary-link" href="order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>">View Order Details</a>
+<a class="payment-secondary-link" href="order_history.php">View Order History</a>
 </div>
 </section>
 

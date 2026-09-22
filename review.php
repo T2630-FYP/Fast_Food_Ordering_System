@@ -32,7 +32,7 @@ if(mysqli_num_rows($order_result)>0)
 
 <head><!--Customer comments and rating page-->
 <title>Review</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=20260922-2">
 
 <script>
 function submit_review()//Validate customer rating and comment form
@@ -90,9 +90,13 @@ function submit_review()//Validate customer rating and comment form
 if($placed_order_id>0)
 {
 ?>
-<script>
-alert("Your order has been placed successfully! Your order ID is <?php echo $placed_order_id; ?>. Please leave us a review!");
-</script>
+<section class="order-success-banner" role="status"><!-- Successful non-card checkout state -->
+<div>
+<strong>Order placed successfully.</strong>
+<span>Your Order ID is #<?php echo $placed_order_id; ?>. You can review its payment and preparation status at any time.</span>
+</div>
+<a href="order_details.php?order_id=<?php echo $placed_order_id; ?>">View Order Details</a>
+</section>
 <?php
 }
 ?>
