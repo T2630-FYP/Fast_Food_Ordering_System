@@ -164,6 +164,23 @@ INSERT INTO `orders` (`order_id`, `order_member`, `order_date`, `order_total`, `
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `payments`
+--
+
+CREATE TABLE `payments` (
+  `payment_id` int(11) NOT NULL,
+  `payment_order` int(11) NOT NULL,
+  `payment_reference` varchar(40) DEFAULT NULL,
+  `payment_method` varchar(30) NOT NULL,
+  `payment_amount` decimal(7,2) NOT NULL,
+  `payment_status` varchar(20) NOT NULL DEFAULT 'Pending',
+  `payment_paid_at` datetime DEFAULT NULL,
+  `payment_created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `order_items`
 --
 
@@ -381,6 +398,14 @@ ALTER TABLE `orders`
   ADD KEY `fk_orders_member` (`order_member`);
 
 --
+-- Indexes for table `payments`
+--
+ALTER TABLE `payments`
+  ADD PRIMARY KEY (`payment_id`),
+  ADD UNIQUE KEY `uq_payments_order` (`payment_order`),
+  ADD UNIQUE KEY `uq_payments_reference` (`payment_reference`);
+
+--
 -- Indexes for table `order_items`
 --
 ALTER TABLE `order_items`
@@ -459,6 +484,12 @@ ALTER TABLE `orders`
   MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `payments`
+--
+ALTER TABLE `payments`
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
@@ -485,6 +516,12 @@ ALTER TABLE `review`
 --
 ALTER TABLE `orders`
   ADD CONSTRAINT `fk_orders_member` FOREIGN KEY (`order_member`) REFERENCES `member` (`member_id`) ON UPDATE CASCADE;
+
+--
+-- Constraints for table `payments`
+--
+ALTER TABLE `payments`
+  ADD CONSTRAINT `fk_payments_order` FOREIGN KEY (`payment_order`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `password_reset`
