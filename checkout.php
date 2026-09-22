@@ -204,6 +204,24 @@ if(isset($_POST["placeorderbtn"]))
 		$orderid = mysqli_insert_id($connect);
 		mysqli_stmt_close($stmt);
 
+		// Create one safe payment record for the card flow. Card details are
+		// collected on the next page and are never stored in the database.
+		if($payment==="Credit Card")
+		{
+			$stmt = mysqli_prepare($connect,"INSERT INTO payments(payment_order,payment_method,payment_amount,payment_status) VALUES(?,?,?,'Pending')");
+			if(!$stmt)
+			{
+				throw new Exception("The payment record could not be prepared.");
+			}
+			mysqli_stmt_bind_param($stmt,"isd",$orderid,$payment,$total);
+			if(!mysqli_stmt_execute($stmt))
+			{
+				mysqli_stmt_close($stmt);
+				throw new Exception("The payment record could not be created.");
+			}
+			mysqli_stmt_close($stmt);
+		}
+
 		$earned_points = max(0,(int)floor($total * 10));
 		$stmt = mysqli_prepare($connect,"UPDATE member SET member_points=member_points+? WHERE member_id=?");
 		mysqli_stmt_bind_param($stmt,"ii",$earned_points,$mid);
@@ -268,8 +286,15 @@ if(isset($_POST["placeorderbtn"]))
 		mysqli_commit($connect);
 		$transaction_started = false;
 		unset($_SESSION["checkout_form"]);
-		$_SESSION["placed_order_id"] = $orderid;
-		header("location:review.php");
+		if($payment==="Credit Card")
+		{
+			header("location:payment.php?order_id=".$orderid);
+		}
+		else
+		{
+			$_SESSION["placed_order_id"] = $orderid;
+			header("location:review.php");
+		}
 		exit();
 	}
 	catch(Throwable $error)
@@ -422,7 +447,7 @@ $has_checkout_items = $has_normal || $has_reward;
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout</title>
-<link rel="stylesheet" href="style.css?v=20260921-2">
+<link rel="stylesheet" href="style.css?v=20260922-1">
 </head>
 
 <body>
@@ -559,7 +584,7 @@ $has_checkout_items = $has_normal || $has_reward;
 <div class="checkout-payment-options">
 <label class="checkout-choice-card">
 <input type="radio" name="payment" value="Credit Card" <?php if($selected_payment==="Credit Card") echo "checked"; ?>>
-<span class="checkout-choice-copy"><strong>Credit Card</strong><small>Payment remains pending until confirmation</small></span>
+<span class="checkout-choice-copy"><strong>Credit / Debit Card</strong><small>Continue to the secure payment step</small></span>
 </label>
 
 <label class="checkout-choice-card">
@@ -602,7 +627,7 @@ $has_checkout_items = $has_normal || $has_reward;
 <div class="checkout-grand-total"><span>Total</span><strong id="order-total">RM <?php echo number_format($subtotal + ($selected_delivery_method==="Delivery" ? 5 : 0),2); ?></strong></div>
 
 <p id="checkout-client-message" class="checkout-client-message" role="alert" aria-live="assertive"></p>
-<button class="checkout-place-order" type="submit" name="placeorderbtn" value="1">Place Order</button>
+<button class="checkout-place-order" id="checkout-submit" type="submit" name="placeorderbtn" value="1">Place Order</button>
 <p class="checkout-confirm-note">By placing this order, you confirm that the order and delivery details are correct.</p>
 </aside>
 </div>
@@ -640,6 +665,7 @@ $has_checkout_items = $has_normal || $has_reward;
 	const deliveryFee=document.getElementById("delivery-fee");
 	const orderTotal=document.getElementById("order-total");
 	const paymentStatus=document.getElementById("payment-status-preview");
+	const checkoutSubmit=document.getElementById("checkout-submit");
 	const clientMessage=document.getElementById("checkout-client-message");
 	const addressFields=[
 		document.getElementById("delivery-address"),
@@ -665,6 +691,7 @@ $has_checkout_items = $has_normal || $has_reward;
 
 		const payment=selectedValue("payment");
 		paymentStatus.textContent=payment==="Cash" ? "Unpaid" : (payment!=="" ? "Pending" : "Select method");
+		checkoutSubmit.textContent=payment==="Credit Card" ? "Continue to Payment" : "Place Order";
 		clientMessage.textContent="";
 	}
 
