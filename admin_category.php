@@ -7,6 +7,7 @@ if(!isset($_SESSION["admin_id"]))
 	exit();
 }
 include("dataconnection.php");
+require_once("admin_shell.php");
 ?>
 
 <!DOCTYPE html>
@@ -109,26 +110,9 @@ function clear_form(frm)//empty every field in the form (works in both add and u
 
 </head>
 
-<body>
+<body class="admin-body">
 
-<div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
-
-<div id="admin-navbar"><!--Administrator navigation bar-->
-<a href="admin_dashboard.php">Dashboard</a>
-<a href="admin_staff.php">Manage Staff</a>
-<a href="admin_member.php">Manage Members</a>
-<a href="admin_product.php">Manage Products</a>
-<a href="admin_order.php">Manage Orders</a>
-<a href="admin_reward.php">Manage Rewards</a>
-<a href="admin_report.php">Sales Report</a>
-<a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
-</div>
-
-<div id="main"><!--Main content section-->
+<?php easyorder_admin_shell_start("admin_category.php"); ?>
 
 <h2 class="section-title">Manage Categories</h2>
 <p class="intro">View, add, update and delete product categories from this page. Click <b>Update</b> on any row to edit a category record, or <b>Delete</b> to remove it.</p>
@@ -230,12 +214,7 @@ if(isset($_GET["edit"]))
 </form>
 </div>
 
-</div>
-
-<footer><!--Footer section-->
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-<p><a href="login.php">User Login</a></p>
-</footer>
+<?php easyorder_admin_shell_end(); ?>
 
 </body>
 
