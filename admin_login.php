@@ -164,6 +164,7 @@ if(isset($_POST["adminloginbtn"]))
 		$row = mysqli_fetch_assoc($result);
 		$_SESSION["admin_id"] = $row["staff_id"];
 		$_SESSION["admin_name"] = $row["staff_name"];
+		$_SESSION["admin_role"] = $row["staff_role"];
 		?>
 		<script>
 		window.location="admin_dashboard.php";

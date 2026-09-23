@@ -7,6 +7,7 @@ if(!isset($_SESSION["admin_id"]))
 	exit();
 }
 include("dataconnection.php");
+require_once("admin_shell.php");
 ?>
 
 <!DOCTYPE html>
@@ -47,26 +48,9 @@ font-weight:bold;}
 
 </head>
 
-<body>
+<body class="admin-body">
 
-<div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
-
-<div id="admin-navbar"><!--Administrator navigation bar-->
-<a href="admin_dashboard.php">Dashboard</a>
-<a href="admin_staff.php">Manage Staff</a>
-<a href="admin_member.php">Manage Members</a>
-<a href="admin_category.php">Manage Categories</a>
-<a href="admin_product.php">Manage Products</a>
-<a href="admin_order.php">Manage Orders</a>
-<a href="admin_reward.php">Manage Rewards</a>
-<a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
-</div>
-
-<div id="main"><!--Main content section-->
+<?php easyorder_admin_shell_start("admin_report.php"); ?>
 
 <h2 class="section-title">Sales Report</h2>
 <p class="intro">A summary of EasyOrder sales. Cancelled orders are not counted in the figures below.</p>
@@ -174,12 +158,7 @@ while($row = mysqli_fetch_assoc($result))
 
 </table>
 
-</div>
-
-<footer><!--Footer section-->
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-<p><a href="login.php">User Login</a></p>
-</footer>
+<?php easyorder_admin_shell_end(); ?>
 
 </body>
 
