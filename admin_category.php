@@ -1,377 +1,377 @@
 <?php
-//block this page if the admin is not logged in
+
+// Block this page if the administrator is not logged in.
 session_start();
 if(!isset($_SESSION["admin_id"]))
 {
 	header("location:admin_login.php");
 	exit();
 }
+
 include("dataconnection.php");
 require_once("admin_shell.php");
+
+// Share the catalog token with product management actions.
+if(empty($_SESSION["admin_catalog_csrf"]))
+{
+	$_SESSION["admin_catalog_csrf"] = bin2hex(random_bytes(32));
+}
+$csrf_token = $_SESSION["admin_catalog_csrf"];
+
+// Escape category values before displaying them in the page.
+function admin_category_html($value)
+{
+	return htmlspecialchars((string)$value,ENT_QUOTES,"UTF-8");
+}
+
+// Store one result message and redirect to prevent duplicate submissions.
+function admin_category_redirect($type,$message,$location="admin_category.php")
+{
+	$_SESSION["admin_category_flash"] = array("type"=>$type,"message"=>$message);
+	header("Location: ".$location,true,303);
+	exit();
+}
+
+// Process category changes only through validated POST requests.
+if($_SERVER["REQUEST_METHOD"]==="POST")
+{
+	$submitted_token = (string)($_POST["csrf_token"] ?? "");
+	if(!hash_equals($csrf_token,$submitted_token))
+	{
+		admin_category_redirect("error","The request expired. Please try again.");
+	}
+
+	$action = (string)($_POST["action"] ?? "");
+	if($action==="save_category")
+	{
+		$mode = (string)($_POST["mode"] ?? "add");
+		$category_id = strtoupper(trim((string)($_POST["category_id"] ?? "")));
+		$category_name = trim((string)($_POST["category_name"] ?? ""));
+		$category_desc = trim((string)($_POST["category_desc"] ?? ""));
+		$category_status = trim((string)($_POST["category_status"] ?? ""));
+
+		if(!in_array($mode,array("add","update"),true) || preg_match("/^[A-Z0-9]{1,5}$/",$category_id)!==1)
+		{
+			admin_category_redirect("error","Please enter a valid category ID using up to 5 letters or numbers.");
+		}
+		if($category_name==="" || strlen($category_name)>50 || $category_desc==="" || strlen($category_desc)>255)
+		{
+			admin_category_redirect("error","Please complete the category name and description within their character limits.");
+		}
+		if(!in_array($category_status,array("Active","Inactive"),true))
+		{
+			admin_category_redirect("error","Please select a valid category status.");
+		}
+
+		mysqli_begin_transaction($connect);
+		try
+		{
+			if($mode==="add")
+			{
+				$save_stmt = mysqli_prepare($connect,"INSERT INTO category(category_id,category_name,category_desc,category_status,category_isDelete) VALUES(?,?,?,?,0)");
+				if(!$save_stmt)
+				{
+					throw new RuntimeException("The category could not be prepared.");
+				}
+				mysqli_stmt_bind_param($save_stmt,"ssss",$category_id,$category_name,$category_desc,$category_status);
+			}
+			else
+			{
+				$save_stmt = mysqli_prepare($connect,"UPDATE category SET category_name=?,category_desc=?,category_status=? WHERE category_id=? AND category_isDelete=0");
+				if(!$save_stmt)
+				{
+					throw new RuntimeException("The category could not be prepared.");
+				}
+				mysqli_stmt_bind_param($save_stmt,"ssss",$category_name,$category_desc,$category_status,$category_id);
+			}
+
+			if(!mysqli_stmt_execute($save_stmt))
+			{
+				throw new RuntimeException("The category ID or name already exists.");
+			}
+			if($mode==="update" && mysqli_stmt_affected_rows($save_stmt)===0)
+			{
+				// A no-change save is valid only if the category still exists.
+				$exists_stmt = mysqli_prepare($connect,"SELECT category_id FROM category WHERE category_id=? AND category_isDelete=0 LIMIT 1");
+				if(!$exists_stmt)
+				{
+					throw new RuntimeException("The category could not be verified.");
+				}
+				mysqli_stmt_bind_param($exists_stmt,"s",$category_id);
+				mysqli_stmt_execute($exists_stmt);
+				$exists_result = mysqli_stmt_get_result($exists_stmt);
+				$category_exists = mysqli_fetch_assoc($exists_result)!==null;
+				mysqli_stmt_close($exists_stmt);
+				if(!$category_exists)
+				{
+					throw new RuntimeException("The selected category is unavailable.");
+				}
+			}
+			mysqli_stmt_close($save_stmt);
+			mysqli_commit($connect);
+			admin_category_redirect("success",$mode==="add" ? "Category added successfully." : "Category updated successfully.");
+		}
+		catch(Throwable $error)
+		{
+			mysqli_rollback($connect);
+			admin_category_redirect("error",$error->getMessage());
+		}
+	}
+
+	if($action==="delete_category")
+	{
+		$category_id = strtoupper(trim((string)($_POST["category_id"] ?? "")));
+		if(preg_match("/^[A-Z0-9]{1,5}$/",$category_id)!==1)
+		{
+			admin_category_redirect("error","Please select a valid category.");
+		}
+
+		mysqli_begin_transaction($connect);
+		try
+		{
+			$category_stmt = mysqli_prepare($connect,"SELECT category_name FROM category WHERE category_id=? AND category_isDelete=0 FOR UPDATE");
+			if(!$category_stmt)
+			{
+				throw new RuntimeException("The category could not be locked.");
+			}
+			mysqli_stmt_bind_param($category_stmt,"s",$category_id);
+			mysqli_stmt_execute($category_stmt);
+			$category_result = mysqli_stmt_get_result($category_stmt);
+			$category_row = mysqli_fetch_assoc($category_result) ?: null;
+			mysqli_stmt_close($category_stmt);
+			if(!$category_row)
+			{
+				throw new RuntimeException("The selected category is unavailable.");
+			}
+
+			// Prevent orphaned menu items; move or remove products before deleting a category.
+			$product_stmt = mysqli_prepare($connect,"SELECT COUNT(*) AS product_count FROM product WHERE product_category=? AND product_isDelete=0");
+			if(!$product_stmt)
+			{
+				throw new RuntimeException("Linked products could not be checked.");
+			}
+			mysqli_stmt_bind_param($product_stmt,"s",$category_row["category_name"]);
+			mysqli_stmt_execute($product_stmt);
+			$product_result = mysqli_stmt_get_result($product_stmt);
+			$product_count = (int)(mysqli_fetch_assoc($product_result)["product_count"] ?? 0);
+			mysqli_stmt_close($product_stmt);
+			if($product_count>0)
+			{
+				throw new RuntimeException("This category still contains ".$product_count." product".($product_count===1 ? "" : "s").". Move or remove them first.");
+			}
+
+			$delete_stmt = mysqli_prepare($connect,"UPDATE category SET category_isDelete=1,category_status='Inactive' WHERE category_id=? AND category_isDelete=0");
+			if(!$delete_stmt)
+			{
+				throw new RuntimeException("The category could not be prepared for removal.");
+			}
+			mysqli_stmt_bind_param($delete_stmt,"s",$category_id);
+			if(!mysqli_stmt_execute($delete_stmt) || mysqli_stmt_affected_rows($delete_stmt)!==1)
+			{
+				throw new RuntimeException("The category could not be removed.");
+			}
+			mysqli_stmt_close($delete_stmt);
+			mysqli_commit($connect);
+			admin_category_redirect("success","Category removed successfully.");
+		}
+		catch(Throwable $error)
+		{
+			mysqli_rollback($connect);
+			admin_category_redirect("error",$error->getMessage());
+		}
+	}
+
+	admin_category_redirect("error","The requested category action is not supported.");
+}
+
+$flash = $_SESSION["admin_category_flash"] ?? null;
+unset($_SESSION["admin_category_flash"]);
+
+$search = trim((string)($_GET["search"] ?? ""));
+$status_filter = trim((string)($_GET["status"] ?? ""));
+if(!in_array($status_filter,array("","Active","Inactive"),true))
+{
+	$status_filter = "";
+}
+
+// Search categories and include their current product totals.
+$like_search = "%".$search."%";
+$category_stmt = mysqli_prepare($connect,
+	"SELECT c.category_id,c.category_name,c.category_desc,c.category_status,COUNT(p.product_id) AS product_count
+	 FROM category c
+	 LEFT JOIN product p ON p.product_category=c.category_name AND p.product_isDelete=0
+	 WHERE c.category_isDelete=0
+	 AND (?='' OR c.category_id LIKE ? OR c.category_name LIKE ? OR c.category_desc LIKE ?)
+	 AND (?='' OR c.category_status=?)
+	 GROUP BY c.category_id,c.category_name,c.category_desc,c.category_status
+	 ORDER BY c.category_name");
+$categories = array();
+if($category_stmt)
+{
+	mysqli_stmt_bind_param($category_stmt,"ssssss",$search,$like_search,$like_search,$like_search,$status_filter,$status_filter);
+	mysqli_stmt_execute($category_stmt);
+	$category_result = mysqli_stmt_get_result($category_stmt);
+	while($category_row = mysqli_fetch_assoc($category_result))
+	{
+		$categories[] = $category_row;
+	}
+	mysqli_stmt_close($category_stmt);
+}
+
+// Load the selected category into the editor using a prepared query.
+$editing_category = null;
+$edit_id = strtoupper(trim((string)($_GET["edit"] ?? "")));
+if($edit_id!=="")
+{
+	$edit_stmt = mysqli_prepare($connect,"SELECT category_id,category_name,category_desc,category_status FROM category WHERE category_id=? AND category_isDelete=0 LIMIT 1");
+	if($edit_stmt)
+	{
+		mysqli_stmt_bind_param($edit_stmt,"s",$edit_id);
+		mysqli_stmt_execute($edit_stmt);
+		$edit_result = mysqli_stmt_get_result($edit_stmt);
+		$editing_category = mysqli_fetch_assoc($edit_result) ?: null;
+		mysqli_stmt_close($edit_stmt);
+	}
+}
 ?>
-
 <!DOCTYPE html>
-<html>
-
-<head><!--Manage product category page-->
-<title>Manage Categories</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin_style.css">
-
-<script type="text/javascript">
-function confirmation()//JavaScript confirm box shown before a category is deleted
-{
-	let option;
-	option=confirm("Are you sure you want to delete this category?");
-	return option;
-}
-
-function save_category()//Validate the category form before it is submitted to the server
-{
-	let id,name,description,status;
-	let id_status=false,name_status=false,description_status=false,status_status=false;
-
-	id=document.categoryfrm.category_id.value;
-	name=document.categoryfrm.category_name.value;
-	description=document.categoryfrm.category_desc.value;
-	status=document.categoryfrm.category_status.value;
-
-	if(id=="")
-	{
-		document.getElementById("err_id").innerHTML="Please enter the category ID";
-	}
-	else
-	{
-		document.getElementById("err_id").innerHTML="";
-		id_status=true;
-	}
-
-	if(name=="")
-	{
-		document.getElementById("err_name").innerHTML="Please enter the category name";
-	}
-	else
-	{
-		document.getElementById("err_name").innerHTML="";
-		name_status=true;
-	}
-
-	if(description=="")
-	{
-		document.getElementById("err_desc").innerHTML="Please enter a description";
-	}
-	else
-	{
-		document.getElementById("err_desc").innerHTML="";
-		description_status=true;
-	}
-
-	if(status=="0")
-	{
-		document.getElementById("err_status").innerHTML="Please select a status";
-	}
-	else
-	{
-		document.getElementById("err_status").innerHTML="";
-		status_status=true;
-	}
-
-	if(id_status==true&&name_status==true&&description_status==true&&status_status==true)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-
-function clear_form(frm)//empty every field in the form (works in both add and update mode)
-{
-	var i;
-	for(i=0;i<frm.elements.length;i++)
-	{
-		var t=frm.elements[i].type;
-		if(t=="text"||t=="email"||t=="password"||t=="number"||t=="date"||t=="textarea")
-		{
-			frm.elements[i].value="";
-		}
-		else if(t=="select-one")
-		{
-			frm.elements[i].selectedIndex=0;
-		}
-		else if(t=="radio"||t=="checkbox")
-		{
-			frm.elements[i].checked=false;
-		}
-	}
-}
-</script>
-
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Manage Categories - EasyOrder</title>
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="admin_style.css">
 </head>
-
 <body class="admin-body">
-
 <?php easyorder_admin_shell_start("admin_category.php"); ?>
 
-<h2 class="section-title">Manage Categories</h2>
-<p class="intro">View, add, update and delete product categories from this page. Click <b>Update</b> on any row to edit a category record, or <b>Delete</b> to remove it.</p>
+	<!-- Category management heading and primary action. -->
+	<section class="admin-page-heading">
+		<div>
+			<p class="admin-eyebrow">CATALOG MANAGEMENT</p>
+			<h1>Categories</h1>
+			<p>Organise products into clear menu sections and control their visibility.</p>
+		</div>
+		<a class="admin-primary-link" href="#category-editor">Add Category</a>
+	</section>
 
-<h2 class="section-title">Existing Categories</h2>
-<table class="manage-table" border="1"><!--Table section for displaying category records from the database-->
-<tr>
-<th>Category ID</th>
-<th>Category Name</th>
-<th>Description</th>
-<th>Status</th>
-<th>Actions</th>
-</tr>
+	<?php if($flash): ?>
+		<div class="admin-alert admin-alert-<?php echo admin_category_html($flash["type"]); ?>" role="status">
+			<?php echo admin_category_html($flash["message"]); ?>
+		</div>
+	<?php endif; ?>
 
-<?php
-$result = mysqli_query($connect,"SELECT * FROM category WHERE category_isDelete=0");
+	<!-- Category search and status filter. -->
+	<section class="admin-catalog-filter-panel">
+		<form class="admin-catalog-filter-form admin-category-filter-form" method="get" action="admin_category.php">
+			<label class="admin-catalog-search">
+				<span>Search categories</span>
+				<input type="search" name="search" value="<?php echo admin_category_html($search); ?>" placeholder="Category ID, name or description">
+			</label>
+			<label>
+				<span>Status</span>
+				<select name="status">
+					<option value="">All statuses</option>
+					<option value="Active"<?php echo $status_filter==="Active" ? " selected" : ""; ?>>Active</option>
+					<option value="Inactive"<?php echo $status_filter==="Inactive" ? " selected" : ""; ?>>Inactive</option>
+				</select>
+			</label>
+			<div class="admin-catalog-filter-actions">
+				<button type="submit">Apply Filters</button>
+				<a href="admin_category.php">Reset</a>
+			</div>
+		</form>
+	</section>
 
-while($row = mysqli_fetch_assoc($result))
-{
-?>
+	<!-- Filtered category records with live product counts. -->
+	<section class="admin-catalog-results">
+		<header class="admin-section-heading">
+			<div>
+				<p class="admin-eyebrow">CATEGORY LIST</p>
+				<h2>Menu categories</h2>
+			</div>
+			<span class="admin-catalog-result-meta"><?php echo count($categories); ?> result<?php echo count($categories)===1 ? "" : "s"; ?></span>
+		</header>
+		<div class="admin-catalog-table-wrap">
+			<table class="admin-catalog-table admin-category-table">
+				<thead>
+					<tr><th>Category</th><th>Description</th><th>Products</th><th>Status</th><th>Actions</th></tr>
+				</thead>
+				<tbody>
+				<?php if(!$categories): ?>
+					<tr><td class="admin-catalog-empty" colspan="5">No categories match the selected filters.</td></tr>
+				<?php else: ?>
+					<?php foreach($categories as $category): ?>
+						<tr>
+							<td><strong><?php echo admin_category_html($category["category_name"]); ?></strong><small><?php echo admin_category_html($category["category_id"]); ?></small></td>
+							<td class="admin-category-description"><?php echo admin_category_html($category["category_desc"]); ?></td>
+							<td><?php echo (int)$category["product_count"]; ?></td>
+							<td><span class="admin-status-badge <?php echo $category["category_status"]==="Active" ? "status-success" : "status-danger"; ?>"><?php echo admin_category_html($category["category_status"]); ?></span></td>
+							<td>
+								<div class="admin-catalog-row-actions">
+									<a href="admin_category.php?edit=<?php echo rawurlencode($category["category_id"]); ?>#category-editor">Edit</a>
+									<form method="post" action="admin_category.php" onsubmit="return confirm('Remove this category? Categories containing products cannot be removed.');">
+										<input type="hidden" name="csrf_token" value="<?php echo admin_category_html($csrf_token); ?>">
+										<input type="hidden" name="action" value="delete_category">
+										<input type="hidden" name="category_id" value="<?php echo admin_category_html($category["category_id"]); ?>">
+										<button type="submit">Remove</button>
+									</form>
+								</div>
+							</td>
+						</tr>
+					<?php endforeach; ?>
+				<?php endif; ?>
+				</tbody>
+			</table>
+		</div>
+	</section>
 
-<tr>
-<td><?php echo $row['category_id']; ?></td>
-<td><?php echo $row['category_name']; ?></td>
-<td><?php echo $row['category_desc']; ?></td>
-<td><?php echo $row['category_status']; ?></td>
-<td>
-<input type="button" class="update-btn" value="Update" onclick="location='admin_category.php?edit&id=<?php echo $row['category_id']; ?>'">
-<input type="button" class="delete-btn" value="Delete" onclick="if(confirmation()==true){location='admin_category.php?del=1&id=<?php echo $row['category_id']; ?>'}">
-</td>
-</tr>
+	<!-- Add or edit one category in the live database. -->
+	<section id="category-editor" class="admin-catalog-editor">
+		<header class="admin-section-heading">
+			<div>
+				<p class="admin-eyebrow"><?php echo $editing_category ? "UPDATE CATEGORY" : "NEW CATEGORY"; ?></p>
+				<h2><?php echo $editing_category ? "Edit ".admin_category_html($editing_category["category_name"]) : "Add a menu category"; ?></h2>
+			</div>
+			<?php if($editing_category): ?><a class="admin-secondary-link" href="admin_category.php#category-editor">Cancel Edit</a><?php endif; ?>
+		</header>
 
-<?php
-}
-?>
+		<form class="admin-catalog-editor-form admin-category-editor-form" name="categoryfrm" method="post" action="admin_category.php">
+			<input type="hidden" name="csrf_token" value="<?php echo admin_category_html($csrf_token); ?>">
+			<input type="hidden" name="action" value="save_category">
+			<input type="hidden" name="mode" value="<?php echo $editing_category ? "update" : "add"; ?>">
 
-</table>
+			<div class="admin-catalog-fields">
+				<label class="admin-form-field">
+					<span>Category ID</span>
+					<input type="text" name="category_id" maxlength="5" pattern="[A-Za-z0-9]{1,5}" value="<?php echo admin_category_html($editing_category["category_id"] ?? ""); ?>"<?php echo $editing_category ? " readonly" : ""; ?> required>
+				</label>
+				<label class="admin-form-field">
+					<span>Category name</span>
+					<input type="text" name="category_name" maxlength="50" value="<?php echo admin_category_html($editing_category["category_name"] ?? ""); ?>" required>
+				</label>
+				<label class="admin-form-field admin-field-wide">
+					<span>Description</span>
+					<textarea name="category_desc" maxlength="255" rows="3" required><?php echo admin_category_html($editing_category["category_desc"] ?? ""); ?></textarea>
+				</label>
+				<label class="admin-form-field">
+					<span>Status</span>
+					<select name="category_status" required>
+						<?php $selected_status = $editing_category["category_status"] ?? "Active"; ?>
+						<option value="Active"<?php echo $selected_status==="Active" ? " selected" : ""; ?>>Active</option>
+						<option value="Inactive"<?php echo $selected_status==="Inactive" ? " selected" : ""; ?>>Inactive</option>
+					</select>
+				</label>
+			</div>
 
-<hr>
-
-<?php
-//if an Update button was clicked, get the chosen category and fill in the form below
-$cid="";
-$cname="";
-$cdesc="";
-$cstatus="";
-$form_title="Category Details";
-$btn_label="Save Category";
-
-if(isset($_GET["edit"]))
-{
-	$cid = mysqli_real_escape_string($connect,$_GET["id"]);
-	$result = mysqli_query($connect,"SELECT * FROM category WHERE category_id='$cid'");
-	$row = mysqli_fetch_assoc($result);
-	$cname = $row["category_name"];
-	$cdesc = $row["category_desc"];
-	$cstatus = $row["category_status"];
-	$form_title="Update Category (".$cid.")";
-	$btn_label="Update Category";
-}
-?>
-
-<h2 class="section-title">Add / Update Category</h2>
-<p class="intro">Fill in the details below to add a new category. To edit an existing category, click <b>Update</b> on the table above and the form will be filled in for you.</p>
-
-<div class="manage-form-box"><!--Form section for user input-->
-<form name="categoryfrm" method="post" action="" onsubmit="return save_category()">
-<fieldset>
-<legend id="form_title"><?php echo htmlspecialchars($form_title,ENT_QUOTES,'UTF-8'); ?></legend>
-
-<label>Category ID</label>
-<input type="text" name="category_id" value="<?php echo htmlspecialchars($cid,ENT_QUOTES,'UTF-8'); ?>" <?php if(isset($_GET["edit"])) echo "disabled"; ?> placeholder="e.g. C006">
-<br><span class="error" id="err_id"></span>
-
-<br><br><label>Category Name</label>
-<input type="text" name="category_name" value="<?php echo htmlspecialchars($cname,ENT_QUOTES,'UTF-8'); ?>" placeholder="e.g. Combo Meals">
-<br><span class="error" id="err_name"></span>
-
-<br><br><label>Description</label>
-<input type="text" name="category_desc" value="<?php echo htmlspecialchars($cdesc,ENT_QUOTES,'UTF-8'); ?>" placeholder="Short description of the category">
-<br><span class="error" id="err_desc"></span>
-
-<br><br><label>Status</label>
-<select name="category_status">
-<option value="0">Select a status</option>
-<option value="Active" <?php if($cstatus=="Active") echo "selected"; ?>>Active</option>
-<option value="Inactive" <?php if($cstatus=="Inactive") echo "selected"; ?>>Inactive</option>
-</select>
-<br><span class="error" id="err_status"></span>
-
-<div style="clear:both"></div>
-
-<p style="text-align:center;">
-<input type="submit" class="save-btn" id="savebtn" name="savebtn" value="<?php echo htmlspecialchars($btn_label,ENT_QUOTES,'UTF-8'); ?>">
-<input type="button" class="save-btn" name="clearbtn" value="Clear" onclick="clear_form(this.form)">
-</p>
-
-</fieldset>
-</form>
-</div>
+			<div class="admin-catalog-form-actions">
+				<button type="submit"><?php echo $editing_category ? "Save Category Changes" : "Add Category"; ?></button>
+				<?php if($editing_category): ?><a href="admin_category.php#category-editor">Cancel</a><?php endif; ?>
+			</div>
+		</form>
+	</section>
 
 <?php easyorder_admin_shell_end(); ?>
-
 </body>
-
 </html>
-
-<?php
-
-//save the category - decide whether to INSERT a new record or UPDATE an existing one
-if(isset($_POST["savebtn"]))
-{
-	$cname = mysqli_real_escape_string($connect,$_POST["category_name"]);
-	$cdesc = mysqli_real_escape_string($connect,$_POST["category_desc"]);
-	$cstatus = mysqli_real_escape_string($connect,$_POST["category_status"]);
-	$transaction_started = false;
-
-	try
-	{
-		if(isset($_GET["edit"]))
-		{
-			//UPDATE mode - the category id comes from the url
-			$cid = mysqli_real_escape_string($connect,$_GET["id"]);
-
-			//category_name is unique for every row, including soft-deleted categories
-			$namecheck = mysqli_query($connect,"SELECT category_id FROM category WHERE category_name='$cname' AND category_id!='$cid'");
-			if(!$namecheck)
-			{
-				throw new Exception("Unable to check the category name");
-			}
-
-			if(mysqli_num_rows($namecheck) != 0)
-			{
-				?>
-				<script>
-				alert("The category name is already in use. Please use a different name.");
-				</script>
-				<?php
-			}
-			else
-			{
-				//get the old category name first, so products that use it can be kept in sync
-				$old_result = mysqli_query($connect,"SELECT category_name FROM category WHERE category_id='$cid'");
-				if(!$old_result||mysqli_num_rows($old_result)==0)
-				{
-					throw new Exception("Category not found");
-				}
-				$old_row = mysqli_fetch_assoc($old_result);
-				$old_cname = mysqli_real_escape_string($connect,$old_row["category_name"]);
-
-				//keep the category and the products that use it consistent if either query fails
-				if(!mysqli_begin_transaction($connect))
-				{
-					throw new Exception("Unable to start category update");
-				}
-				$transaction_started = true;
-
-				if(!mysqli_query($connect,"UPDATE category SET category_name='$cname',
-												  category_desc='$cdesc',
-												  category_status='$cstatus'
-												  WHERE category_id='$cid'"))
-				{
-					throw new Exception("Unable to update category");
-				}
-
-				//ON UPDATE CASCADE normally performs this change; this also supports older databases
-				if(!mysqli_query($connect,"UPDATE product SET product_category='$cname' WHERE product_category='$old_cname'"))
-				{
-					throw new Exception("Unable to update related products");
-				}
-
-				if(!mysqli_commit($connect))
-				{
-					throw new Exception("Unable to complete category update");
-				}
-				$transaction_started = false;
-				?>
-				<script>
-				alert("Category updated!");
-				window.location="admin_category.php";
-				</script>
-				<?php
-			}
-		}
-		else
-		{
-			//ADD mode - check both unique fields before trying to save
-			$cid = mysqli_real_escape_string($connect,$_POST["category_id"]);
-			$idcheck = mysqli_query($connect,"SELECT category_id FROM category WHERE category_id='$cid'");
-			$namecheck = mysqli_query($connect,"SELECT category_id FROM category WHERE category_name='$cname'");
-
-			if(!$idcheck||!$namecheck)
-			{
-				throw new Exception("Unable to check category details");
-			}
-			else if(mysqli_num_rows($idcheck) != 0)
-			{
-				?>
-				<script>
-				alert("The category ID is already in use. Please change.");
-				</script>
-				<?php
-			}
-			else if(mysqli_num_rows($namecheck) != 0)
-			{
-				?>
-				<script>
-				alert("The category name is already in use. Please use a different name.");
-				</script>
-				<?php
-			}
-			else
-			{
-				if(!mysqli_query($connect,"INSERT INTO category(category_id,category_name,category_desc,category_status)VALUES('$cid','$cname','$cdesc','$cstatus')"))
-				{
-					throw new Exception("Unable to save category");
-				}
-				?>
-				<script>
-				alert("Category saved!");
-				window.location="admin_category.php";
-				</script>
-				<?php
-			}
-		}
-	}
-	catch(Throwable $error)
-	{
-		if($transaction_started)
-		{
-			try
-			{
-				mysqli_rollback($connect);
-			}
-			catch(Throwable $rollback_error)
-			{
-				//the friendly message below is still shown if rollback itself is unavailable
-			}
-		}
-		?>
-		<script>
-		alert("The category could not be saved because of a database error. Please try again.");
-		</script>
-		<?php
-	}
-}
-
-//remove a category from the list (soft delete - set category_isDelete to 1)
-if(isset($_GET["del"]))
-{
-	$cid = mysqli_real_escape_string($connect,(string)$_GET["id"]);
-
-	mysqli_query($connect,"UPDATE category SET category_isDelete=1 WHERE category_id='$cid'");
-	?>
-	<script>
-	alert("Category removed!");
-	window.location="admin_category.php";
-	</script>
-	<?php
-}
-
-?>

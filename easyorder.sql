@@ -224,6 +224,7 @@ CREATE TABLE `product` (
   `product_id` char(5) NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `product_desc` varchar(255) NOT NULL DEFAULT '',
+  `product_image` varchar(255) NOT NULL DEFAULT 'image/logo.png',
   `product_category` varchar(50) NOT NULL,
   `product_price` decimal(5,2) NOT NULL,
   `product_stock` int(4) NOT NULL,
@@ -235,28 +236,28 @@ CREATE TABLE `product` (
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`product_id`, `product_name`, `product_desc`, `product_category`, `product_price`, `product_stock`, `product_status`, `product_isDelete`) VALUES
-('P001', 'Original Recipe (1 pc)', 'Our signature crispy fried chicken with the secret blend of 11 herbs and spices.', 'Fried Chicken', 7.90, 120, 'Active', 0),
-('P002', 'Hot & Spicy (1 pc)', 'Fiery and flavourful chicken coated in a bold, spicy crust for those who love the heat.', 'Fried Chicken', 8.50, 100, 'Active', 0),
-('P003', 'Crispy Tenders (3 pcs)', 'Tender strips of juicy chicken breast, lightly breaded and fried until perfectly crunchy.', 'Fried Chicken', 11.90, 80, 'Active', 0),
-('P004', 'Nuggets (6 pcs)', 'Bite-sized golden nuggets that are great for sharing or as a tasty snack on the go.', 'Fried Chicken', 9.90, 90, 'Active', 0),
-('P005', 'Classic Burger', 'A timeless favourite with a soft bun, fresh lettuce, tomato and our special sauce.', 'Burger', 10.90, 75, 'Active', 0),
-('P006', 'Beef Burger', 'A thick, char-grilled beef patty topped with melted cheese and crisp onions.', 'Burger', 12.90, 70, 'Active', 0),
-('P007', 'Filet-O-Fish', 'A golden, crispy fish fillet with tartar sauce and cheese in a steamed bun.', 'Burger', 11.50, 60, 'Active', 0),
-('P008', 'Zinger Burger', 'A spicy, crunchy chicken fillet layered with lettuce and creamy mayo.', 'Burger', 13.90, 85, 'Active', 0),
-('P009', 'Zinger Double Down', 'Our boldest burger with two spicy chicken fillets, bacon and cheese, no bun needed.', 'Burger', 15.90, 50, 'Active', 0),
-('P010', 'French Fries', 'Golden, crispy fries lightly salted and served piping hot.', 'Side Dishes', 5.90, 200, 'Active', 0),
-('P011', 'Cheezy Wedges', 'Thick-cut potato wedges drizzled with warm, melty cheese sauce.', 'Side Dishes', 6.90, 150, 'Active', 0),
-('P012', 'Onion Rings', 'Sweet onion rings in a crunchy, golden batter. Great for sharing.', 'Side Dishes', 6.50, 120, 'Active', 0),
-('P013', 'Corn Cup', 'Sweet buttered corn kernels served warm in a convenient cup.', 'Side Dishes', 4.50, 130, 'Active', 0),
-('P014', 'Ice Cream Cone', 'Smooth, creamy vanilla soft-serve swirled in a crispy cone.', 'Dessert', 3.90, 110, 'Active', 0),
-('P015', 'Chocolate Sundae', 'Creamy soft-serve topped with rich chocolate sauce in a cup.', 'Dessert', 5.50, 95, 'Active', 0),
-('P016', 'Apple Pie', 'A warm, flaky pastry filled with sweet cinnamon apple goodness.', 'Dessert', 4.90, 0, 'Out of Stock', 0),
-('P017', 'Coca-Cola', 'An ice-cold classic cola to go perfectly with any meal.', 'Beverage', 3.50, 300, 'Active', 0),
-('P018', 'Sprite', 'A crisp, lemon-lime soda that is light and refreshing.', 'Beverage', 3.50, 280, 'Active', 0),
-('P019', 'Orange Juice', 'Freshly squeezed orange juice, full of natural sweetness.', 'Beverage', 5.90, 90, 'Active', 0),
-('P020', 'Iced Latte', 'Smooth espresso with chilled milk over ice for a cool pick-me-up.', 'Beverage', 6.50, 85, 'Active', 0),
-('P021', 'Mineral Water', 'Pure, refreshing bottled mineral water.', 'Beverage', 2.00, 250, 'Active', 0);
+INSERT INTO `product` (`product_id`, `product_name`, `product_desc`, `product_image`, `product_category`, `product_price`, `product_stock`, `product_status`, `product_isDelete`) VALUES
+('P001', 'Original Recipe (1 pc)', 'Our signature crispy fried chicken with the secret blend of 11 herbs and spices.', 'image/chicken-original.jpg', 'Fried Chicken', 7.90, 120, 'Active', 0),
+('P002', 'Hot & Spicy (1 pc)', 'Fiery and flavourful chicken coated in a bold, spicy crust for those who love the heat.', 'image/chicken-hotspicy.jpg', 'Fried Chicken', 8.50, 100, 'Active', 0),
+('P003', 'Crispy Tenders (3 pcs)', 'Tender strips of juicy chicken breast, lightly breaded and fried until perfectly crunchy.', 'image/chicken-tenders.jpg', 'Fried Chicken', 11.90, 80, 'Active', 0),
+('P004', 'Nuggets (6 pcs)', 'Bite-sized golden nuggets that are great for sharing or as a tasty snack on the go.', 'image/chicken-nuggets.jpg', 'Fried Chicken', 9.90, 90, 'Active', 0),
+('P005', 'Classic Burger', 'A timeless favourite with a soft bun, fresh lettuce, tomato and our special sauce.', 'image/burger-classic.jpg', 'Burger', 10.90, 75, 'Active', 0),
+('P006', 'Beef Burger', 'A thick, char-grilled beef patty topped with melted cheese and crisp onions.', 'image/burger-beef.jpg', 'Burger', 12.90, 70, 'Active', 0),
+('P007', 'Filet-O-Fish', 'A golden, crispy fish fillet with tartar sauce and cheese in a steamed bun.', 'image/burger-fish.jpg', 'Burger', 11.50, 60, 'Active', 0),
+('P008', 'Zinger Burger', 'A spicy, crunchy chicken fillet layered with lettuce and creamy mayo.', 'image/burger-zinger.jpg', 'Burger', 13.90, 85, 'Active', 0),
+('P009', 'Zinger Double Down', 'Our boldest burger with two spicy chicken fillets, bacon and cheese, no bun needed.', 'image/burger-zingerdouble.jpg', 'Burger', 15.90, 50, 'Active', 0),
+('P010', 'French Fries', 'Golden, crispy fries lightly salted and served piping hot.', 'image/side-fries.jpg', 'Side Dishes', 5.90, 200, 'Active', 0),
+('P011', 'Cheezy Wedges', 'Thick-cut potato wedges drizzled with warm, melty cheese sauce.', 'image/side-wedges.jpg', 'Side Dishes', 6.90, 150, 'Active', 0),
+('P012', 'Onion Rings', 'Sweet onion rings in a crunchy, golden batter. Great for sharing.', 'image/side-onionrings.jpg', 'Side Dishes', 6.50, 120, 'Active', 0),
+('P013', 'Corn Cup', 'Sweet buttered corn kernels served warm in a convenient cup.', 'image/side-corncup.jpg', 'Side Dishes', 4.50, 130, 'Active', 0),
+('P014', 'Ice Cream Cone', 'Smooth, creamy vanilla soft-serve swirled in a crispy cone.', 'image/dessert-icecream.jpg', 'Dessert', 3.90, 110, 'Active', 0),
+('P015', 'Chocolate Sundae', 'Creamy soft-serve topped with rich chocolate sauce in a cup.', 'image/dessert-sundae.jpg', 'Dessert', 5.50, 95, 'Active', 0),
+('P016', 'Apple Pie', 'A warm, flaky pastry filled with sweet cinnamon apple goodness.', 'image/dessert-applepie.jpg', 'Dessert', 4.90, 0, 'Out of Stock', 0),
+('P017', 'Coca-Cola', 'An ice-cold classic cola to go perfectly with any meal.', 'image/bev-coke.jpg', 'Beverage', 3.50, 300, 'Active', 0),
+('P018', 'Sprite', 'A crisp, lemon-lime soda that is light and refreshing.', 'image/bev-sprite.jpg', 'Beverage', 3.50, 280, 'Active', 0),
+('P019', 'Orange Juice', 'Freshly squeezed orange juice, full of natural sweetness.', 'image/bev-orangejuice.jpg', 'Beverage', 5.90, 90, 'Active', 0),
+('P020', 'Iced Latte', 'Smooth espresso with chilled milk over ice for a cool pick-me-up.', 'image/bev-icedlatte.jpg', 'Beverage', 6.50, 85, 'Active', 0),
+('P021', 'Mineral Water', 'Pure, refreshing bottled mineral water.', 'image/bev-water.jpg', 'Beverage', 2.00, 250, 'Active', 0);
 
 -- --------------------------------------------------------
 
