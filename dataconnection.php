@@ -15,9 +15,8 @@ if($connect)
 	mysqli_query($connect,"SET time_zone = '+08:00'");
 }
 
-//Compare the submitted customer password with the plain-text value stored in
-//the member table. This mirrors the password-storage format requested for the
-//FYP demonstration database.
+// Compare the submitted password with the plain-text value stored in the
+// demonstration database for both member and administrator accounts.
 if(!function_exists("easyorder_password_verify"))
 {
 	function easyorder_password_verify($plain_password,$stored_password)
@@ -80,7 +79,8 @@ if($connect)
 
 	if($invalid_admin)
 	{
-		unset($_SESSION["admin_id"],$_SESSION["admin_name"]);
+		// Remove every administrator identity value when the account is no longer valid.
+		unset($_SESSION["admin_id"],$_SESSION["admin_name"],$_SESSION["admin_role"]);
 	}
 
 	//redirect only when the current page needs the account that became invalid
