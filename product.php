@@ -14,7 +14,7 @@ if(preg_match("/^[A-Za-z0-9]{1,5}$/",$product_id))
 {
 	$product_stmt = mysqli_prepare(
 		$connect,
-		"SELECT p.product_id,p.product_name,p.product_desc,p.product_category,p.product_price,p.product_stock,p.product_status,c.category_id
+		"SELECT p.product_id,p.product_name,p.product_desc,p.product_image,p.product_category,p.product_price,p.product_stock,p.product_status,c.category_id
 		FROM product p
 		INNER JOIN category c ON c.category_name=p.product_category
 		WHERE p.product_id=?
@@ -77,7 +77,7 @@ $product_state = $product ? catalog_product_state($product) : null;
 
 <article class="catalog-detail-card">
 <div class="catalog-detail-image">
-<img src="<?php echo catalog_h(catalog_product_image($product["product_name"])); ?>" alt="<?php echo catalog_h($product["product_name"]); ?>">
+<img src="<?php echo catalog_h(catalog_product_image($product["product_image"])); ?>" alt="<?php echo catalog_h($product["product_name"]); ?>">
 </div>
 <div class="catalog-detail-content">
 <p class="catalog-product-category"><?php echo catalog_h($product["product_category"]); ?></p>

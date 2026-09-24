@@ -18,35 +18,16 @@ function catalog_category_image($category_name)
 	return "image/".($images[$category_name] ?? "logo.png");
 }
 
-function catalog_product_image($product_name)
+function catalog_product_image($stored_path)
 {
-	// This preserves the current assignment images in one shared location.
-	// Unit 6C will replace this fallback with the database image path uploaded by Admin.
-	$images = array(
-		"Original Recipe (1 pc)" => "chicken-original.jpg",
-		"Hot & Spicy (1 pc)" => "chicken-hotspicy.jpg",
-		"Crispy Tenders (3 pcs)" => "chicken-tenders.jpg",
-		"Nuggets (6 pcs)" => "chicken-nuggets.jpg",
-		"Classic Burger" => "burger-classic.jpg",
-		"Beef Burger" => "burger-beef.jpg",
-		"Filet-O-Fish" => "burger-fish.jpg",
-		"Zinger Burger" => "burger-zinger.jpg",
-		"Zinger Double Down" => "burger-zingerdouble.jpg",
-		"French Fries" => "side-fries.jpg",
-		"Cheezy Wedges" => "side-wedges.jpg",
-		"Onion Rings" => "side-onionrings.jpg",
-		"Corn Cup" => "side-corncup.jpg",
-		"Ice Cream Cone" => "dessert-icecream.jpg",
-		"Chocolate Sundae" => "dessert-sundae.jpg",
-		"Apple Pie" => "dessert-applepie.jpg",
-		"Coca-Cola" => "bev-coke.jpg",
-		"Sprite" => "bev-sprite.jpg",
-		"Orange Juice" => "bev-orangejuice.jpg",
-		"Iced Latte" => "bev-icedlatte.jpg",
-		"Mineral Water" => "bev-water.jpg"
-	);
+	// Product paths are stored by Admin and must remain inside the local image folder.
+	$path = str_replace("\\","/",trim((string)$stored_path));
+	if(preg_match("#^image/[A-Za-z0-9._-]+$#",$path)===1)
+	{
+		return $path;
+	}
 
-	return "image/".($images[$product_name] ?? "logo.png");
+	return "image/logo.png";
 }
 
 function catalog_product_state($product)
@@ -67,4 +48,3 @@ function catalog_product_state($product)
 		"orderable" => true
 	);
 }
-
