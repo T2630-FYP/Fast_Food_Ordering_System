@@ -1746,3 +1746,305 @@ margin-top:3px;}
 
 .admin-category-editor-form .admin-catalog-form-actions
 {margin-top:16px;}
+
+/* Unit 6D: member/staff search and current administrator account pages */
+.admin-account-copy
+{text-decoration:none;}
+
+.admin-account-copy:hover strong
+{color:#A50E26;}
+
+.admin-account-actions
+{display:flex;
+align-items:center;
+gap:4px;}
+
+.admin-account-actions a
+{color:#5C6672;
+font-size:8pt;
+font-weight:bold;
+text-decoration:none;
+padding:6px 7px;
+border-radius:5px;}
+
+.admin-account-actions a:hover
+{color:#A50E26;
+background-color:#FFF2F4;}
+
+.admin-user-filter-panel,
+.admin-user-results,
+.admin-user-editor,
+.admin-account-panel
+{box-sizing:border-box;
+background-color:#FFFFFF;
+border:1px solid #E2E5E9;
+border-radius:11px;
+box-shadow:0px 6px 18px rgba(24,31,41,0.06);}
+
+.admin-user-filter-panel
+{padding:17px 19px;
+margin-bottom:16px;}
+
+.admin-user-filter-form
+{display:grid;
+grid-template-columns:minmax(360px,1.8fr) minmax(180px,0.75fr) auto;
+align-items:end;
+gap:12px;}
+
+.admin-user-filter-form label
+{display:flex;
+flex-direction:column;
+gap:6px;
+min-width:0;}
+
+.admin-user-filter-form label>span
+{color:#555F6B;
+font-size:8pt;
+font-weight:bold;}
+
+.admin-user-filter-form input,
+.admin-user-filter-form select
+{width:100%;
+min-height:38px;
+box-sizing:border-box;
+color:#303943;
+background-color:#FFFFFF;
+border:1px solid #CFD4DA;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:9pt;
+padding:9px 11px;
+outline:none;}
+
+.admin-user-filter-form input:focus,
+.admin-user-filter-form select:focus
+{border-color:#C8102E;
+box-shadow:0px 0px 0px 3px rgba(200,16,46,0.09);}
+
+.admin-user-filter-actions,
+.admin-user-form-actions,
+.admin-account-form-actions
+{display:flex;
+align-items:center;
+gap:8px;}
+
+.admin-user-filter-actions button,
+.admin-user-form-actions button,
+.admin-account-form-actions button
+{min-height:38px;
+box-sizing:border-box;
+color:#FFFFFF;
+background-color:#C8102E;
+border:1px solid #C8102E;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:8.5pt;
+font-weight:bold;
+padding:9px 14px;
+white-space:nowrap;
+cursor:pointer;}
+
+.admin-user-filter-actions button:hover,
+.admin-user-form-actions button:hover,
+.admin-account-form-actions button:hover
+{background-color:#A90D27;
+border-color:#A90D27;}
+
+.admin-user-filter-actions a,
+.admin-user-form-actions a,
+.admin-account-form-actions a
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+min-height:38px;
+box-sizing:border-box;
+color:#4E5864;
+background-color:#FFFFFF;
+border:1px solid #D0D5DA;
+border-radius:7px;
+font-size:8.5pt;
+font-weight:bold;
+text-decoration:none;
+padding:9px 13px;
+white-space:nowrap;}
+
+.admin-user-filter-actions a:hover,
+.admin-user-form-actions a:hover,
+.admin-account-form-actions a:hover
+{color:#A20E27;
+border-color:#C8102E;}
+
+.admin-user-results
+{padding:20px;
+margin-bottom:16px;}
+
+.admin-user-result-meta
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+min-height:29px;
+box-sizing:border-box;
+color:#626C78;
+background-color:#F1F3F5;
+border-radius:15px;
+font-size:8pt;
+font-weight:bold;
+padding:6px 11px;}
+
+.admin-user-table-wrap
+{width:100%;
+overflow-x:auto;
+border:1px solid #E1E4E8;
+border-radius:9px;}
+
+.admin-user-table
+{width:100%;
+border-collapse:collapse;
+table-layout:auto;}
+
+.admin-user-table th
+{color:#646E7A;
+background-color:#F3F5F7;
+font-size:7.5pt;
+font-weight:bold;
+text-align:left;
+padding:10px 9px;
+border-bottom:1px solid #DDE1E5;
+white-space:nowrap;}
+
+.admin-user-table td
+{color:#414B56;
+font-size:8.5pt;
+line-height:1.4;
+padding:10px 9px;
+border-bottom:1px solid #E7E9EC;
+vertical-align:middle;}
+
+.admin-user-table tr:last-child td
+{border-bottom:0px;}
+
+.admin-user-table td strong,
+.admin-user-table td small
+{display:block;}
+
+.admin-user-table td strong
+{color:#29323D;
+font-size:9pt;}
+
+.admin-user-table td small
+{color:#858E99;
+font-size:7.5pt;
+margin-top:3px;}
+
+.admin-list-empty
+{color:#737C87 !important;
+text-align:center;
+padding:28px !important;}
+
+.admin-user-row-actions
+{display:flex;
+align-items:center;
+gap:6px;}
+
+.admin-user-row-actions form
+{margin:0px;}
+
+.admin-user-row-actions a,
+.admin-user-row-actions button,
+.admin-current-account
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+min-height:30px;
+box-sizing:border-box;
+border-radius:6px;
+font-family:Arial,sans-serif;
+font-size:7.5pt;
+font-weight:bold;
+text-decoration:none;
+padding:7px 10px;
+white-space:nowrap;}
+
+.admin-user-row-actions a
+{color:#A20E27;
+background-color:#FFFFFF;
+border:1px solid #D8AAB3;}
+
+.admin-user-row-actions button
+{color:#FFFFFF;
+background-color:#C8102E;
+border:1px solid #C8102E;
+cursor:pointer;}
+
+.admin-current-account
+{color:#237346;
+background-color:#E8F6EE;}
+
+.admin-read-only-account
+{color:#626C78;
+background-color:#F0F2F4;}
+
+.admin-user-editor,
+.admin-account-panel
+{padding:20px;}
+
+.admin-user-editor
+{scroll-margin-top:20px;}
+
+.admin-user-editor-form,
+.admin-account-form
+{margin:0px;}
+
+.admin-user-fields,
+.admin-account-fields
+{display:grid;
+grid-template-columns:repeat(3,minmax(0,1fr));
+gap:13px 15px;}
+
+.admin-form-field small
+{color:#7A838F;
+font-size:7.5pt;
+line-height:1.4;}
+
+.admin-form-note
+{display:flex;
+flex-direction:column;
+justify-content:center;
+box-sizing:border-box;
+min-height:74px;
+color:#5B6570;
+background-color:#F5F7F9;
+border:1px solid #E0E4E8;
+border-radius:8px;
+padding:12px 14px;}
+
+.admin-form-note strong
+{color:#29323D;
+font-size:8.5pt;}
+
+.admin-form-note span
+{font-size:7.5pt;
+line-height:1.45;
+margin-top:4px;}
+
+.admin-user-form-actions,
+.admin-account-form-actions
+{justify-content:flex-end;
+border-top:1px solid #E4E7EA;
+padding-top:16px;
+margin-top:16px;}
+
+.admin-account-panel
+{max-width:920px;}
+
+.admin-password-panel
+{max-width:720px;}
+
+.admin-password-fields
+{display:grid;
+grid-template-columns:1fr;
+gap:14px;}
+
+.admin-field-error
+{color:#B20E29 !important;
+font-weight:bold;}
