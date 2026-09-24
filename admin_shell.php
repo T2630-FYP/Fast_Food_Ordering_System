@@ -83,10 +83,15 @@ if(!function_exists("easyorder_admin_shell_start"))
 					</div>
 					<div class="admin-account-summary">
 						<span class="admin-avatar" aria-hidden="true"><?php echo htmlspecialchars(strtoupper(substr($admin_name,0,1)),ENT_QUOTES,"UTF-8"); ?></span>
-						<span class="admin-account-copy">
+						<a class="admin-account-copy" href="admin_profile.php" aria-label="Open administrator profile">
 							<strong><?php echo htmlspecialchars($admin_name,ENT_QUOTES,"UTF-8"); ?></strong>
 							<small><?php echo htmlspecialchars($admin_role,ENT_QUOTES,"UTF-8"); ?></small>
-						</span>
+						</a>
+						<!-- Keep account settings available without adding more management items to the sidebar. -->
+						<div class="admin-account-actions">
+							<a href="admin_profile.php">Profile</a>
+							<a href="admin_change_password.php">Password</a>
+						</div>
 						<a class="admin-logout-link" href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
 					</div>
 				</header>
