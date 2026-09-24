@@ -211,7 +211,7 @@ $recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_da
 					<tbody>
 					<?php foreach($recent_orders as $order): ?>
 						<tr>
-							<td><strong>#<?php echo (int)$order["order_id"]; ?></strong><small><?php echo htmlspecialchars($order["order_payment"],ENT_QUOTES,"UTF-8"); ?></small></td>
+							<td><a class="admin-order-number" href="admin_order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>">#<?php echo (int)$order["order_id"]; ?></a><small><?php echo htmlspecialchars($order["order_payment"],ENT_QUOTES,"UTF-8"); ?></small></td>
 							<td><?php echo htmlspecialchars($order["member_name"],ENT_QUOTES,"UTF-8"); ?></td>
 							<td><?php echo htmlspecialchars(date("d M Y, h:i A",strtotime($order["order_date"])),ENT_QUOTES,"UTF-8"); ?></td>
 							<td>RM <?php echo number_format($order["order_total"],2); ?></td>

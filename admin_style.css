@@ -849,3 +849,552 @@ color:#A0182F;}
 .admin-status-badge.status-info
 {background-color:#E9F1FA;
 color:#2C6596;}
+
+/* Unit 6B: order search, result summaries and administrator actions */
+.admin-primary-button,
+.admin-secondary-button
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+box-sizing:border-box;
+min-height:38px;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:9pt;
+font-weight:bold;
+line-height:1;
+text-decoration:none;
+cursor:pointer;}
+
+.admin-primary-button
+{color:#FFFFFF;
+background-color:#C8102E;
+border:1px solid #C8102E;
+padding:11px 18px;}
+
+.admin-primary-button:hover
+{background-color:#A90D27;
+border-color:#A90D27;}
+
+.admin-secondary-button
+{color:#303945;
+background-color:#FFFFFF;
+border:1px solid #CED3D9;
+padding:11px 17px;}
+
+.admin-secondary-button:hover
+{color:#A20E27;
+border-color:#C8102E;}
+
+.admin-alert
+{box-sizing:border-box;
+width:100%;
+border:1px solid;
+border-radius:8px;
+font-size:9pt;
+font-weight:bold;
+line-height:1.5;
+padding:12px 15px;
+margin:0px 0px 18px 0px;}
+
+.admin-alert-success
+{color:#246B45;
+background-color:#EAF6EF;
+border-color:#C6E6D2;}
+
+.admin-alert-error
+{color:#9A1830;
+background-color:#FDECEF;
+border-color:#F0C4CC;}
+
+.admin-alert-info
+{color:#2B628F;
+background-color:#EAF2FA;
+border-color:#C8DDF0;}
+
+.admin-order-filter-panel,
+.admin-order-results,
+.admin-detail-card,
+.admin-order-detail-hero,
+.admin-order-unavailable
+{box-sizing:border-box;
+background-color:#FFFFFF;
+border:1px solid #E2E5E9;
+border-radius:11px;
+box-shadow:0px 6px 18px rgba(24,31,41,0.06);}
+
+.admin-order-filter-panel
+{padding:18px 20px;
+margin-bottom:16px;}
+
+.admin-filter-heading,
+.admin-results-heading
+{display:flex;
+align-items:flex-start;
+justify-content:space-between;
+gap:20px;
+margin-bottom:15px;}
+
+.admin-filter-heading p,
+.admin-results-heading p,
+.admin-detail-card header p,
+.admin-order-detail-hero>div>p
+{color:#A20E27;
+font-size:7.5pt;
+font-weight:bold;
+letter-spacing:1.2px;
+margin:0px 0px 5px 0px;}
+
+.admin-filter-heading h2,
+.admin-results-heading h2,
+.admin-detail-card header h2
+{color:#252D37;
+font-size:13pt;
+margin:0px;}
+
+.admin-filter-heading>a
+{color:#A20E27;
+font-size:8.5pt;
+font-weight:bold;
+text-decoration:none;
+padding-top:5px;}
+
+.admin-filter-heading>a:hover
+{text-decoration:underline;}
+
+.admin-order-filter-form
+{display:grid;
+grid-template-columns:minmax(260px,1.4fr) repeat(3,minmax(145px,0.75fr)) auto;
+align-items:end;
+gap:12px;}
+
+.admin-filter-field
+{display:flex;
+flex-direction:column;
+gap:6px;
+min-width:0;}
+
+.admin-filter-field label,
+.admin-order-action-form label
+{color:#4A535F;
+font-size:8pt;
+font-weight:bold;}
+
+.admin-filter-field input,
+.admin-filter-field select,
+.admin-order-action-form select
+{width:100%;
+height:39px;
+box-sizing:border-box;
+color:#303945;
+background-color:#FFFFFF;
+border:1px solid #CDD2D8;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:9pt;
+padding:0px 10px;}
+
+.admin-filter-field input:focus,
+.admin-filter-field select:focus,
+.admin-order-action-form select:focus
+{outline:2px solid rgba(200,16,46,0.14);
+border-color:#C8102E;}
+
+.admin-order-summary-grid
+{display:grid;
+grid-template-columns:repeat(4,minmax(0,1fr));
+gap:13px;
+margin-bottom:16px;}
+
+.admin-order-summary-grid article
+{display:flex;
+align-items:center;
+gap:12px;
+box-sizing:border-box;
+min-height:76px;
+background-color:#FFFFFF;
+border:1px solid #E2E5E9;
+border-radius:10px;
+padding:13px 15px;}
+
+.admin-order-summary-grid article>span
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+width:38px;
+height:38px;
+flex:0 0 38px;
+color:#A40E28;
+background-color:#FFF0F2;
+border-radius:9px;
+font-size:8pt;
+font-weight:bold;}
+
+.admin-order-summary-grid article.attention
+{background-color:#FFF9ED;
+border-color:#F0DEB7;}
+
+.admin-order-summary-grid article.attention>span
+{color:#8A6411;
+background-color:#FFF1D2;}
+
+.admin-order-summary-grid article div
+{display:flex;
+flex-direction:column;
+gap:3px;
+min-width:0;}
+
+.admin-order-summary-grid strong
+{color:#232B35;
+font-size:14pt;
+white-space:nowrap;
+overflow:hidden;
+text-overflow:ellipsis;}
+
+.admin-order-summary-grid small
+{color:#7A838E;
+font-size:8pt;}
+
+.admin-order-results
+{padding:19px 20px 21px 20px;}
+
+.admin-results-heading>span
+{color:#6F7884;
+background-color:#F2F4F6;
+border-radius:15px;
+font-size:8pt;
+font-weight:bold;
+padding:6px 10px;}
+
+.admin-order-table-wrap
+{overflow-x:auto;}
+
+.admin-order-table
+{width:100%;
+min-width:1010px;
+border-collapse:collapse;}
+
+.admin-order-table th,
+.admin-detail-items-table th
+{color:#626C78;
+background-color:#F3F5F7;
+font-size:7.5pt;
+font-weight:bold;
+text-align:left;
+padding:10px 9px;
+border-bottom:1px solid #DCE0E5;}
+
+.admin-order-table td,
+.admin-detail-items-table td
+{color:#414B56;
+font-size:8pt;
+line-height:1.35;
+padding:11px 9px;
+border-bottom:1px solid #E7E9EC;
+vertical-align:middle;}
+
+.admin-order-table tr:last-child td,
+.admin-detail-items-table tr:last-child td
+{border-bottom:0px;}
+
+.admin-order-table td:first-child small,
+.admin-order-table td:nth-child(2) small,
+.admin-detail-items-table td:first-child small
+{display:block;
+color:#87909B;
+font-size:7pt;
+margin-top:3px;}
+
+.admin-order-number
+{display:inline-block;
+color:#A20E27;
+font-size:9pt;
+font-weight:bold;
+text-decoration:none;}
+
+.admin-order-number:hover
+{text-decoration:underline;}
+
+.admin-order-row-actions
+{display:flex;
+align-items:flex-start;
+flex-direction:column;
+gap:6px;
+min-width:98px;}
+
+.admin-order-row-actions>a,
+.admin-order-row-actions button
+{box-sizing:border-box;
+width:100%;
+color:#A20E27;
+background-color:#FFFFFF;
+border:1px solid #D8AAB3;
+border-radius:6px;
+font-family:Arial,sans-serif;
+font-size:7.5pt;
+font-weight:bold;
+text-align:center;
+text-decoration:none;
+padding:7px 8px;
+cursor:pointer;}
+
+.admin-order-row-actions form
+{width:100%;
+margin:0px;}
+
+.admin-order-row-actions button
+{color:#FFFFFF;
+background-color:#C8102E;
+border-color:#C8102E;}
+
+.admin-order-row-actions>a:hover
+{background-color:#FFF5F6;}
+
+.admin-order-row-actions button:hover
+{background-color:#A90D27;}
+
+/* Administrator order detail layout */
+.admin-order-detail-heading h1 span
+{color:#A20E27;}
+
+.admin-order-detail-hero
+{display:flex;
+align-items:center;
+justify-content:space-between;
+gap:25px;
+padding:19px 22px;
+margin-bottom:16px;}
+
+.admin-order-detail-hero h2
+{color:#232B35;
+font-size:17pt;
+margin:0px 0px 5px 0px;}
+
+.admin-order-detail-hero>div>span
+{color:#727B87;
+font-size:8.5pt;}
+
+.admin-order-detail-statuses
+{display:flex;
+align-items:center;
+justify-content:flex-end;
+gap:9px;}
+
+.admin-order-detail-statuses .admin-status-badge
+{min-width:105px;
+padding:7px 11px;}
+
+.admin-order-detail-grid
+{display:grid;
+grid-template-columns:repeat(12,minmax(0,1fr));
+align-items:start;
+gap:16px;}
+
+.admin-detail-card
+{grid-column:span 6;
+padding:20px;}
+
+.admin-detail-card header
+{position:relative;
+margin-bottom:17px;}
+
+.admin-detail-card header>span
+{position:absolute;
+right:0px;
+top:7px;
+color:#737D89;
+background-color:#F1F3F5;
+border-radius:12px;
+font-size:7.5pt;
+font-weight:bold;
+padding:5px 9px;}
+
+.admin-detail-list
+{display:grid;
+grid-template-columns:repeat(2,minmax(0,1fr));
+gap:1px;
+background-color:#E6E9ED;
+border:1px solid #E6E9ED;
+border-radius:8px;
+overflow:hidden;
+margin:0px;}
+
+.admin-detail-list>div
+{display:flex;
+flex-direction:column;
+gap:5px;
+min-height:64px;
+box-sizing:border-box;
+background-color:#FAFBFC;
+padding:11px 13px;}
+
+.admin-detail-list>div.wide
+{grid-column:1/-1;}
+
+.admin-detail-list dt
+{color:#7D8691;
+font-size:7.5pt;
+font-weight:bold;
+text-transform:uppercase;}
+
+.admin-detail-list dd
+{color:#323B46;
+font-size:9pt;
+line-height:1.45;
+overflow-wrap:anywhere;
+margin:0px;}
+
+.admin-detail-list dd small
+{color:#8A929C;
+font-size:7.5pt;}
+
+.admin-payment-reference
+{font-family:Consolas,monospace;}
+
+.admin-detail-items-card
+{grid-column:span 8;}
+
+.admin-detail-items-table
+{width:100%;
+border-collapse:collapse;}
+
+.admin-detail-items-table th:nth-child(n+2),
+.admin-detail-items-table td:nth-child(n+2)
+{text-align:right;}
+
+.admin-order-totals
+{width:310px;
+margin:17px 0px 0px auto;}
+
+.admin-order-totals>div
+{display:flex;
+align-items:center;
+justify-content:space-between;
+gap:25px;
+color:#68717D;
+font-size:8.5pt;
+padding:7px 2px;}
+
+.admin-order-totals strong
+{color:#333C47;}
+
+.admin-order-totals .total
+{color:#252D37;
+font-size:10pt;
+font-weight:bold;
+border-top:1px solid #D9DDE2;
+margin-top:4px;
+padding-top:12px;}
+
+.admin-order-totals .total strong
+{color:#A20E27;
+font-size:13pt;}
+
+.admin-order-action-card
+{grid-column:span 4;
+position:sticky;
+top:94px;}
+
+.admin-order-action-form
+{display:flex;
+flex-direction:column;
+gap:10px;
+border-top:1px solid #E7E9EC;
+padding:15px 0px;
+margin:0px;}
+
+.admin-order-action-form:first-of-type
+{border-top:0px;
+padding-top:0px;}
+
+.admin-order-action-form div strong
+{color:#303945;
+font-size:9pt;}
+
+.admin-order-action-form div p
+{color:#737C87;
+font-size:8pt;
+line-height:1.45;
+margin:4px 0px 0px 0px;}
+
+.admin-action-complete
+{display:flex;
+align-items:center;
+gap:10px;
+background-color:#ECF7F1;
+border:1px solid #CAE7D6;
+border-radius:8px;
+padding:11px 12px;
+margin-bottom:15px;}
+
+.admin-action-complete>span
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+width:28px;
+height:28px;
+flex:0 0 28px;
+color:#FFFFFF;
+background-color:#2F8B59;
+border-radius:50%;
+font-weight:bold;}
+
+.admin-action-complete strong
+{display:block;
+color:#286C47;
+font-size:8.5pt;}
+
+.admin-action-complete p
+{color:#5D7C6C;
+font-size:7.5pt;
+margin:3px 0px 0px 0px;}
+
+.admin-order-delete-form
+{border-top:1px solid #E7E9EC;
+padding-top:15px;
+margin:0px;}
+
+.admin-order-delete-form button
+{width:100%;
+color:#A0182F;
+background-color:#FFF5F6;
+border:1px solid #E7BAC2;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:8.5pt;
+font-weight:bold;
+padding:10px;
+cursor:pointer;}
+
+.admin-order-delete-form button:hover
+{color:#FFFFFF;
+background-color:#A0182F;}
+
+.admin-order-unavailable
+{display:flex;
+align-items:center;
+flex-direction:column;
+text-align:center;
+padding:45px 25px;}
+
+.admin-order-unavailable>span
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+width:48px;
+height:48px;
+color:#A20E27;
+background-color:#FFF0F2;
+border-radius:50%;
+font-size:14pt;
+font-weight:bold;}
+
+.admin-order-unavailable h2
+{color:#29313B;
+font-size:15pt;
+margin:13px 0px 5px 0px;}
+
+.admin-order-unavailable p
+{color:#717A86;
+font-size:9pt;
+margin:0px 0px 18px 0px;}
