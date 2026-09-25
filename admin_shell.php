@@ -42,7 +42,8 @@ if(!function_exists("easyorder_admin_shell_start"))
 			array("page"=>"admin_member.php","label"=>"Members","icon"=>"ME"),
 			array("page"=>"admin_staff.php","label"=>"Staff","icon"=>"ST"),
 			array("page"=>"admin_reward.php","label"=>"Rewards","icon"=>"RW"),
-			array("page"=>"admin_report.php","label"=>"Reports","icon"=>"RP")
+			array("page"=>"admin_report.php","label"=>"Reports","icon"=>"RP"),
+			array("page"=>"admin_restore.php","label"=>"Recycle Bin","icon"=>"RB")
 		);
 
 		if($active_page==="")
