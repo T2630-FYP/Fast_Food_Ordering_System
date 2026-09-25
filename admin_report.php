@@ -181,8 +181,13 @@ $month_start = date("Y-m-01");
 			<p class="admin-eyebrow">SALES ANALYTICS</p>
 			<h1>Sales Report</h1>
 			<p>Review collected revenue, category performance and best sellers using paid, non-cancelled orders.</p>
+			<p class="admin-print-context">Report period: <?php echo admin_report_html($period_label); ?> · Printed <?php echo date("d M Y, h:i A"); ?></p>
 		</div>
-		<span class="admin-live-indicator"><i></i> Live database</span>
+		<!-- Print the currently selected report period and database totals. -->
+		<div class="admin-output-actions">
+			<button type="button" class="admin-secondary-button" onclick="window.print()">Print Report</button>
+			<span class="admin-live-indicator"><i></i> Live database</span>
+		</div>
 	</section>
 
 	<?php if($filter_error!==""): ?>
