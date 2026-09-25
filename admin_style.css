@@ -484,7 +484,8 @@ font-size:25pt;
 letter-spacing:-0.7px;
 margin:0px 0px 7px 0px;}
 
-.admin-page-heading>div>p:last-child
+.admin-page-heading>div>p:last-child,
+.admin-page-heading>div>p:not(.admin-eyebrow):not(.admin-print-context)
 {color:#68717D;
 font-size:10.5pt;
 margin:0px;}
@@ -2711,4 +2712,133 @@ font-weight:bold;}
 
 	.admin-restore-filter-actions
 	{grid-column:auto;}
+}
+
+/* Unit 7B: filtered CSV links and print controls */
+.admin-output-actions
+{display:flex;
+align-items:center;
+justify-content:flex-end;
+gap:8px;
+flex-wrap:wrap;}
+
+.admin-output-actions button
+{white-space:nowrap;}
+
+.admin-print-context
+{display:none;}
+
+/* Print only the selected list, order or report content without admin controls. */
+@media print
+{
+	@page
+	{size:A4 landscape;
+	margin:10mm;}
+
+	html,
+	body.admin-body
+	{min-width:0 !important;
+	width:100%;
+	background-color:#FFFFFF !important;}
+
+	body.admin-body,
+	body.admin-body *
+	{-webkit-print-color-adjust:exact;
+	print-color-adjust:exact;}
+
+	.admin-sidebar,
+	.admin-topbar,
+	.admin-footer,
+	.admin-output-actions,
+	.admin-alert,
+	.admin-user-filter-panel,
+	.admin-catalog-filter-panel,
+	.admin-order-filter-panel,
+	.admin-report-filter-panel,
+	.admin-user-editor,
+	.admin-catalog-editor,
+	.admin-order-action-card,
+	.admin-print-hide
+	{display:none !important;}
+
+	.admin-app-shell,
+	.admin-workspace
+	{display:block;
+	width:100%;
+	min-height:0;
+	background-color:#FFFFFF;}
+
+	#main.admin-main
+	{width:100%;
+	box-sizing:border-box;
+	padding:0px;}
+
+	.admin-page-heading
+	{align-items:flex-start;
+	margin:0px 0px 14px 0px;}
+
+	.admin-page-heading h1
+	{font-size:21pt;}
+
+	.admin-print-context
+	{display:block !important;
+	color:#535D68 !important;
+	font-size:8pt !important;
+	line-height:1.4;
+	margin:5px 0px 0px 0px !important;}
+
+	.admin-user-results,
+	.admin-catalog-results,
+	.admin-order-results,
+	.admin-order-detail-hero,
+	.admin-detail-card,
+	.admin-report-panel,
+	.admin-report-stat-grid article
+	{box-shadow:none !important;
+	break-inside:avoid;}
+
+	.admin-user-results,
+	.admin-catalog-results,
+	.admin-order-results,
+	.admin-report-panel,
+	.admin-detail-card
+	{border-color:#C9CED4;}
+
+	.admin-user-table,
+	.admin-catalog-table,
+	.admin-order-table,
+	.admin-report-table,
+	.admin-detail-items-table
+	{font-size:8pt;}
+
+	.admin-user-table-wrap,
+	.admin-catalog-table-wrap,
+	.admin-order-table-wrap,
+	.admin-report-table-wrap
+	{overflow:visible;}
+
+	.admin-order-summary-grid
+	{margin-bottom:12px;}
+
+	.admin-order-detail-grid
+	{grid-template-columns:repeat(12,minmax(0,1fr));}
+
+	.admin-detail-items-card
+	{grid-column:1/-1;}
+
+	.admin-report-grid
+	{display:grid;
+	grid-template-columns:minmax(0,1.2fr) minmax(280px,0.8fr);
+	gap:10px;}
+
+	.admin-report-daily-panel
+	{grid-column:1/-1;}
+
+	.admin-report-stat-grid
+	{grid-template-columns:repeat(5,minmax(0,1fr));
+	gap:7px;}
+
+	a
+	{color:inherit !important;
+	text-decoration:none !important;}
 }
