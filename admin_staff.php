@@ -333,6 +333,12 @@ if($edit_id!=="" && preg_match("/^[A-Z0-9]{1,5}$/",$edit_id)===1)
 	$editing_staff = mysqli_fetch_assoc($edit_result) ?: null;
 	mysqli_stmt_close($edit_stmt);
 }
+
+// Managers may export the same filtered staff fields shown on this page.
+$staff_export_params = array("type"=>"staff");
+if($search!=="") $staff_export_params["search"] = $search;
+if($role_filter!=="") $staff_export_params["role"] = $role_filter;
+$staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -352,8 +358,14 @@ if($edit_id!=="" && preg_match("/^[A-Z0-9]{1,5}$/",$edit_id)===1)
 			<p class="admin-eyebrow">ADMINISTRATOR MANAGEMENT</p>
 			<h1>Staff</h1>
 			<p>Search administrator accounts and review their assigned roles. Account changes are restricted to Managers.</p>
+			<p class="admin-print-context">Filters: Search <?php echo admin_staff_html($search!=="" ? $search : "All"); ?> · Role <?php echo admin_staff_html($role_filter!=="" ? $role_filter : "All roles"); ?></p>
 		</div>
-		<?php if($can_manage_staff): ?><a class="admin-primary-link" href="#staff-editor">Add Staff</a><?php endif; ?>
+		<!-- Staff CSV remains Manager-only and never contains password values. -->
+		<div class="admin-output-actions">
+			<?php if($can_manage_staff): ?><a class="admin-secondary-link" href="<?php echo admin_staff_html($staff_export_url); ?>">Export CSV</a><?php endif; ?>
+			<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
+			<?php if($can_manage_staff): ?><a class="admin-primary-link" href="#staff-editor">Add Staff</a><?php endif; ?>
+		</div>
 	</section>
 
 	<?php if($staff_flash): ?>
@@ -397,7 +409,7 @@ if($edit_id!=="" && preg_match("/^[A-Z0-9]{1,5}$/",$edit_id)===1)
 		<div class="admin-user-table-wrap">
 			<table class="admin-user-table admin-staff-table">
 				<thead>
-					<tr><th>Staff</th><th>Role</th><th>Email</th><th>Phone</th><th>Actions</th></tr>
+					<tr><th>Staff</th><th>Role</th><th>Email</th><th>Phone</th><th class="admin-print-hide">Actions</th></tr>
 				</thead>
 				<tbody>
 				<?php if(!$staff_accounts): ?>
@@ -409,7 +421,7 @@ if($edit_id!=="" && preg_match("/^[A-Z0-9]{1,5}$/",$edit_id)===1)
 							<td><span class="admin-status-badge status-info"><?php echo admin_staff_html($staff["staff_role"]); ?></span></td>
 							<td><?php echo admin_staff_html($staff["staff_email"]); ?></td>
 							<td><?php echo admin_staff_html($staff["staff_phone"]); ?></td>
-							<td>
+							<td class="admin-print-hide">
 								<div class="admin-user-row-actions">
 									<?php if($can_manage_staff): ?>
 										<a href="admin_staff.php?edit=<?php echo rawurlencode($staff["staff_id"]); ?>#staff-editor">Edit</a>

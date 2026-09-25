@@ -328,6 +328,14 @@ foreach($orders as $order)
 		$visible_attention++;
 	}
 }
+
+// Keep CSV output aligned with the current Order search and exact filters.
+$order_export_params = array("type"=>"orders");
+if($search!=="") $order_export_params["search"] = $search;
+if($payment_filter!=="") $order_export_params["payment_status"] = $payment_filter;
+if($status_filter!=="") $order_export_params["order_status"] = $status_filter;
+if($delivery_filter!=="") $order_export_params["delivery"] = $delivery_filter;
+$order_export_url = "admin_export.php?".http_build_query($order_export_params);
 ?>
 
 <!DOCTYPE html>
@@ -351,8 +359,14 @@ foreach($orders as $order)
 		<p class="admin-eyebrow">ORDER OPERATIONS</p>
 		<h1>Manage Orders</h1>
 		<p>Search customer orders, review fulfilment and confirm outstanding payments.</p>
+		<p class="admin-print-context">Filters: Search <?php echo admin_order_html($search!=="" ? $search : "All"); ?> · Payment <?php echo admin_order_html($payment_filter!=="" ? $payment_filter : "All"); ?> · Order <?php echo admin_order_html($status_filter!=="" ? $status_filter : "All"); ?> · Fulfilment <?php echo admin_order_html($delivery_filter==="Yes" ? "Delivery" : ($delivery_filter==="No" ? "Pickup" : "All")); ?></p>
 	</div>
-	<span class="admin-live-indicator"><i></i> Live database</span>
+	<!-- Output actions preserve the current order filters. -->
+	<div class="admin-output-actions">
+		<a class="admin-secondary-button" href="<?php echo admin_order_html($order_export_url); ?>">Export CSV</a>
+		<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
+		<span class="admin-live-indicator"><i></i> Live database</span>
+	</div>
 </section>
 
 <?php if($flash) { ?>
@@ -420,7 +434,7 @@ foreach($orders as $order)
 	<?php } else { ?>
 		<div class="admin-table-wrap admin-order-table-wrap">
 			<table class="admin-order-table">
-				<thead><tr><th>Order</th><th>Customer</th><th>Date &amp; Time</th><th>Fulfilment</th><th>Total</th><th>Payment</th><th>Order Status</th><th>Actions</th></tr></thead>
+				<thead><tr><th>Order</th><th>Customer</th><th>Date &amp; Time</th><th>Fulfilment</th><th>Total</th><th>Payment</th><th>Order Status</th><th class="admin-print-hide">Actions</th></tr></thead>
 				<tbody>
 				<?php foreach($orders as $order) { ?>
 					<tr>
@@ -431,7 +445,7 @@ foreach($orders as $order)
 						<td><strong>RM <?php echo number_format((float)$order["order_total"],2); ?></strong></td>
 						<td><span class="admin-status-badge <?php echo admin_order_status_class($order["display_payment_status"]); ?>"><?php echo admin_order_html($order["display_payment_status"]); ?></span></td>
 						<td><span class="admin-status-badge <?php echo admin_order_status_class($order["order_status"]); ?>"><?php echo admin_order_html($order["order_status"]); ?></span></td>
-						<td>
+						<td class="admin-print-hide">
 							<div class="admin-order-row-actions">
 								<a href="admin_order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>">View Details</a>
 								<?php if(in_array(strtolower((string)$order["display_payment_status"]),array("pending","unpaid"),true)) { ?>

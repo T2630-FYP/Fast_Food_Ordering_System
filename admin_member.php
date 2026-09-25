@@ -182,6 +182,12 @@ if($edit_id>0)
 	$editing_member = mysqli_fetch_assoc($edit_result) ?: null;
 	mysqli_stmt_close($edit_stmt);
 }
+
+// Keep CSV output aligned with the current Member search and state filter.
+$member_export_params = array("type"=>"members");
+if($search!=="") $member_export_params["search"] = $search;
+if($state_filter!=="") $member_export_params["state"] = $state_filter;
+$member_export_url = "admin_export.php?".http_build_query($member_export_params);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -201,8 +207,14 @@ if($edit_id>0)
 			<p class="admin-eyebrow">CUSTOMER MANAGEMENT</p>
 			<h1>Members</h1>
 			<p>Search registered customers and maintain their essential account details.</p>
+			<p class="admin-print-context">Filters: Search <?php echo admin_member_html($search!=="" ? $search : "All"); ?> · State <?php echo admin_member_html($state_filter!=="" ? $state_filter : "All states"); ?></p>
 		</div>
-		<a class="admin-primary-link" href="#member-editor">Add Member</a>
+		<!-- Output actions use the current filtered list; editing controls do not print. -->
+		<div class="admin-output-actions">
+			<a class="admin-secondary-link" href="<?php echo admin_member_html($member_export_url); ?>">Export CSV</a>
+			<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
+			<a class="admin-primary-link" href="#member-editor">Add Member</a>
+		</div>
 	</section>
 
 	<?php if($member_flash): ?>
@@ -246,7 +258,7 @@ if($edit_id>0)
 		<div class="admin-user-table-wrap">
 			<table class="admin-user-table admin-member-table">
 				<thead>
-					<tr><th>Member</th><th>Contact</th><th>State</th><th>Join Date</th><th>Actions</th></tr>
+					<tr><th>Member</th><th>Contact</th><th>State</th><th>Join Date</th><th class="admin-print-hide">Actions</th></tr>
 				</thead>
 				<tbody>
 				<?php if(!$members): ?>
@@ -258,7 +270,7 @@ if($edit_id>0)
 							<td><strong><?php echo admin_member_html($member["member_email"]); ?></strong><small><?php echo admin_member_html($member["member_phone"]); ?></small></td>
 							<td><?php echo admin_member_html($member["member_state"]); ?></td>
 							<td><?php echo admin_member_html($member["member_joindate"]); ?></td>
-							<td>
+							<td class="admin-print-hide">
 								<div class="admin-user-row-actions">
 									<a href="admin_member.php?edit=<?php echo (int)$member["member_id"]; ?>#member-editor">Edit</a>
 									<form method="post" action="admin_member.php" onsubmit="return confirm('Remove this member?');">
