@@ -303,7 +303,8 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 			}
 			mysqli_stmt_close($reward_stmt);
 			mysqli_commit($connect);
-			admin_product_remove_generated_image($product_row["product_image"]);
+			// Keep the uploaded image while the record is soft-deleted so the
+			// recycle bin can restore a complete product instead of a broken photo.
 			admin_product_redirect("success","Product removed successfully.");
 		}
 		catch(Throwable $error)
