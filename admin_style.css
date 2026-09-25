@@ -2418,3 +2418,297 @@ white-space:nowrap;}
 	.admin-report-stat-grid
 	{grid-template-columns:1fr;}
 }
+
+/* Unit 7A: unified restore centre for deleted member, product and staff records */
+.admin-restore-role
+{display:inline-flex;
+align-items:center;
+min-height:34px;
+box-sizing:border-box;
+color:#286D48;
+background-color:#EAF6EF;
+border:1px solid #C8E4D3;
+border-radius:18px;
+font-size:8pt;
+font-weight:bold;
+padding:8px 12px;
+white-space:nowrap;}
+
+.admin-restore-stat-grid
+{display:grid;
+grid-template-columns:repeat(3,minmax(0,1fr));
+gap:13px;
+margin-bottom:15px;}
+
+.admin-restore-stat-grid article
+{display:flex;
+align-items:center;
+gap:13px;
+min-height:82px;
+box-sizing:border-box;
+background-color:#FFFFFF;
+border:1px solid #E1E4E8;
+border-radius:10px;
+box-shadow:0px 5px 14px rgba(22,30,40,0.05);
+padding:15px 17px;}
+
+.admin-restore-stat-grid article>span
+{display:flex;
+align-items:center;
+justify-content:center;
+width:38px;
+height:38px;
+flex:0 0 38px;
+color:#A50E26;
+background-color:#FFF0F2;
+border-radius:9px;
+font-size:8pt;
+font-weight:bold;}
+
+.admin-restore-stat-grid article>div
+{display:flex;
+flex-direction:column;
+gap:3px;}
+
+.admin-restore-stat-grid article strong
+{color:#28313B;
+font-size:17pt;
+line-height:1;}
+
+.admin-restore-stat-grid article small
+{color:#737D88;
+font-size:8pt;
+font-weight:bold;}
+
+.admin-restore-filter-panel,
+.admin-restore-panel
+{box-sizing:border-box;
+background-color:#FFFFFF;
+border:1px solid #E2E5E9;
+border-radius:11px;
+box-shadow:0px 6px 18px rgba(24,31,41,0.06);}
+
+.admin-restore-filter-panel
+{padding:17px 19px;
+margin-bottom:12px;}
+
+.admin-restore-filter-form
+{display:grid;
+grid-template-columns:minmax(170px,0.55fr) minmax(350px,1.55fr) auto;
+align-items:end;
+gap:12px;}
+
+.admin-restore-filter-form label
+{display:flex;
+flex-direction:column;
+gap:6px;
+min-width:0;}
+
+.admin-restore-filter-form label>span
+{color:#555F6B;
+font-size:8pt;
+font-weight:bold;}
+
+.admin-restore-filter-form input,
+.admin-restore-filter-form select
+{width:100%;
+min-height:38px;
+box-sizing:border-box;
+color:#303943;
+background-color:#FFFFFF;
+border:1px solid #CFD4DA;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:8.5pt;
+padding:9px 11px;
+outline:none;}
+
+.admin-restore-filter-form input:focus,
+.admin-restore-filter-form select:focus
+{border-color:#C8102E;
+box-shadow:0px 0px 0px 3px rgba(200,16,46,0.09);}
+
+.admin-restore-filter-actions
+{display:flex;
+align-items:center;
+gap:7px;}
+
+.admin-restore-filter-actions button,
+.admin-restore-filter-actions a
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+min-height:38px;
+box-sizing:border-box;
+border-radius:7px;
+font-family:Arial,sans-serif;
+font-size:8pt;
+font-weight:bold;
+text-decoration:none;
+white-space:nowrap;
+padding:9px 13px;}
+
+.admin-restore-filter-actions button
+{color:#FFFFFF;
+background-color:#C8102E;
+border:1px solid #C8102E;
+cursor:pointer;}
+
+.admin-restore-filter-actions button:hover
+{background-color:#A90D27;}
+
+.admin-restore-filter-actions a
+{color:#4E5864;
+background-color:#FFFFFF;
+border:1px solid #D0D5DA;}
+
+.admin-restore-filter-actions a:hover
+{color:#A20E27;
+border-color:#C8102E;}
+
+.admin-restore-note
+{color:#626C77;
+background-color:#F5F7F9;
+border-left:3px solid #C8102E;
+border-radius:5px;
+font-size:8pt;
+line-height:1.5;
+padding:9px 12px;
+margin:0px 0px 14px 0px;}
+
+.admin-restore-note strong
+{color:#343E49;}
+
+.admin-restore-panel
+{padding:19px;
+margin-bottom:15px;}
+
+.admin-restore-panel .admin-section-heading
+{margin-bottom:13px;}
+
+.admin-restore-panel .admin-section-heading p
+{color:#A20E27;
+font-size:7pt;
+font-weight:bold;
+letter-spacing:1px;
+margin:0px 0px 4px 0px;}
+
+.admin-restore-panel .admin-section-heading>span
+{color:#626C78;
+background-color:#F1F3F5;
+border-radius:14px;
+font-size:7.5pt;
+font-weight:bold;
+padding:6px 10px;}
+
+.admin-restore-table-wrap
+{width:100%;
+overflow-x:auto;
+border:1px solid #E1E4E8;
+border-radius:9px;}
+
+.admin-restore-table
+{width:100%;
+border-collapse:collapse;}
+
+.admin-restore-table th
+{color:#646E7A;
+background-color:#F3F5F7;
+font-size:7.5pt;
+font-weight:bold;
+text-align:left;
+padding:10px;
+border-bottom:1px solid #DDE1E5;
+white-space:nowrap;}
+
+.admin-restore-table td
+{color:#414B56;
+font-size:8.5pt;
+line-height:1.4;
+padding:10px;
+border-bottom:1px solid #E7E9EC;
+vertical-align:middle;}
+
+.admin-restore-table tr:last-child td
+{border-bottom:0px;}
+
+.admin-restore-table td strong,
+.admin-restore-table td small
+{display:block;}
+
+.admin-restore-table td strong
+{color:#29323D;
+font-size:9pt;}
+
+.admin-restore-table td small
+{color:#858E99;
+font-size:7.5pt;
+margin-top:3px;}
+
+.admin-restore-table form
+{margin:0px;}
+
+.admin-restore-table button,
+.admin-restore-locked
+{display:inline-flex;
+align-items:center;
+justify-content:center;
+min-height:30px;
+box-sizing:border-box;
+border-radius:6px;
+font-family:Arial,sans-serif;
+font-size:7.5pt;
+font-weight:bold;
+white-space:nowrap;
+padding:7px 11px;}
+
+.admin-restore-table button
+{color:#FFFFFF;
+background-color:#C8102E;
+border:1px solid #C8102E;
+cursor:pointer;}
+
+.admin-restore-table button:hover
+{background-color:#A90D27;}
+
+.admin-restore-locked
+{color:#6D7681;
+background-color:#EFF1F3;}
+
+.admin-restore-product
+{display:flex;
+align-items:center;
+gap:10px;
+min-width:215px;}
+
+.admin-restore-product img
+{display:block;
+width:52px;
+height:42px;
+object-fit:contain;
+background-color:#F7F7F7;
+border:1px solid #E1E4E7;
+border-radius:7px;}
+
+.admin-restore-warning
+{color:#956812 !important;
+font-weight:bold;}
+
+@media screen and (max-width:1100px)
+{
+	.admin-restore-filter-form
+	{grid-template-columns:1fr 2fr;}
+
+	.admin-restore-filter-actions
+	{grid-column:1/-1;}
+}
+
+@media screen and (max-width:720px)
+{
+	.admin-restore-stat-grid,
+	.admin-restore-filter-form
+	{grid-template-columns:1fr;}
+
+	.admin-restore-filter-actions
+	{grid-column:auto;}
+}
