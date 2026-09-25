@@ -383,6 +383,14 @@ if($edit_id!=="")
 		mysqli_stmt_close($edit_stmt);
 	}
 }
+
+// Keep CSV output aligned with the current Product search and filters.
+$product_export_params = array("type"=>"products");
+if($search!=="") $product_export_params["search"] = $search;
+if($category_filter!=="") $product_export_params["category"] = $category_filter;
+if($status_filter!=="") $product_export_params["status"] = $status_filter;
+if($stock_filter!=="") $product_export_params["stock"] = $stock_filter;
+$product_export_url = "admin_export.php?".http_build_query($product_export_params);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -402,8 +410,14 @@ if($edit_id!=="")
 			<p class="admin-eyebrow">CATALOG MANAGEMENT</p>
 			<h1>Products</h1>
 			<p>Search, update and publish menu products with their customer-facing images.</p>
+			<p class="admin-print-context">Filters: Search <?php echo admin_product_html($search!=="" ? $search : "All"); ?> · Category <?php echo admin_product_html($category_filter!=="" ? $category_filter : "All"); ?> · Status <?php echo admin_product_html($status_filter!=="" ? $status_filter : "All"); ?> · Stock <?php echo admin_product_html($stock_filter!=="" ? str_replace("_"," ",$stock_filter) : "All"); ?></p>
 		</div>
-		<a class="admin-primary-link" href="#product-editor">Add Product</a>
+		<!-- Export and print only the current filtered catalogue result. -->
+		<div class="admin-output-actions">
+			<a class="admin-secondary-link" href="<?php echo admin_product_html($product_export_url); ?>">Export CSV</a>
+			<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
+			<a class="admin-primary-link" href="#product-editor">Add Product</a>
+		</div>
 	</section>
 
 	<?php if($flash): ?>
@@ -464,7 +478,7 @@ if($edit_id!=="")
 		<div class="admin-catalog-table-wrap">
 			<table class="admin-catalog-table">
 				<thead>
-					<tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+					<tr><th>Image</th><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Status</th><th class="admin-print-hide">Actions</th></tr>
 				</thead>
 				<tbody>
 				<?php if(!$products): ?>
@@ -478,7 +492,7 @@ if($edit_id!=="")
 							<td>RM <?php echo number_format((float)$product["product_price"],2); ?></td>
 							<td><?php echo (int)$product["product_stock"]; ?></td>
 							<td><span class="admin-status-badge <?php echo $product["product_status"]==="Active" && (int)$product["product_stock"]>0 ? "status-success" : ($product["product_status"]==="Out of Stock" || (int)$product["product_stock"]<=0 ? "status-warning" : "status-danger"); ?>"><?php echo admin_product_html($product["product_status"]); ?></span></td>
-							<td>
+							<td class="admin-print-hide">
 								<div class="admin-catalog-row-actions">
 									<a href="admin_product.php?edit=<?php echo rawurlencode($product["product_id"]); ?>#product-editor">Edit</a>
 									<form method="post" action="admin_product.php" onsubmit="return confirm('Remove this product from the menu?');">
