@@ -169,7 +169,11 @@ unset($_SESSION["admin_order_flash"]);
 		<h1>Order Details<?php if($order) { ?> <span>#<?php echo (int)$order["order_id"]; ?></span><?php } ?></h1>
 		<p>Review customer, fulfilment, items and payment information in one record.</p>
 	</div>
-	<a class="admin-secondary-button" href="admin_order.php">Back to Orders</a>
+	<!-- Print keeps the order record while hiding administrator-only actions. -->
+	<div class="admin-output-actions">
+		<?php if($order): ?><button type="button" class="admin-secondary-button" onclick="window.print()">Print Order</button><?php endif; ?>
+		<a class="admin-secondary-button" href="admin_order.php">Back to Orders</a>
+	</div>
 </section>
 
 <?php if($flash) { ?>
