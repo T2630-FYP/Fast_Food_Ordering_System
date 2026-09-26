@@ -136,6 +136,52 @@ $delivery_fee = $order ? max(0.00,(float)$order["order_total"]-$item_subtotal) :
 $payment_status = $order ? (string)($order["saved_payment_status"] ?: $order["order_payment_status"]) : "";
 $payment_method = $order ? (string)($order["saved_payment_method"] ?: $order["order_payment"]) : "";
 $can_retry_card_payment = $order && $order["order_payment"]==="Credit Card" && $payment_status==="Pending";
+
+// Create a receipt only after the owner-bound order query has succeeded.
+if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
+{
+	if(!$order || $page_error!=="")
+	{
+		header("Content-Type: text/plain; charset=UTF-8");
+		header("X-Content-Type-Options: nosniff");
+		echo $page_error!=="" ? $page_error : "This order is unavailable.";
+		exit();
+	}
+
+	require_once("pdf_document.php");
+	$pdf = new EasyOrderPdfDocument("Order Receipt #".$order_id,"Customer order summary | ".order_details_datetime($order["order_date"]),"portrait");
+	$pdf->addSectionTitle("Order Information");
+	$pdf->addDefinitionList(array(
+		"Customer" => $order["member_name"],
+		"Email" => $order["member_email"],
+		"Phone" => $order["member_phone"],
+		"Fulfilment" => $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup",
+		"Address" => $order["order_delivery"]==="Yes" ? $order["order_address"] : "EasyOrder pickup counter",
+		"Order Status" => $order["order_status"]
+	));
+	$pdf->addSectionTitle("Payment Information");
+	$pdf->addDefinitionList(array(
+		"Payment Method" => $payment_method,
+		"Payment Status" => $payment_status,
+		"Payment Amount" => "RM ".number_format((float)($order["payment_amount"] ?: $order["order_total"]),2),
+		"Paid At" => order_details_datetime($order["payment_paid_at"]),
+		"Reference" => $order["payment_reference"] ?: "Not assigned"
+	));
+	$pdf->addSectionTitle("Ordered Items");
+	$item_rows = array();
+	foreach($items as $item)
+	{
+		$item_rows[] = array($item["item_product"],$item["item_name"],"RM ".number_format((float)$item["item_price"],2),(int)$item["item_qty"],"RM ".number_format((float)$item["item_subtotal"],2));
+	}
+	$pdf->addTable(array("Product ID","Product","Unit Price","Quantity","Subtotal"),$item_rows,array(0.9,2.3,1.0,0.8,1.0));
+	$pdf->addSectionTitle("Order Totals");
+	$pdf->addDefinitionList(array(
+		"Items Subtotal" => "RM ".number_format($item_subtotal,2),
+		"Delivery Fee" => "RM ".number_format($delivery_fee,2),
+		"Order Total" => "RM ".number_format((float)$order["order_total"],2)
+	));
+	$pdf->download("easyorder-receipt-".$order_id.".pdf");
+}
 ?>
 
 <!DOCTYPE html>
@@ -273,6 +319,7 @@ $can_retry_card_payment = $order && $order["order_payment"]==="Credit Card" && $
 <?php if($can_retry_card_payment) { ?>
 <a class="payment-primary-link" href="payment.php?order_id=<?php echo (int)$order["order_id"]; ?>">Pay This Order</a>
 <?php } ?>
+<a class="payment-secondary-link" href="order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>&amp;download=pdf">Download Receipt</a>
 <a class="payment-secondary-link" href="order_history.php">Back to Order History</a>
 <a class="payment-secondary-link" href="category.php">Order Again</a>
 </div>
