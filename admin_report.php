@@ -159,6 +159,61 @@ else
 	$period_label = "All recorded dates";
 }
 
+// Download the selected live report as a standalone PDF without browser printing.
+if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
+{
+	if($filter_error!=="")
+	{
+		http_response_code(400);
+		header("Content-Type: text/plain; charset=UTF-8");
+		header("X-Content-Type-Options: nosniff");
+		echo $filter_error;
+		exit();
+	}
+
+	require_once("pdf_document.php");
+	$pdf = new EasyOrderPdfDocument("Sales Report","Report period: ".$period_label." | Paid, non-cancelled orders","portrait");
+	$pdf->addSectionTitle("Sales Summary");
+	$pdf->addDefinitionList(array(
+		"Paid Orders" => $paid_orders,
+		"Units Sold" => $units_sold,
+		"Product Sales" => "RM ".number_format($product_sales_total,2),
+		"Collected Revenue" => "RM ".number_format($collected_revenue,2),
+		"Average Order" => "RM ".number_format($average_order,2)
+	));
+
+	$category_rows = array();
+	foreach($category_sales as $category)
+	{
+		$category_share = $product_sales_total>0 ? ((float)$category["product_sales"]/$product_sales_total)*100 : 0;
+		$category_rows[] = array($category["category_name"],(int)$category["units_sold"],"RM ".number_format((float)$category["product_sales"],2),number_format($category_share,1)."%");
+	}
+	$pdf->addSectionTitle("Sales by Category");
+	$pdf->addTable(array("Category","Units","Product Sales","Share"),$category_rows,array(1.8,0.8,1.2,0.8));
+
+	$best_seller_rows = array();
+	foreach($best_sellers as $index=>$product)
+	{
+		$best_seller_rows[] = array($index+1,$product["item_product"],$product["product_name"],(int)$product["units_sold"],"RM ".number_format((float)$product["product_sales"],2));
+	}
+	$pdf->addSectionTitle("Best Sellers");
+	$pdf->addTable(array("Rank","Product ID","Product","Units","Product Sales"),$best_seller_rows,array(0.6,0.9,2.2,0.7,1.1));
+
+	$daily_rows = array();
+	foreach($daily_sales as $day)
+	{
+		$daily_rows[] = array(date("d M Y",strtotime($day["sales_date"])),(int)$day["paid_orders"],"RM ".number_format((float)$day["collected_revenue"],2));
+	}
+	$pdf->addSectionTitle("Paid Sales by Date");
+	$pdf->addTable(array("Date","Paid Orders","Collected Revenue"),$daily_rows,array(1.4,1.0,1.4));
+	$pdf->download("easyorder-sales-report.pdf");
+}
+
+$report_pdf_params = array("download"=>"pdf");
+if($start_date!=="") $report_pdf_params["start_date"] = $start_date;
+if($end_date!=="") $report_pdf_params["end_date"] = $end_date;
+$report_pdf_url = "admin_report.php?".http_build_query($report_pdf_params);
+
 $today = date("Y-m-d");
 $seven_days_ago = date("Y-m-d",strtotime("-6 days"));
 $month_start = date("Y-m-01");
@@ -185,6 +240,7 @@ $month_start = date("Y-m-01");
 		</div>
 		<!-- Print the currently selected report period and database totals. -->
 		<div class="admin-output-actions">
+			<a class="admin-secondary-button" href="<?php echo admin_report_html($report_pdf_url); ?>">Download PDF</a>
 			<button type="button" class="admin-secondary-button" onclick="window.print()">Print Report</button>
 			<span class="admin-live-indicator"><i></i> Live database</span>
 		</div>

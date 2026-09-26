@@ -188,6 +188,9 @@ $member_export_params = array("type"=>"members");
 if($search!=="") $member_export_params["search"] = $search;
 if($state_filter!=="") $member_export_params["state"] = $state_filter;
 $member_export_url = "admin_export.php?".http_build_query($member_export_params);
+$member_pdf_params = $member_export_params;
+$member_pdf_params["format"] = "pdf";
+$member_pdf_url = "admin_export.php?".http_build_query($member_pdf_params);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -212,6 +215,7 @@ $member_export_url = "admin_export.php?".http_build_query($member_export_params)
 		<!-- Output actions use the current filtered list; editing controls do not print. -->
 		<div class="admin-output-actions">
 			<a class="admin-secondary-link" href="<?php echo admin_member_html($member_export_url); ?>">Export CSV</a>
+			<a class="admin-secondary-link" href="<?php echo admin_member_html($member_pdf_url); ?>">Download PDF</a>
 			<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
 			<a class="admin-primary-link" href="#member-editor">Add Member</a>
 		</div>
