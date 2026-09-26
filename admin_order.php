@@ -336,6 +336,9 @@ if($payment_filter!=="") $order_export_params["payment_status"] = $payment_filte
 if($status_filter!=="") $order_export_params["order_status"] = $status_filter;
 if($delivery_filter!=="") $order_export_params["delivery"] = $delivery_filter;
 $order_export_url = "admin_export.php?".http_build_query($order_export_params);
+$order_pdf_params = $order_export_params;
+$order_pdf_params["format"] = "pdf";
+$order_pdf_url = "admin_export.php?".http_build_query($order_pdf_params);
 ?>
 
 <!DOCTYPE html>
@@ -364,6 +367,7 @@ $order_export_url = "admin_export.php?".http_build_query($order_export_params);
 	<!-- Output actions preserve the current order filters. -->
 	<div class="admin-output-actions">
 		<a class="admin-secondary-button" href="<?php echo admin_order_html($order_export_url); ?>">Export CSV</a>
+		<a class="admin-secondary-button" href="<?php echo admin_order_html($order_pdf_url); ?>">Download PDF</a>
 		<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
 		<span class="admin-live-indicator"><i></i> Live database</span>
 	</div>
