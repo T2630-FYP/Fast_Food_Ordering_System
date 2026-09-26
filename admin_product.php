@@ -391,6 +391,9 @@ if($category_filter!=="") $product_export_params["category"] = $category_filter;
 if($status_filter!=="") $product_export_params["status"] = $status_filter;
 if($stock_filter!=="") $product_export_params["stock"] = $stock_filter;
 $product_export_url = "admin_export.php?".http_build_query($product_export_params);
+$product_pdf_params = $product_export_params;
+$product_pdf_params["format"] = "pdf";
+$product_pdf_url = "admin_export.php?".http_build_query($product_pdf_params);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -415,6 +418,7 @@ $product_export_url = "admin_export.php?".http_build_query($product_export_param
 		<!-- Export and print only the current filtered catalogue result. -->
 		<div class="admin-output-actions">
 			<a class="admin-secondary-link" href="<?php echo admin_product_html($product_export_url); ?>">Export CSV</a>
+			<a class="admin-secondary-link" href="<?php echo admin_product_html($product_pdf_url); ?>">Download PDF</a>
 			<button type="button" class="admin-secondary-button" onclick="window.print()">Print List</button>
 			<a class="admin-primary-link" href="#product-editor">Add Product</a>
 		</div>
