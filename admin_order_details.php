@@ -143,6 +143,53 @@ $delivery_fee = $order ? max(0.00,(float)$order["order_total"]-$item_subtotal) :
 $payment_status = $order ? (string)($order["saved_payment_status"] ?: $order["order_payment_status"]) : "";
 $payment_method = $order ? (string)($order["saved_payment_method"] ?: $order["order_payment"]) : "";
 $can_confirm_payment = $order && in_array(strtolower($payment_status),array("pending","unpaid"),true);
+
+// Produce a read-only administrator PDF from the same secured order record.
+if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
+{
+	if(!$order || $page_error!=="")
+	{
+		header("Content-Type: text/plain; charset=UTF-8");
+		header("X-Content-Type-Options: nosniff");
+		echo $page_error!=="" ? $page_error : "This order is unavailable.";
+		exit();
+	}
+
+	require_once("pdf_document.php");
+	$pdf = new EasyOrderPdfDocument("Administrator Order #".$order_id,"Database order record | ".admin_order_details_datetime($order["order_date"]),"portrait");
+	$pdf->addSectionTitle("Customer and Fulfilment");
+	$pdf->addDefinitionList(array(
+		"Customer" => $order["member_name"]." (#".$order["member_id"].")",
+		"Email" => $order["member_email"],
+		"Phone" => $order["member_phone"],
+		"Fulfilment" => $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup",
+		"Address" => $order["order_delivery"]==="Yes" ? $order["order_address"] : "EasyOrder pickup counter",
+		"Order Status" => $order["order_status"]
+	));
+	$pdf->addSectionTitle("Payment Record");
+	$pdf->addDefinitionList(array(
+		"Payment Method" => $payment_method,
+		"Payment Status" => $payment_status,
+		"Payment Amount" => "RM ".number_format((float)($order["payment_amount"] ?: $order["order_total"]),2),
+		"Paid At" => admin_order_details_datetime($order["payment_paid_at"]),
+		"Reference" => $order["payment_reference"] ?: "Not assigned"
+	));
+	$pdf->addSectionTitle("Ordered Items");
+	$item_rows = array();
+	foreach($items as $item)
+	{
+		$item_rows[] = array($item["item_product"],$item["item_name"],"RM ".number_format((float)$item["item_price"],2),(int)$item["item_qty"],"RM ".number_format((float)$item["item_subtotal"],2));
+	}
+	$pdf->addTable(array("Product ID","Product","Unit Price","Quantity","Subtotal"),$item_rows,array(0.9,2.3,1.0,0.8,1.0));
+	$pdf->addSectionTitle("Order Totals");
+	$pdf->addDefinitionList(array(
+		"Items Subtotal" => "RM ".number_format($item_subtotal,2),
+		"Delivery Fee" => "RM ".number_format($delivery_fee,2),
+		"Order Total" => "RM ".number_format((float)$order["order_total"],2)
+	));
+	$pdf->download("easyorder-admin-order-".$order_id.".pdf");
+}
+
 $flash = $_SESSION["admin_order_flash"] ?? null;
 unset($_SESSION["admin_order_flash"]);
 ?>
@@ -171,6 +218,7 @@ unset($_SESSION["admin_order_flash"]);
 	</div>
 	<!-- Print keeps the order record while hiding administrator-only actions. -->
 	<div class="admin-output-actions">
+		<?php if($order): ?><a class="admin-secondary-button" href="admin_order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>&amp;download=pdf">Download PDF</a><?php endif; ?>
 		<?php if($order): ?><button type="button" class="admin-secondary-button" onclick="window.print()">Print Order</button><?php endif; ?>
 		<a class="admin-secondary-button" href="admin_order.php">Back to Orders</a>
 	</div>
