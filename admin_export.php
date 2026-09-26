@@ -1,6 +1,6 @@
 <?php
 
-// Allow CSV downloads only for an active administrator session.
+// Allow CSV and PDF downloads only for an active administrator session.
 session_start();
 if(!isset($_SESSION["admin_id"]))
 {
@@ -10,7 +10,7 @@ if(!isset($_SESSION["admin_id"]))
 
 include("dataconnection.php");
 
-// Return a plain error response instead of a partial or misleading CSV file.
+// Return a plain error response instead of a partial or misleading output file.
 function admin_export_fail($status,$message)
 {
 	http_response_code($status);
@@ -67,10 +67,24 @@ if(!in_array($dataset,array("members","products","orders","staff"),true))
 {
 	admin_export_fail(400,"Select a supported export type.");
 }
+$format = strtolower(trim((string)($_GET["format"] ?? "csv")));
+if(!in_array($format,array("csv","pdf"),true))
+{
+	admin_export_fail(400,"Select a supported export format.");
+}
+if($format==="pdf" && $dataset==="staff")
+{
+	admin_export_fail(400,"Staff PDF output is not available in this module.");
+}
 
 $headers = array();
 $rows = array();
 $filename = "";
+$pdf_title = "";
+$pdf_subtitle = "";
+$pdf_weights = array();
+$pdf_row_limit = 5000;
+$pdf_limit_sql = $format==="pdf" ? " LIMIT ".($pdf_row_limit+1) : "";
 
 if($dataset==="members")
 {
@@ -90,7 +104,7 @@ if($dataset==="members")
 		 WHERE member_isDelete=0
 		 AND (?='' OR CAST(member_id AS CHAR) LIKE ? OR member_name LIKE ? OR member_email LIKE ? OR member_phone LIKE ?)
 		 AND (?='' OR member_state=?)
-		 ORDER BY member_id DESC");
+		 ORDER BY member_id DESC".$pdf_limit_sql);
 	if(!$stmt)
 	{
 		admin_export_fail(500,"The member export could not be prepared.");
@@ -106,9 +120,16 @@ if($dataset==="members")
 	{
 		$rows[] = array($row["member_id"],$row["member_name"],$row["member_email"],$row["member_phone"],$row["member_state"],$row["member_joindate"]);
 	}
+	if($format==="pdf" && count($rows)>$pdf_row_limit)
+	{
+		admin_export_fail(413,"Refine the Member filters before downloading a PDF.");
+	}
 	mysqli_stmt_close($stmt);
 	$headers = array("Member ID","Name","Email","Phone","State","Join Date");
 	$filename = "easyorder-members-".date("Ymd-His").".csv";
+	$pdf_title = "Member List";
+	$pdf_subtitle = "Filters: Search ".($search!=="" ? $search : "All")." | State ".($state_filter!=="" ? $state_filter : "All states");
+	$pdf_weights = array(0.8,1.4,1.8,1.2,1.1,1.0);
 }
 else if($dataset==="products")
 {
@@ -125,21 +146,6 @@ else if($dataset==="products")
 		$stock_filter = "";
 	}
 
-	// Reject a deleted or unknown category rather than applying a different filter.
-	if($category_filter!=="")
-	{
-		$category_stmt = mysqli_prepare($connect,"SELECT category_name FROM category WHERE category_name=? AND category_isDelete=0 LIMIT 1");
-		if(!$category_stmt)
-		{
-			admin_export_fail(500,"The product category could not be checked.");
-		}
-		mysqli_stmt_bind_param($category_stmt,"s",$category_filter);
-		mysqli_stmt_execute($category_stmt);
-		$category_result = mysqli_stmt_get_result($category_stmt);
-		$category_filter = mysqli_fetch_assoc($category_result) ? $category_filter : "";
-		mysqli_stmt_close($category_stmt);
-	}
-
 	$like_search = "%".$search."%";
 	$stmt = mysqli_prepare($connect,
 		"SELECT product_id,product_name,product_desc,product_image,product_category,product_price,product_stock,product_status
@@ -149,7 +155,7 @@ else if($dataset==="products")
 		 AND (?='' OR product_category=?)
 		 AND (?='' OR product_status=?)
 		 AND (?='' OR (?='in_stock' AND product_stock>0) OR (?='out_of_stock' AND product_stock<=0))
-		 ORDER BY product_name");
+		 ORDER BY product_name".$pdf_limit_sql);
 	if(!$stmt)
 	{
 		admin_export_fail(500,"The product export could not be prepared.");
@@ -165,9 +171,16 @@ else if($dataset==="products")
 	{
 		$rows[] = array($row["product_id"],$row["product_name"],$row["product_desc"],$row["product_category"],number_format((float)$row["product_price"],2,".",""),$row["product_stock"],$row["product_status"],$row["product_image"]);
 	}
+	if($format==="pdf" && count($rows)>$pdf_row_limit)
+	{
+		admin_export_fail(413,"Refine the Product filters before downloading a PDF.");
+	}
 	mysqli_stmt_close($stmt);
 	$headers = array("Product ID","Name","Description","Category","Price (RM)","Stock","Status","Image Path");
 	$filename = "easyorder-products-".date("Ymd-His").".csv";
+	$pdf_title = "Product List";
+	$pdf_subtitle = "Filters: Search ".($search!=="" ? $search : "All")." | Category ".($category_filter!=="" ? $category_filter : "All")." | Status ".($status_filter!=="" ? $status_filter : "All")." | Stock ".($stock_filter!=="" ? str_replace("_"," ",$stock_filter) : "All");
+	$pdf_weights = array(0.8,1.4,2.4,1.1,0.9,0.7,1.0);
 }
 else if($dataset==="orders")
 {
@@ -195,7 +208,7 @@ else if($dataset==="orders")
 		 AND (?='' OR LOWER(COALESCE(p.payment_status,o.order_payment_status))=LOWER(?))
 		 AND (?='' OR LOWER(o.order_status)=LOWER(?))
 		 AND (?='' OR o.order_delivery=?)
-		 ORDER BY o.order_date DESC,o.order_id DESC");
+		 ORDER BY o.order_date DESC,o.order_id DESC".$pdf_limit_sql);
 	if(!$stmt)
 	{
 		admin_export_fail(500,"The order export could not be prepared.");
@@ -211,9 +224,16 @@ else if($dataset==="orders")
 	{
 		$rows[] = array($row["order_id"],$row["member_name"],$row["member_email"],$row["order_date"],$row["order_delivery"]==="Yes" ? "Delivery" : "Pickup",$row["order_payment"],number_format((float)$row["order_total"],2,".",""),$row["display_payment_status"],$row["order_status"]);
 	}
+	if($format==="pdf" && count($rows)>$pdf_row_limit)
+	{
+		admin_export_fail(413,"Refine the Order filters before downloading a PDF.");
+	}
 	mysqli_stmt_close($stmt);
 	$headers = array("Order ID","Customer","Customer Email","Order Date & Time","Fulfilment","Payment Method","Total (RM)","Payment Status","Order Status");
 	$filename = "easyorder-orders-".date("Ymd-His").".csv";
+	$pdf_title = "Order List";
+	$pdf_subtitle = "Filters: Search ".($search!=="" ? $search : "All")." | Payment ".($payment_filter!=="" ? $payment_filter : "All")." | Order ".($status_filter!=="" ? $status_filter : "All")." | Fulfilment ".($delivery_filter==="Yes" ? "Delivery" : ($delivery_filter==="No" ? "Pickup" : "All"));
+	$pdf_weights = array(0.6,1.2,1.7,1.3,0.8,1.1,0.8,1.0,1.0);
 }
 else
 {
@@ -268,6 +288,22 @@ else
 	mysqli_stmt_close($stmt);
 	$headers = array("Staff ID","Name","Role","Email","Phone");
 	$filename = "easyorder-staff-".date("Ymd-His").".csv";
+}
+
+// PDF list output reuses the exact prepared data and filters used by CSV.
+if($format==="pdf")
+{
+	require_once("pdf_document.php");
+	if($dataset==="products")
+	{
+		// The screen image path is useful in CSV but not in a text-only PDF list.
+		$headers = array_slice($headers,0,7);
+		$rows = array_map(function($row)
+		{
+			return array_slice($row,0,7);
+		},$rows);
+	}
+	easyorder_pdf_table_download("easyorder-".$dataset.".pdf",$pdf_title,$pdf_subtitle,$headers,$rows,$pdf_weights);
 }
 
 admin_export_download($filename,$headers,$rows);
