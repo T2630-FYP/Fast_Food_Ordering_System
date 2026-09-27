@@ -149,6 +149,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reset Password</title>
 <link rel="stylesheet" href="style.css?v=20260915-2">
+<script src="password_ux.js?v=20260926-1" defer></script>
 </head>
 <body>
 
@@ -181,13 +182,15 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 
 <div class="recovery-field">
 <label for="new_password">New Password *</label>
-<input type="password" id="new_password" name="new_password" minlength="8" maxlength="72" autocomplete="new-password" required>
+<input type="password" id="new_password" name="new_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-strength="reset-password-strength" required>
+<small id="reset-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
 <?php if(isset($reset_errors["new"])) { ?><span class="field-error"><?php echo easyorder_reset_h($reset_errors["new"]); ?></span><?php } ?>
 </div>
 
 <div class="recovery-field">
 <label for="confirm_password">Confirm New Password *</label>
-<input type="password" id="confirm_password" name="confirm_password" minlength="8" maxlength="72" autocomplete="new-password" required>
+<input type="password" id="confirm_password" name="confirm_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-confirm="new_password" data-password-match="reset-password-match" required>
+<small id="reset-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
 <?php if(isset($reset_errors["confirm"])) { ?><span class="field-error"><?php echo easyorder_reset_h($reset_errors["confirm"]); ?></span><?php } ?>
 </div>
 
