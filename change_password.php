@@ -169,6 +169,7 @@ margin-top:20px;}
 <a href="cart.php">Cart</a>
 <a href="dashboard.php">My Dashboard</a>
 <a href="order_history.php">Order History</a>
+<a href="wallet.php">Wallet</a>
 <a href="reward.php">Rewards</a>
 <a href="view_review.php">View Reviews</a>
 <a href="about.html">About Us</a>
