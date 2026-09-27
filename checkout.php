@@ -9,6 +9,7 @@ if(!isset($_SESSION["member_id"]))
 
 include("dataconnection.php");
 require_once("order_pricing_helpers.php");
+require_once("wallet_helpers.php");
 
 $mid = (int)$_SESSION["member_id"];
 $states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
@@ -54,6 +55,8 @@ if(isset($_POST["placeorderbtn"]))
 	$delivery_city = trim((string)($_POST["delivery_city"] ?? ""));
 	$delivery_state = trim((string)($_POST["delivery_state"] ?? ""));
 	$delivery_postcode = trim((string)($_POST["delivery_postcode"] ?? ""));
+	// Wallet PIN is request-only and is never saved in the session or database.
+	$wallet_pin = (string)($_POST["wallet_pin"] ?? "");
 
 	// Keep only non-sensitive form values when server-side validation fails.
 	$_SESSION["checkout_form"] = array(
@@ -85,9 +88,13 @@ if(isset($_POST["placeorderbtn"]))
 			throw new Exception("Please select pickup or delivery.");
 		}
 
-		if(!in_array($payment,array("Credit Card","Online Banking","Cash"),true))
+		if(!in_array($payment,array("Credit Card","Online Banking","Cash","EasyOrder Wallet"),true))
 		{
 			throw new Exception("Please select a valid payment method.");
+		}
+		if($payment==="EasyOrder Wallet" && !easyorder_wallet_pin_valid($wallet_pin))
+		{
+			throw new Exception("Enter your 6-digit Wallet PIN to pay with EasyOrder Wallet.");
 		}
 
 		$delivery = $delivery_method==="Delivery" ? "Yes" : "No";
@@ -108,7 +115,7 @@ if(isset($_POST["placeorderbtn"]))
 
 		// Payment status is independent from order status. Online methods remain
 		// Pending until the simulated payment step confirms success.
-		$payment_status = $payment==="Cash" ? "Unpaid" : "Pending";
+		$payment_status = $payment==="Cash" ? "Unpaid" : ($payment==="EasyOrder Wallet" ? "Paid" : "Pending");
 		$order_datetime = date("Y-m-d H:i:s");
 
 		mysqli_begin_transaction($connect);
@@ -197,6 +204,25 @@ if(isset($_POST["placeorderbtn"]))
 		// Calculate SST from merchandise only; rewards remain free and delivery is not taxed.
 		$order_pricing = easyorder_order_pricing($order_subtotal,$delivery);
 		$total = $order_pricing["total"];
+		$locked_wallet = null;
+		if($payment==="EasyOrder Wallet")
+		{
+			// Lock the customer's own wallet before checking PIN and balance so
+			// concurrent checkouts cannot spend the same funds.
+			$locked_wallet = easyorder_wallet_load($connect,$mid,true);
+			if(!$locked_wallet)
+			{
+				throw new Exception("Create an EasyOrder Wallet before choosing wallet payment.");
+			}
+			if(!password_verify($wallet_pin,$locked_wallet["wallet_pin_hash"]))
+			{
+				throw new Exception("The Wallet PIN is incorrect. No order was created and no balance was deducted.");
+			}
+			if((float)$locked_wallet["wallet_balance"]<$total)
+			{
+				throw new Exception("Your Wallet balance is insufficient. Top up the wallet or choose another payment method.");
+			}
+		}
 
 		$stmt = mysqli_prepare($connect,"INSERT INTO orders(order_member,order_date,order_total,order_payment,order_payment_status,order_delivery,order_address,order_status) VALUES(?,?,?,?,?,?,?,'Preparing')");
 		mysqli_stmt_bind_param($stmt,"isdssss",$mid,$order_datetime,$total,$payment,$payment_status,$delivery,$address);
@@ -218,6 +244,41 @@ if(isset($_POST["placeorderbtn"]))
 			{
 				mysqli_stmt_close($stmt);
 				throw new Exception("The payment record could not be created.");
+			}
+			mysqli_stmt_close($stmt);
+		}
+		else if($payment==="EasyOrder Wallet")
+		{
+			// The order, payment metadata, wallet debit and wallet history all
+			// share this transaction. A failure in any write rolls everything back.
+			$reference = easyorder_wallet_reference("PAY");
+			$paid_at = date("Y-m-d H:i:s");
+			$stmt = mysqli_prepare($connect,"INSERT INTO payments(payment_order,payment_reference,payment_method,payment_amount,payment_status,payment_paid_at) VALUES(?,?,?,?,'Paid',?)");
+			mysqli_stmt_bind_param($stmt,"issds",$orderid,$reference,$payment,$total,$paid_at);
+			if(!mysqli_stmt_execute($stmt))
+			{
+				mysqli_stmt_close($stmt);
+				throw new Exception("The Wallet payment record could not be created.");
+			}
+			mysqli_stmt_close($stmt);
+
+			$wallet_id = (int)$locked_wallet["wallet_id"];
+			$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_balance=wallet_balance-? WHERE wallet_id=? AND wallet_member=? AND wallet_balance>=?");
+			mysqli_stmt_bind_param($stmt,"diid",$total,$wallet_id,$mid,$total);
+			if(!mysqli_stmt_execute($stmt) || mysqli_stmt_affected_rows($stmt)!==1)
+			{
+				mysqli_stmt_close($stmt);
+				throw new Exception("The Wallet balance changed before payment completed. Please try again.");
+			}
+			mysqli_stmt_close($stmt);
+
+			$request_key = hash("sha256","checkout:".$submitted_token);
+			$stmt = mysqli_prepare($connect,"INSERT INTO wallet_transactions(wallet_id,wallet_order,wallet_transaction_type,wallet_transaction_amount,wallet_transaction_reference,wallet_transaction_status,wallet_request_key) VALUES(?,?,'Payment',?,?,'Paid',?)");
+			mysqli_stmt_bind_param($stmt,"iidss",$wallet_id,$orderid,$total,$reference,$request_key);
+			if(!mysqli_stmt_execute($stmt))
+			{
+				mysqli_stmt_close($stmt);
+				throw new Exception("The Wallet transaction could not be recorded.");
 			}
 			mysqli_stmt_close($stmt);
 		}
@@ -326,7 +387,7 @@ unset($_SESSION["checkout_form"]);
 $saved_delivery_method = $checkout_form["delivery_method"] ?? "Pickup";
 $selected_delivery_method = in_array($saved_delivery_method,array("Pickup","Delivery"),true) ? $saved_delivery_method : "Pickup";
 $saved_payment = $checkout_form["payment"] ?? "";
-$selected_payment = in_array($saved_payment,array("Credit Card","Online Banking","Cash"),true) ? $saved_payment : "";
+$selected_payment = in_array($saved_payment,array("Credit Card","Online Banking","Cash","EasyOrder Wallet"),true) ? $saved_payment : "";
 $form_address = $checkout_form["delivery_address"] ?? $saved_address["address"];
 $form_city = $checkout_form["delivery_city"] ?? $saved_address["city"];
 $form_state = $checkout_form["delivery_state"] ?? $saved_address["state"];
@@ -439,6 +500,18 @@ $has_normal = count($cart)>0;
 $has_reward = count($reward_items)>0;
 $has_checkout_items = $has_normal || $has_reward;
 $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method);
+$checkout_wallet = null;
+try
+{
+	$checkout_wallet = easyorder_wallet_load($connect,$mid);
+}
+catch(Throwable $error)
+{
+	if(!isset($checkout_error))
+	{
+		$checkout_error = "Wallet payment is temporarily unavailable, but you may choose another payment method.";
+	}
+}
 ?>
 
 <!DOCTYPE html>
@@ -464,6 +537,7 @@ $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method)
 <a href="cart.php">Cart</a>
 <a href="dashboard.php">My Dashboard</a>
 <a href="order_history.php">Order History</a>
+<a href="wallet.php">Wallet</a>
 <a href="reward.php">Rewards</a>
 <a href="view_review.php">View Reviews</a>
 <a href="about.html">About Us</a>
@@ -597,8 +671,21 @@ $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method)
 <input type="radio" name="payment" value="Cash" <?php if($selected_payment==="Cash") echo "checked"; ?>>
 <span class="checkout-choice-copy"><strong>Cash</strong><small>Pay when collecting or receiving your order</small></span>
 </label>
+
+<label class="checkout-choice-card<?php if(!$checkout_wallet) echo " checkout-choice-disabled"; ?>">
+<input type="radio" name="payment" value="EasyOrder Wallet" <?php if($selected_payment==="EasyOrder Wallet") echo "checked"; ?> <?php if(!$checkout_wallet) echo "disabled"; ?>>
+<span class="checkout-choice-copy"><strong>EasyOrder Wallet</strong><small><?php echo $checkout_wallet ? "Available balance: RM ".number_format((float)$checkout_wallet["wallet_balance"],2) : "Create your Wallet before using this method"; ?></small></span>
+</label>
 </div>
 </fieldset>
+
+<div id="wallet-payment-area" class="checkout-wallet-payment" <?php if($selected_payment!=="EasyOrder Wallet") echo "hidden"; ?>>
+<div>
+<label for="checkout-wallet-pin">Wallet PIN <span aria-hidden="true">*</span></label>
+<input id="checkout-wallet-pin" type="password" name="wallet_pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="6-digit PIN">
+</div>
+<p>The PIN is verified securely for this payment and is never saved. <a href="wallet_pin_recovery.php">Forgot PIN?</a></p>
+</div>
 </section>
 
 </div>
@@ -625,7 +712,7 @@ $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method)
 <div class="checkout-total-row"><span>Subtotal</span><strong>RM <?php echo number_format($subtotal,2); ?></strong></div>
 <div class="checkout-total-row"><span>SST (6%)</span><strong id="sst-amount">RM <?php echo number_format($checkout_pricing["sst"],2); ?></strong></div>
 <div class="checkout-total-row"><span>Delivery fee</span><strong id="delivery-fee">RM <?php echo number_format($checkout_pricing["delivery_fee"],2); ?></strong></div>
-<div class="checkout-payment-status-row"><span>Payment status</span><strong id="payment-status-preview"><?php echo $selected_payment==="Cash" ? "Unpaid" : ($selected_payment!=="" ? "Pending" : "Select method"); ?></strong></div>
+<div class="checkout-payment-status-row"><span>Payment status</span><strong id="payment-status-preview"><?php echo $selected_payment==="Cash" ? "Unpaid" : ($selected_payment==="EasyOrder Wallet" ? "Paid immediately" : ($selected_payment!=="" ? "Pending" : "Select method")); ?></strong></div>
 <div class="checkout-grand-total"><span>Final Total</span><strong id="order-total">RM <?php echo number_format($checkout_pricing["total"],2); ?></strong></div>
 
 <p id="checkout-client-message" class="checkout-client-message" role="alert" aria-live="assertive"></p>
@@ -670,6 +757,8 @@ $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method)
 	const paymentStatus=document.getElementById("payment-status-preview");
 	const checkoutSubmit=document.getElementById("checkout-submit");
 	const clientMessage=document.getElementById("checkout-client-message");
+	const walletPaymentArea=document.getElementById("wallet-payment-area");
+	const walletPin=document.getElementById("checkout-wallet-pin");
 	const addressFields=[
 		document.getElementById("delivery-address"),
 		document.getElementById("delivery-city"),
@@ -693,8 +782,15 @@ $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method)
 		orderTotal.textContent="RM "+(subtotal+sst+fee).toFixed(2);
 
 		const payment=selectedValue("payment");
-		paymentStatus.textContent=payment==="Cash" ? "Unpaid" : (payment!=="" ? "Pending" : "Select method");
-		checkoutSubmit.textContent=payment==="Credit Card" ? "Continue to Payment" : "Place Order";
+		const isWallet=payment==="EasyOrder Wallet";
+		paymentStatus.textContent=payment==="Cash" ? "Unpaid" : (isWallet ? "Paid immediately" : (payment!=="" ? "Pending" : "Select method"));
+		checkoutSubmit.textContent=payment==="Credit Card" ? "Continue to Payment" : (isWallet ? "Pay with Wallet" : "Place Order");
+		walletPaymentArea.hidden=!isWallet;
+		walletPin.required=isWallet;
+		if(!isWallet)
+		{
+			walletPin.value="";
+		}
 		clientMessage.textContent="";
 	}
 
@@ -716,6 +812,13 @@ $checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method)
 			event.preventDefault();
 			clientMessage.textContent="Please select a payment method.";
 			checkoutForm.querySelector('input[name="payment"]').focus();
+			return;
+		}
+		if(selectedValue("payment")==="EasyOrder Wallet" && !/^\d{6}$/.test(walletPin.value))
+		{
+			event.preventDefault();
+			clientMessage.textContent="Please enter your 6-digit Wallet PIN.";
+			walletPin.focus();
 			return;
 		}
 
