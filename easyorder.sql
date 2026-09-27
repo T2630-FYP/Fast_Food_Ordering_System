@@ -181,6 +181,39 @@ CREATE TABLE `payments` (
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `wallets`
+--
+
+CREATE TABLE `wallets` (
+  `wallet_id` int(11) NOT NULL,
+  `wallet_member` int(11) NOT NULL,
+  `wallet_pin_hash` varchar(255) NOT NULL,
+  `wallet_balance` decimal(10,2) NOT NULL DEFAULT 0.00,
+  `wallet_created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `wallet_updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `wallet_transactions`
+--
+
+CREATE TABLE `wallet_transactions` (
+  `wallet_transaction_id` int(11) NOT NULL,
+  `wallet_id` int(11) NOT NULL,
+  `wallet_order` int(11) DEFAULT NULL,
+  `wallet_transaction_type` varchar(20) NOT NULL,
+  `wallet_transaction_amount` decimal(10,2) NOT NULL,
+  `wallet_transaction_reference` varchar(64) NOT NULL,
+  `wallet_transaction_status` varchar(20) NOT NULL,
+  `wallet_request_key` char(64) NOT NULL,
+  `wallet_transaction_created_at` datetime NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `order_items`
 --
 
@@ -407,6 +440,23 @@ ALTER TABLE `payments`
   ADD UNIQUE KEY `uq_payments_reference` (`payment_reference`);
 
 --
+-- Indexes for table `wallets`
+--
+ALTER TABLE `wallets`
+  ADD PRIMARY KEY (`wallet_id`),
+  ADD UNIQUE KEY `uq_wallet_member` (`wallet_member`);
+
+--
+-- Indexes for table `wallet_transactions`
+--
+ALTER TABLE `wallet_transactions`
+  ADD PRIMARY KEY (`wallet_transaction_id`),
+  ADD UNIQUE KEY `uq_wallet_transaction_reference` (`wallet_transaction_reference`),
+  ADD UNIQUE KEY `uq_wallet_request_key` (`wallet_request_key`),
+  ADD UNIQUE KEY `uq_wallet_order` (`wallet_order`),
+  ADD KEY `idx_wallet_transaction_history` (`wallet_id`,`wallet_transaction_created_at`);
+
+--
 -- Indexes for table `order_items`
 --
 ALTER TABLE `order_items`
@@ -491,6 +541,18 @@ ALTER TABLE `payments`
   MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT for table `wallets`
+--
+ALTER TABLE `wallets`
+  MODIFY `wallet_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `wallet_transactions`
+--
+ALTER TABLE `wallet_transactions`
+  MODIFY `wallet_transaction_id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `order_items`
 --
 ALTER TABLE `order_items`
@@ -523,6 +585,19 @@ ALTER TABLE `orders`
 --
 ALTER TABLE `payments`
   ADD CONSTRAINT `fk_payments_order` FOREIGN KEY (`payment_order`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `wallets`
+--
+ALTER TABLE `wallets`
+  ADD CONSTRAINT `fk_wallet_member` FOREIGN KEY (`wallet_member`) REFERENCES `member` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Constraints for table `wallet_transactions`
+--
+ALTER TABLE `wallet_transactions`
+  ADD CONSTRAINT `fk_wallet_transaction_wallet` FOREIGN KEY (`wallet_id`) REFERENCES `wallets` (`wallet_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_wallet_transaction_order` FOREIGN KEY (`wallet_order`) REFERENCES `orders` (`order_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `password_reset`
