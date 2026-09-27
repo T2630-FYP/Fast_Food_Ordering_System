@@ -267,6 +267,26 @@ font-size:0.78em;
 font-weight:bold;
 margin-top:5px;}
 
+/* Unit 7D: shared live password strength and confirmation feedback. */
+.password-feedback
+{display:block;
+color:#777777;
+font-size:0.78em;
+font-weight:bold;
+line-height:1.35;
+margin-top:5px;}
+
+.password-feedback[data-state="weak"],
+.password-feedback[data-state="mismatch"]
+{color:#C8102E;}
+
+.password-feedback[data-state="fair"]
+{color:#9A6500;}
+
+.password-feedback[data-state="strong"],
+.password-feedback[data-state="match"]
+{color:#1F7A3D;}
+
 .form-message
 {border-radius:5px;
 padding:10px 14px;

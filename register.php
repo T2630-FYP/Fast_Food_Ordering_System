@@ -1,5 +1,6 @@
 <?php
 include("dataconnection.php");
+require_once("email_helpers.php");
 
 if(isset($_SESSION["member_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
@@ -64,9 +65,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 	{
 		$register_errors["confirm_email"] = "Email addresses do not match.";
 	}
-	if(strlen($password)<6 || strlen($password)>72)
+	if(strlen($password)<8 || strlen($password)>72)
 	{
-		$register_errors["password"] = "Use a password containing 6 to 72 characters.";
+		$register_errors["password"] = "Use a password containing 8 to 72 characters.";
 	}
 	if($confirm_password==="" || !hash_equals($password,$confirm_password))
 	{
@@ -157,8 +158,15 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 
 		if($inserted)
 		{
+			$welcome_sent = easyorder_send_welcome_email($register_values["email"],$register_values["name"],"Customer");
+			if(!$welcome_sent)
+			{
+				error_log("EasyOrder customer welcome email could not be sent.");
+			}
 			unset($_SESSION["register_csrf"]);
-			$_SESSION["registration_success"] = "Registration successful. You can now log in to your EasyOrder account.";
+			$_SESSION["registration_success"] = $welcome_sent
+				? "Registration successful. A welcome email has been sent and you can now log in."
+				: "Registration successful. Email delivery is unavailable, but you can still log in now.";
 			header("location:login.php");
 			exit();
 		}
@@ -177,6 +185,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create Your Account</title>
 <link rel="stylesheet" href="style.css?v=20260916-1">
+<script src="password_ux.js?v=20260926-1" defer></script>
 </head>
 <body>
 
@@ -224,14 +233,15 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 
 <div class="entry-field">
 <label for="cust_password">Password *</label>
-<input type="password" id="cust_password" name="cust_password" minlength="6" maxlength="72" autocomplete="new-password" required>
-<small>Use 6 to 72 characters.</small>
+<input type="password" id="cust_password" name="cust_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-strength="register-password-strength" required>
+<small id="register-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
 <?php if(isset($register_errors["password"])) { ?><span class="field-error"><?php echo register_h($register_errors["password"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_confirm_password">Confirm Password *</label>
-<input type="password" id="cust_confirm_password" name="cust_confirm_password" minlength="6" maxlength="72" autocomplete="new-password" required>
+<input type="password" id="cust_confirm_password" name="cust_confirm_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-confirm="cust_password" data-password-match="register-password-match" required>
+<small id="register-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
 <?php if(isset($register_errors["confirm_password"])) { ?><span class="field-error"><?php echo register_h($register_errors["confirm_password"]); ?></span><?php } ?>
 </div>
 
