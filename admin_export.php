@@ -9,6 +9,10 @@ if(!isset($_SESSION["admin_id"]))
 }
 
 include("dataconnection.php");
+require_once("order_pricing_helpers.php");
+
+// Reuse the checkout rate so exported SST never drifts from saved order pricing.
+$sst_rate_sql = number_format(EASYORDER_SST_RATE,4,".","");
 
 // Return a plain error response instead of a partial or misleading output file.
 function admin_export_fail($status,$message)
@@ -198,7 +202,9 @@ else if($dataset==="orders")
 
 	// Export the same active order rows and effective payment status as the list page.
 	$stmt = mysqli_prepare($connect,
-		"SELECT o.order_id,m.member_name,m.member_email,o.order_date,o.order_delivery,o.order_payment,o.order_total,
+		"SELECT o.order_id,m.member_name,m.member_email,o.order_date,o.order_delivery,o.order_payment,
+		        (SELECT ROUND(COALESCE(SUM(oi.item_subtotal),0)*".$sst_rate_sql.",2) FROM order_items oi WHERE oi.item_order=o.order_id) AS order_sst,
+		        o.order_total,
 		        COALESCE(p.payment_status,o.order_payment_status) AS display_payment_status,o.order_status
 		 FROM orders o
 		 INNER JOIN member m ON m.member_id=o.order_member
@@ -222,18 +228,18 @@ else if($dataset==="orders")
 	$result = mysqli_stmt_get_result($stmt);
 	while($row = mysqli_fetch_assoc($result))
 	{
-		$rows[] = array($row["order_id"],$row["member_name"],$row["member_email"],$row["order_date"],$row["order_delivery"]==="Yes" ? "Delivery" : "Pickup",$row["order_payment"],number_format((float)$row["order_total"],2,".",""),$row["display_payment_status"],$row["order_status"]);
+		$rows[] = array($row["order_id"],$row["member_name"],$row["member_email"],$row["order_date"],$row["order_delivery"]==="Yes" ? "Delivery" : "Pickup",$row["order_payment"],number_format((float)$row["order_sst"],2,".",""),number_format((float)$row["order_total"],2,".",""),$row["display_payment_status"],$row["order_status"]);
 	}
 	if($format==="pdf" && count($rows)>$pdf_row_limit)
 	{
 		admin_export_fail(413,"Refine the Order filters before downloading a PDF.");
 	}
 	mysqli_stmt_close($stmt);
-	$headers = array("Order ID","Customer","Customer Email","Order Date & Time","Fulfilment","Payment Method","Total (RM)","Payment Status","Order Status");
+	$headers = array("Order ID","Customer","Customer Email","Order Date & Time","Fulfilment","Payment Method","SST 6% (RM)","Final Total (RM)","Payment Status","Order Status");
 	$filename = "easyorder-orders-".date("Ymd-His").".csv";
 	$pdf_title = "Order List";
 	$pdf_subtitle = "Filters: Search ".($search!=="" ? $search : "All")." | Payment ".($payment_filter!=="" ? $payment_filter : "All")." | Order ".($status_filter!=="" ? $status_filter : "All")." | Fulfilment ".($delivery_filter==="Yes" ? "Delivery" : ($delivery_filter==="No" ? "Pickup" : "All"));
-	$pdf_weights = array(0.6,1.2,1.7,1.3,0.8,1.1,0.8,1.0,1.0);
+	$pdf_weights = array(0.6,1.2,1.7,1.3,0.8,1.1,0.8,0.9,1.0,1.0);
 }
 else
 {
