@@ -2183,7 +2183,7 @@ border-color:#E3B4BC;}
 
 .admin-report-stat-grid
 {display:grid;
-grid-template-columns:repeat(5,minmax(0,1fr));
+grid-template-columns:repeat(3,minmax(0,1fr));
 gap:11px;
 margin-bottom:12px;}
 
@@ -2835,7 +2835,7 @@ flex-wrap:wrap;}
 	{grid-column:1/-1;}
 
 	.admin-report-stat-grid
-	{grid-template-columns:repeat(5,minmax(0,1fr));
+	{grid-template-columns:repeat(3,minmax(0,1fr));
 	gap:7px;}
 
 	a

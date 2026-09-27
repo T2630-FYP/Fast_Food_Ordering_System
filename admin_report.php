@@ -10,6 +10,10 @@ if(!isset($_SESSION["admin_id"]))
 
 include("dataconnection.php");
 require_once("admin_shell.php");
+require_once("order_pricing_helpers.php");
+
+// Reuse the checkout rate so reports and transaction pages stay identical.
+$sst_rate_sql = number_format(EASYORDER_SST_RATE,4,".","");
 
 // Escape every database and filter value before rendering it in the report.
 function admin_report_html($value)
@@ -77,12 +81,14 @@ $paid_order_filter = "o.order_isDelete=0
 	AND (?='' OR DATE(o.order_date)<=?)";
 
 $summary_rows = admin_report_query($connect,
-	"SELECT COUNT(DISTINCT o.order_id) AS paid_orders,COALESCE(SUM(o.order_total),0) AS collected_revenue
+	"SELECT COUNT(DISTINCT o.order_id) AS paid_orders,COALESCE(SUM(pricing.order_sst),0) AS collected_sst,
+		COALESCE(SUM(o.order_total),0) AS collected_revenue
 	 FROM orders o
 	 LEFT JOIN payments pay ON pay.payment_order=o.order_id
+	 LEFT JOIN (SELECT item_order,ROUND(COALESCE(SUM(item_subtotal),0)*".$sst_rate_sql.",2) AS order_sst FROM order_items GROUP BY item_order) pricing ON pricing.item_order=o.order_id
 	 WHERE ".$paid_order_filter,
 	$start_date,$end_date);
-$summary = $summary_rows[0] ?? array("paid_orders"=>0,"collected_revenue"=>0);
+$summary = $summary_rows[0] ?? array("paid_orders"=>0,"collected_sst"=>0,"collected_revenue"=>0);
 
 $item_summary_rows = admin_report_query($connect,
 	"SELECT COALESCE(SUM(oi.item_qty),0) AS units_sold,COALESCE(SUM(oi.item_subtotal),0) AS product_sales
@@ -128,15 +134,17 @@ $best_sellers = admin_report_query($connect,
 // Daily rows make the filtered totals traceable without adding hard-coded data.
 $daily_sales = admin_report_query($connect,
 	"SELECT DATE(o.order_date) AS sales_date,COUNT(DISTINCT o.order_id) AS paid_orders,
-		COALESCE(SUM(o.order_total),0) AS collected_revenue
+		COALESCE(SUM(pricing.order_sst),0) AS collected_sst,COALESCE(SUM(o.order_total),0) AS collected_revenue
 	 FROM orders o
 	 LEFT JOIN payments pay ON pay.payment_order=o.order_id
+	 LEFT JOIN (SELECT item_order,ROUND(COALESCE(SUM(item_subtotal),0)*".$sst_rate_sql.",2) AS order_sst FROM order_items GROUP BY item_order) pricing ON pricing.item_order=o.order_id
 	 WHERE ".$paid_order_filter."
 	 GROUP BY DATE(o.order_date)
 	 ORDER BY sales_date DESC",
 	$start_date,$end_date);
 
 $paid_orders = (int)$summary["paid_orders"];
+$collected_sst = (float)$summary["collected_sst"];
 $collected_revenue = (float)$summary["collected_revenue"];
 $units_sold = (int)$item_summary["units_sold"];
 $product_sales_total = (float)$item_summary["product_sales"];
@@ -178,6 +186,7 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 		"Paid Orders" => $paid_orders,
 		"Units Sold" => $units_sold,
 		"Product Sales" => "RM ".number_format($product_sales_total,2),
+		"SST (6%)" => "RM ".number_format($collected_sst,2),
 		"Collected Revenue" => "RM ".number_format($collected_revenue,2),
 		"Average Order" => "RM ".number_format($average_order,2)
 	));
@@ -202,10 +211,10 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 	$daily_rows = array();
 	foreach($daily_sales as $day)
 	{
-		$daily_rows[] = array(date("d M Y",strtotime($day["sales_date"])),(int)$day["paid_orders"],"RM ".number_format((float)$day["collected_revenue"],2));
+		$daily_rows[] = array(date("d M Y",strtotime($day["sales_date"])),(int)$day["paid_orders"],"RM ".number_format((float)$day["collected_sst"],2),"RM ".number_format((float)$day["collected_revenue"],2));
 	}
 	$pdf->addSectionTitle("Paid Sales by Date");
-	$pdf->addTable(array("Date","Paid Orders","Collected Revenue"),$daily_rows,array(1.4,1.0,1.4));
+	$pdf->addTable(array("Date","Paid Orders","SST (6%)","Collected Revenue"),$daily_rows,array(1.3,0.8,1.0,1.3));
 	$pdf->download("easyorder-sales-report.pdf");
 }
 
@@ -278,11 +287,12 @@ $month_start = date("Y-m-01");
 		<article data-report-metric="paid-orders"><span>OR</span><div><strong><?php echo $paid_orders; ?></strong><small>Paid Orders</small></div></article>
 		<article data-report-metric="units-sold"><span>UN</span><div><strong><?php echo $units_sold; ?></strong><small>Units Sold</small></div></article>
 		<article data-report-metric="product-sales"><span>PS</span><div><strong>RM <?php echo number_format($product_sales_total,2); ?></strong><small>Product Sales</small></div></article>
+		<article data-report-metric="collected-sst"><span>6%</span><div><strong>RM <?php echo number_format($collected_sst,2); ?></strong><small>SST Collected</small></div></article>
 		<article class="accent" data-report-metric="collected-revenue"><span>RM</span><div><strong>RM <?php echo number_format($collected_revenue,2); ?></strong><small>Collected Revenue</small></div></article>
 		<article data-report-metric="average-order"><span>AV</span><div><strong>RM <?php echo number_format($average_order,2); ?></strong><small>Average Order</small></div></article>
 	</section>
 
-	<p class="admin-report-definition"><strong>Report rule:</strong> only Paid, non-cancelled, non-deleted orders are included. Product Sales uses item subtotals; Collected Revenue uses final order totals and may include delivery charges.</p>
+	<p class="admin-report-definition"><strong>Report rule:</strong> only Paid, non-cancelled, non-deleted orders are included. Product Sales uses item subtotals; SST is 6% of each order's merchandise subtotal; Collected Revenue uses final totals including SST and any delivery fee.</p>
 
 	<section class="admin-report-grid">
 		<!-- Category performance answers where product revenue comes from. -->
@@ -343,10 +353,10 @@ $month_start = date("Y-m-01");
 			<?php if($daily_sales): ?>
 				<div class="admin-report-table-wrap">
 					<table class="admin-report-table">
-						<thead><tr><th>Date</th><th>Paid Orders</th><th>Collected Revenue</th></tr></thead>
+						<thead><tr><th>Date</th><th>Paid Orders</th><th>SST (6%)</th><th>Collected Revenue</th></tr></thead>
 						<tbody>
 						<?php foreach($daily_sales as $day): ?>
-							<tr data-sales-date="<?php echo admin_report_html($day["sales_date"]); ?>"><td><strong><?php echo admin_report_html(date("d M Y",strtotime($day["sales_date"]))); ?></strong></td><td><?php echo (int)$day["paid_orders"]; ?></td><td>RM <?php echo number_format((float)$day["collected_revenue"],2); ?></td></tr>
+							<tr data-sales-date="<?php echo admin_report_html($day["sales_date"]); ?>"><td><strong><?php echo admin_report_html(date("d M Y",strtotime($day["sales_date"]))); ?></strong></td><td><?php echo (int)$day["paid_orders"]; ?></td><td>RM <?php echo number_format((float)$day["collected_sst"],2); ?></td><td>RM <?php echo number_format((float)$day["collected_revenue"],2); ?></td></tr>
 						<?php endforeach; ?>
 						</tbody>
 					</table>
