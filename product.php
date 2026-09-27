@@ -88,7 +88,7 @@ $product_state = $product ? catalog_product_state($product) : null;
 <strong>Availability</strong>
 <span class="catalog-status <?php echo catalog_h($product_state["class"]); ?>"><?php echo catalog_h($product_state["label"]); ?></span>
 </div>
-<p class="catalog-detail-note">Prices are shown in Malaysian Ringgit (RM) and include service tax.</p>
+<p class="catalog-detail-note">Prices are shown in Malaysian Ringgit (RM). A 6% SST is calculated at checkout.</p>
 <div class="catalog-detail-actions">
 <?php if($product_state["orderable"]) { ?>
 <a class="btn" href="cart.php?add=<?php echo rawurlencode($product["product_id"]); ?>">Add to Cart</a>

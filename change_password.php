@@ -102,6 +102,7 @@ if(isset($_SESSION["change_password_success"]))
 <head>
 <title>Change Password</title>
 <link rel="stylesheet" href="style.css">
+<script src="password_ux.js?v=20260926-1" defer></script>
 
 <style>
 #password-box
@@ -199,13 +200,15 @@ margin-top:20px;}
 
 <div class="password-field">
 <label for="new_password">New Password *</label>
-<input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" maxlength="72" required>
+<input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-strength="change-password-strength" required>
+<small id="change-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
 <?php if(isset($password_errors["new"])) { ?><span class="password-error"><?php echo change_password_h($password_errors["new"]); ?></span><?php } ?>
 </div>
 
 <div class="password-field">
 <label for="confirm_password">Confirm New Password *</label>
-<input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="72" required>
+<input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-confirm="new_password" data-password-match="change-password-match" required>
+<small id="change-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
 <?php if(isset($password_errors["confirm"])) { ?><span class="password-error"><?php echo change_password_h($password_errors["confirm"]); ?></span><?php } ?>
 </div>
 

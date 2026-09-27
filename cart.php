@@ -592,7 +592,7 @@ $rd_product_name = $rrow["product_name"] ?: $rd_name;
 <span>Total</span>
 <strong>RM <?php echo number_format($cart_total,2); ?></strong>
 </div>
-<p class="cart-summary-note">Delivery options and any applicable delivery fee will be confirmed during checkout.</p>
+<p class="cart-summary-note">A 6% SST and any applicable delivery fee will be calculated during checkout.</p>
 <a class="cart-checkout-button" href="checkout.php">Proceed to Checkout</a>
 <a class="cart-continue-link" href="category.php">Continue Shopping</a>
 </aside>

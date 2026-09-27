@@ -8,6 +8,7 @@ if(!isset($_SESSION["member_id"]))
 }
 
 include("dataconnection.php");
+require_once("order_pricing_helpers.php");
 
 $mid = (int)$_SESSION["member_id"];
 $states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
@@ -160,7 +161,7 @@ if(isset($_POST["placeorderbtn"]))
 		// Lock products in ID order to avoid deadlocks between simultaneous checkouts.
 		ksort($order_cart);
 		$order_products = array();
-		$total = 0.00;
+		$order_subtotal = 0.00;
 		foreach($order_cart as $pid => $qty)
 		{
 			if($qty<=0)
@@ -190,13 +191,12 @@ if(isset($_POST["placeorderbtn"]))
 
 			$product_row["cart_qty"] = $qty;
 			$order_products[$pid] = $product_row;
-			$total += (float)$product_row["product_price"] * $qty;
+			$order_subtotal += (float)$product_row["product_price"] * $qty;
 		}
 
-		if($delivery==="Yes")
-		{
-			$total += 5.00;
-		}
+		// Calculate SST from merchandise only; rewards remain free and delivery is not taxed.
+		$order_pricing = easyorder_order_pricing($order_subtotal,$delivery);
+		$total = $order_pricing["total"];
 
 		$stmt = mysqli_prepare($connect,"INSERT INTO orders(order_member,order_date,order_total,order_payment,order_payment_status,order_delivery,order_address,order_status) VALUES(?,?,?,?,?,?,?,'Preparing')");
 		mysqli_stmt_bind_param($stmt,"isdssss",$mid,$order_datetime,$total,$payment,$payment_status,$delivery,$address);
@@ -438,6 +438,7 @@ if($redemption_ready)
 $has_normal = count($cart)>0;
 $has_reward = count($reward_items)>0;
 $has_checkout_items = $has_normal || $has_reward;
+$checkout_pricing = easyorder_order_pricing($subtotal,$selected_delivery_method);
 ?>
 
 <!DOCTYPE html>
@@ -622,9 +623,10 @@ $has_checkout_items = $has_normal || $has_reward;
 </div>
 
 <div class="checkout-total-row"><span>Subtotal</span><strong>RM <?php echo number_format($subtotal,2); ?></strong></div>
-<div class="checkout-total-row"><span>Delivery fee</span><strong id="delivery-fee">RM <?php echo $selected_delivery_method==="Delivery" ? "5.00" : "0.00"; ?></strong></div>
+<div class="checkout-total-row"><span>SST (6%)</span><strong id="sst-amount">RM <?php echo number_format($checkout_pricing["sst"],2); ?></strong></div>
+<div class="checkout-total-row"><span>Delivery fee</span><strong id="delivery-fee">RM <?php echo number_format($checkout_pricing["delivery_fee"],2); ?></strong></div>
 <div class="checkout-payment-status-row"><span>Payment status</span><strong id="payment-status-preview"><?php echo $selected_payment==="Cash" ? "Unpaid" : ($selected_payment!=="" ? "Pending" : "Select method"); ?></strong></div>
-<div class="checkout-grand-total"><span>Total</span><strong id="order-total">RM <?php echo number_format($subtotal + ($selected_delivery_method==="Delivery" ? 5 : 0),2); ?></strong></div>
+<div class="checkout-grand-total"><span>Final Total</span><strong id="order-total">RM <?php echo number_format($checkout_pricing["total"],2); ?></strong></div>
 
 <p id="checkout-client-message" class="checkout-client-message" role="alert" aria-live="assertive"></p>
 <button class="checkout-place-order" id="checkout-submit" type="submit" name="placeorderbtn" value="1">Place Order</button>
@@ -661,6 +663,7 @@ $has_checkout_items = $has_normal || $has_reward;
 	}
 
 	const subtotal=<?php echo json_encode((float)$subtotal); ?>;
+	const sst=<?php echo json_encode((float)$checkout_pricing["sst"]); ?>;
 	const deliveryArea=document.getElementById("delivery-area");
 	const deliveryFee=document.getElementById("delivery-fee");
 	const orderTotal=document.getElementById("order-total");
@@ -687,7 +690,7 @@ $has_checkout_items = $has_normal || $has_reward;
 		deliveryArea.hidden=!isDelivery;
 		addressFields.forEach(function(field){ field.required=isDelivery; });
 		deliveryFee.textContent="RM "+fee.toFixed(2);
-		orderTotal.textContent="RM "+(subtotal+fee).toFixed(2);
+		orderTotal.textContent="RM "+(subtotal+sst+fee).toFixed(2);
 
 		const payment=selectedValue("payment");
 		paymentStatus.textContent=payment==="Cash" ? "Unpaid" : (payment!=="" ? "Pending" : "Select method");

@@ -10,6 +10,7 @@ if(!isset($_SESSION["admin_id"]))
 
 include("dataconnection.php");
 require_once("admin_shell.php");
+require_once("email_helpers.php");
 
 $staff_roles = array("Manager","Cashier","Chef","Delivery");
 
@@ -218,7 +219,16 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 		mysqli_stmt_bind_param($save_stmt,"ssssss",$staff_id,$staff_name,$staff_role,$staff_email,$staff_phone,$staff_password);
 		$staff_saved = mysqli_stmt_execute($save_stmt);
 		mysqli_stmt_close($save_stmt);
-		admin_staff_redirect($staff_saved ? "success" : "error",$staff_saved ? "Staff account added successfully." : "The staff account could not be added.");
+		if($staff_saved)
+		{
+			$welcome_sent = easyorder_send_welcome_email($staff_email,$staff_name,"Administrator");
+			if(!$welcome_sent)
+			{
+				error_log("EasyOrder administrator welcome email could not be sent.");
+			}
+			admin_staff_redirect("success",$welcome_sent ? "Staff account added and the welcome email was sent." : "Staff account added. Email delivery is unavailable, but the account can be used now.");
+		}
+		admin_staff_redirect("error","The staff account could not be added.");
 	}
 
 	if($action==="delete_staff")
@@ -348,6 +358,7 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 	<title>Manage Staff - EasyOrder</title>
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="admin_style.css">
+	<script src="password_ux.js?v=20260926-1" defer></script>
 </head>
 <body class="admin-body">
 <?php easyorder_admin_shell_start("admin_staff.php"); ?>
@@ -471,8 +482,8 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 				<label class="admin-form-field"><span>Email address</span><input type="email" name="staff_email" maxlength="100" value="<?php echo admin_staff_html($editing_staff["staff_email"] ?? ""); ?>" required></label>
 				<label class="admin-form-field"><span>Phone number</span><input type="text" name="staff_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" value="<?php echo admin_staff_html($editing_staff["staff_phone"] ?? ""); ?>" required></label>
 				<?php if(!$editing_staff): ?>
-					<label class="admin-form-field"><span>Password</span><input type="password" name="staff_password" minlength="8" maxlength="50" autocomplete="new-password" required><small>Use 8 to 50 characters.</small></label>
-					<label class="admin-form-field"><span>Confirm password</span><input type="password" name="confirm_password" minlength="8" maxlength="50" autocomplete="new-password" required><small>Enter the same password again.</small></label>
+					<label class="admin-form-field"><span>Password</span><input type="password" id="staff_password" name="staff_password" minlength="8" maxlength="50" autocomplete="new-password" data-password-strength="staff-password-strength" required><small id="staff-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small></label>
+					<label class="admin-form-field"><span>Confirm password</span><input type="password" id="staff_confirm_password" name="confirm_password" minlength="8" maxlength="50" autocomplete="new-password" data-password-confirm="staff_password" data-password-match="staff-password-match" required><small id="staff-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small></label>
 				<?php else: ?>
 					<div class="admin-form-note"><strong>Password protected</strong><span>Existing passwords are changed only from the signed-in administrator's Profile page.</span></div>
 				<?php endif; ?>

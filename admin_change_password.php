@@ -99,6 +99,7 @@ unset($_SESSION["admin_password_flash"]);
 	<title>Change Admin Password - EasyOrder</title>
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="admin_style.css">
+	<script src="password_ux.js?v=20260926-1" defer></script>
 </head>
 <body class="admin-body">
 <?php easyorder_admin_shell_start("admin_change_password.php"); ?>
@@ -140,12 +141,14 @@ unset($_SESSION["admin_password_flash"]);
 				</label>
 				<label class="admin-form-field">
 					<span>New password</span>
-					<input type="password" name="new_password" autocomplete="new-password" minlength="8" maxlength="50" required>
-					<?php if(isset($password_errors["new"])): ?><small class="admin-field-error"><?php echo admin_password_html($password_errors["new"]); ?></small><?php else: ?><small>Use 8 to 50 characters.</small><?php endif; ?>
+					<input type="password" id="admin_new_password" name="new_password" autocomplete="new-password" minlength="8" maxlength="50" data-password-strength="admin-change-password-strength" required>
+					<small id="admin-change-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
+					<?php if(isset($password_errors["new"])): ?><small class="admin-field-error"><?php echo admin_password_html($password_errors["new"]); ?></small><?php endif; ?>
 				</label>
 				<label class="admin-form-field">
 					<span>Confirm new password</span>
-					<input type="password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="50" required>
+					<input type="password" id="admin_confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="50" data-password-confirm="admin_new_password" data-password-match="admin-change-password-match" required>
+					<small id="admin-change-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
 					<?php if(isset($password_errors["confirm"])): ?><small class="admin-field-error"><?php echo admin_password_html($password_errors["confirm"]); ?></small><?php endif; ?>
 				</label>
 			</div>

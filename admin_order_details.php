@@ -10,6 +10,7 @@ if(!isset($_SESSION["admin_id"]))
 
 include("dataconnection.php");
 require_once("admin_shell.php");
+require_once("order_pricing_helpers.php");
 
 if(empty($_SESSION["admin_order_csrf"]))
 {
@@ -139,7 +140,8 @@ foreach($items as $item)
 {
 	$item_subtotal += (float)$item["item_subtotal"];
 }
-$delivery_fee = $order ? max(0.00,(float)$order["order_total"]-$item_subtotal) : 0.00;
+$sst_amount = easyorder_sst_amount($item_subtotal);
+$delivery_fee = $order ? easyorder_delivery_amount($order["order_delivery"]) : 0.00;
 $payment_status = $order ? (string)($order["saved_payment_status"] ?: $order["order_payment_status"]) : "";
 $payment_method = $order ? (string)($order["saved_payment_method"] ?: $order["order_payment"]) : "";
 $can_confirm_payment = $order && in_array(strtolower($payment_status),array("pending","unpaid"),true);
@@ -184,8 +186,9 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 	$pdf->addSectionTitle("Order Totals");
 	$pdf->addDefinitionList(array(
 		"Items Subtotal" => "RM ".number_format($item_subtotal,2),
+		"SST (6%)" => "RM ".number_format($sst_amount,2),
 		"Delivery Fee" => "RM ".number_format($delivery_fee,2),
-		"Order Total" => "RM ".number_format((float)$order["order_total"],2)
+		"Final Total" => "RM ".number_format((float)$order["order_total"],2)
 	));
 	$pdf->download("easyorder-admin-order-".$order_id.".pdf");
 }
@@ -295,8 +298,9 @@ unset($_SESSION["admin_order_flash"]);
 		</div>
 		<div class="admin-order-totals">
 			<div><span>Items Subtotal</span><strong>RM <?php echo number_format($item_subtotal,2); ?></strong></div>
+			<div><span>SST (6%)</span><strong>RM <?php echo number_format($sst_amount,2); ?></strong></div>
 			<div><span>Delivery Fee</span><strong>RM <?php echo number_format($delivery_fee,2); ?></strong></div>
-			<div class="total"><span>Order Total</span><strong>RM <?php echo number_format((float)$order["order_total"],2); ?></strong></div>
+			<div class="total"><span>Final Total</span><strong>RM <?php echo number_format((float)$order["order_total"],2); ?></strong></div>
 		</div>
 	</section>
 
