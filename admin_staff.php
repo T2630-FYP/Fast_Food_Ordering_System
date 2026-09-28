@@ -26,6 +26,14 @@ $current_staff_role = (string)($current_staff_row["staff_role"] ?? "");
 $_SESSION["admin_role"] = $current_staff_role;
 $can_manage_staff = $current_staff_role==="Manager";
 
+// Staff account data and actions belong exclusively to Super Admins.
+if(!$can_manage_staff)
+{
+	$_SESSION["admin_authorization_flash"] = array("type"=>"error","message"=>"Only a Super Admin can access Staff management.");
+	header("Location: admin_dashboard.php",true,303);
+	exit();
+}
+
 // Protect staff account changes against cross-site request forgery.
 if(empty($_SESSION["admin_staff_csrf"]))
 {
@@ -37,6 +45,12 @@ $staff_csrf = $_SESSION["admin_staff_csrf"];
 function admin_staff_html($value)
 {
 	return htmlspecialchars((string)$value,ENT_QUOTES,"UTF-8");
+}
+
+// Keep the Manager database value while presenting its Super Admin meaning.
+function admin_staff_role_label($role)
+{
+	return (string)$role==="Manager" ? "Super Admin" : (string)$role;
 }
 
 // Use a flash message and redirect so refreshing never repeats a staff change.
@@ -86,12 +100,6 @@ function admin_staff_lock_management_context($connect,$current_staff_id,$target_
 // Keep the existing staff lifecycle while validating all writes on the server.
 if($_SERVER["REQUEST_METHOD"]==="POST")
 {
-	// Staff lists are visible to administrators, but only Managers can change accounts.
-	if(!$can_manage_staff)
-	{
-		admin_staff_redirect("error","Only a Manager can add, edit or remove staff accounts.");
-	}
-
 	$submitted_token = (string)($_POST["csrf_token"] ?? "");
 	if($submitted_token==="" || !hash_equals($staff_csrf,$submitted_token))
 	{
@@ -158,7 +166,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 				$lock_context = admin_staff_lock_management_context($connect,$current_staff_id,$staff_id);
 				if(!$lock_context || !$lock_context["actor_is_manager"])
 				{
-					$update_error = "Only a current Manager can update staff accounts.";
+					$update_error = "Only a current Super Admin can update staff accounts.";
 				}
 				else if($lock_context["target_role"]==="")
 				{
@@ -166,7 +174,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 				}
 				else if($lock_context["target_role"]==="Manager" && $staff_role!=="Manager" && $lock_context["manager_count"]<=1)
 				{
-					$update_error = "The last active Manager cannot be assigned another role.";
+					$update_error = "The last active Super Admin cannot be assigned another role.";
 				}
 				else
 				{
@@ -200,6 +208,13 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 			{
 				$_SESSION["admin_name"] = $staff_name;
 				$_SESSION["admin_role"] = $staff_role;
+				if($staff_role!=="Manager")
+				{
+					unset($_SESSION["admin_staff_flash"]);
+					$_SESSION["admin_authorization_flash"] = array("type"=>"success","message"=>"Your account was updated. Staff management is now limited to Super Admins.");
+					header("Location: admin_dashboard.php",true,303);
+					exit();
+				}
 			}
 			admin_staff_redirect($staff_saved ? "success" : "error",$staff_saved ? "Staff account updated successfully." : "The staff account could not be updated.");
 		}
@@ -251,7 +266,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 			$lock_context = admin_staff_lock_management_context($connect,$current_staff_id,$staff_id);
 			if(!$lock_context || !$lock_context["actor_is_manager"])
 			{
-				$delete_error = "Only a current Manager can remove staff accounts.";
+				$delete_error = "Only a current Super Admin can remove staff accounts.";
 			}
 			else if($lock_context["target_role"]==="")
 			{
@@ -259,7 +274,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 			}
 			else if($lock_context["target_role"]==="Manager" && $lock_context["manager_count"]<=1)
 			{
-				$delete_error = "The last active Manager cannot be removed.";
+				$delete_error = "The last active Super Admin cannot be removed.";
 			}
 			else
 			{
@@ -332,7 +347,7 @@ $editing_staff = null;
 $edit_id = strtoupper(trim((string)($_GET["edit"] ?? "")));
 if($edit_id!=="" && !$can_manage_staff)
 {
-	admin_staff_redirect("error","Only a Manager can edit staff accounts.");
+	admin_staff_redirect("error","Only a Super Admin can edit staff accounts.");
 }
 if($edit_id!=="" && preg_match("/^[A-Z0-9]{1,5}$/",$edit_id)===1)
 {
@@ -368,7 +383,7 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 		<div>
 			<p class="admin-eyebrow">ADMINISTRATOR MANAGEMENT</p>
 			<h1>Staff</h1>
-			<p>Search administrator accounts and review their assigned roles. Account changes are restricted to Managers.</p>
+			<p>Search administrator accounts and review their assigned roles. Account changes are restricted to Super Admins.</p>
 			<p class="admin-print-context">Filters: Search <?php echo admin_staff_html($search!=="" ? $search : "All"); ?> · Role <?php echo admin_staff_html($role_filter!=="" ? $role_filter : "All roles"); ?></p>
 		</div>
 		<!-- Staff CSV remains Manager-only and never contains password values. -->
@@ -397,7 +412,7 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 				<select name="role">
 					<option value="">All roles</option>
 					<?php foreach($staff_roles as $role_name): ?>
-						<option value="<?php echo admin_staff_html($role_name); ?>"<?php echo $role_filter===$role_name ? " selected" : ""; ?>><?php echo admin_staff_html($role_name); ?></option>
+						<option value="<?php echo admin_staff_html($role_name); ?>"<?php echo $role_filter===$role_name ? " selected" : ""; ?>><?php echo admin_staff_html(admin_staff_role_label($role_name)); ?></option>
 					<?php endforeach; ?>
 				</select>
 			</label>
@@ -429,7 +444,7 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 					<?php foreach($staff_accounts as $staff): ?>
 						<tr>
 							<td><strong><?php echo admin_staff_html($staff["staff_name"]); ?></strong><small><?php echo admin_staff_html($staff["staff_id"]); ?></small></td>
-							<td><span class="admin-status-badge status-info"><?php echo admin_staff_html($staff["staff_role"]); ?></span></td>
+							<td><span class="admin-status-badge status-info"><?php echo admin_staff_html(admin_staff_role_label($staff["staff_role"])); ?></span></td>
 							<td><?php echo admin_staff_html($staff["staff_email"]); ?></td>
 							<td><?php echo admin_staff_html($staff["staff_phone"]); ?></td>
 							<td class="admin-print-hide">
@@ -478,7 +493,7 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 			<div class="admin-user-fields">
 				<label class="admin-form-field"><span>Staff ID</span><input type="text" name="staff_id" maxlength="5" pattern="[A-Za-z0-9]{1,5}" value="<?php echo admin_staff_html($editing_staff["staff_id"] ?? ""); ?>"<?php echo $editing_staff ? " readonly" : ""; ?> required></label>
 				<label class="admin-form-field"><span>Full name</span><input type="text" name="staff_name" minlength="2" maxlength="100" value="<?php echo admin_staff_html($editing_staff["staff_name"] ?? ""); ?>" required></label>
-				<label class="admin-form-field"><span>Role</span><select name="staff_role" required><option value="">Select role</option><?php foreach($staff_roles as $role_name): ?><option value="<?php echo admin_staff_html($role_name); ?>"<?php echo ($editing_staff["staff_role"] ?? "")===$role_name ? " selected" : ""; ?>><?php echo admin_staff_html($role_name); ?></option><?php endforeach; ?></select></label>
+				<label class="admin-form-field"><span>Role</span><select name="staff_role" required><option value="">Select role</option><?php foreach($staff_roles as $role_name): ?><option value="<?php echo admin_staff_html($role_name); ?>"<?php echo ($editing_staff["staff_role"] ?? "")===$role_name ? " selected" : ""; ?>><?php echo admin_staff_html(admin_staff_role_label($role_name)); ?></option><?php endforeach; ?></select></label>
 				<label class="admin-form-field"><span>Email address</span><input type="email" name="staff_email" maxlength="100" value="<?php echo admin_staff_html($editing_staff["staff_email"] ?? ""); ?>" required></label>
 				<label class="admin-form-field"><span>Phone number</span><input type="text" name="staff_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" value="<?php echo admin_staff_html($editing_staff["staff_phone"] ?? ""); ?>" required></label>
 				<?php if(!$editing_staff): ?>
