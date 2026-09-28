@@ -13,6 +13,7 @@ include("dataconnection.php");
 <html>
 
 <head><!--Customer reviews viewing page (view only, no form)-->
+<link rel="icon" type="image/png" href="image/logo.png">
 <title>Customer Reviews</title>
 <link rel="stylesheet" href="style.css">
 </head>

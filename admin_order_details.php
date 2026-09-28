@@ -201,6 +201,7 @@ unset($_SESSION["admin_order_flash"]);
 <html lang="en">
 
 <head><!-- Administrator order detail and action page. -->
+<link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order Details | EasyOrder Admin</title>

@@ -50,6 +50,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["adminloginbtn"]))
 <html>
 
 <head><!--Administrator login page-->
+<link rel="icon" type="image/png" href="image/logo.png">
 <title>Admin Login</title>
 <link rel="stylesheet" href="style.css">
 

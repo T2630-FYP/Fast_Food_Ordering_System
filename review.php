@@ -31,6 +31,7 @@ if(mysqli_num_rows($order_result)>0)
 <html>
 
 <head><!--Customer comments and rating page-->
+<link rel="icon" type="image/png" href="image/logo.png">
 <title>Review</title>
 <link rel="stylesheet" href="style.css?v=20260922-2">
 

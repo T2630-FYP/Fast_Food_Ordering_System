@@ -425,6 +425,7 @@ $clear_confirm = $has_reward ? "Clear your entire cart? All items and redeemed r
 <html lang="en">
 
 <head><!--Database-backed shopping cart page-->
+<link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Shopping Cart</title>

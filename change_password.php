@@ -100,6 +100,7 @@ if(isset($_SESSION["change_password_success"]))
 <html>
 
 <head>
+<link rel="icon" type="image/png" href="image/logo.png">
 <title>Change Password</title>
 <link rel="stylesheet" href="style.css">
 <script src="password_ux.js?v=20260926-1" defer></script>

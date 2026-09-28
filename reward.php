@@ -173,6 +173,7 @@ mysqli_stmt_close($stmt);
 <html>
 
 <head><!--Loyalty rewards redemption page-->
+<link rel="icon" type="image/png" href="image/logo.png">
 <title>Rewards</title>
 <link rel="stylesheet" href="style.css">
 

@@ -112,6 +112,7 @@ $wallet_recovery_token = $_SESSION["wallet_recovery_token"];
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wallet PIN Recovery</title>

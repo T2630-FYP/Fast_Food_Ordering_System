@@ -345,6 +345,7 @@ $order_pdf_url = "admin_export.php?".http_build_query($order_pdf_params);
 <html lang="en">
 
 <head><!-- Administrator order search and management page. -->
+<link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Orders | EasyOrder</title>

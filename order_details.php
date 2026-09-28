@@ -191,6 +191,7 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 <html lang="en">
 
 <head><!-- Customer order details page -->
+<link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <title>Order Details</title>
 <link rel="stylesheet" href="style.css?v=20260922-2">

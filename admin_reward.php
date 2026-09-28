@@ -14,6 +14,7 @@ require_once("admin_shell.php");
 <html>
 
 <head><!--Manage reward page-->
+<link rel="icon" type="image/png" href="image/logo.png">
 <title>Manage Rewards</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin_style.css">

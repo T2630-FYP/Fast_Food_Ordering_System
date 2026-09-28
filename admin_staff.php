@@ -368,6 +368,7 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<link rel="icon" type="image/png" href="image/logo.png">
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Manage Staff - EasyOrder</title>

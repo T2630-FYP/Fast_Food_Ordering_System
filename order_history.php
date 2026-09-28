@@ -78,6 +78,7 @@ else
 <html lang="en">
 
 <head><!-- Customer order history page -->
+<link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <title>Order History</title>
 <link rel="stylesheet" href="style.css?v=20260922-2">
