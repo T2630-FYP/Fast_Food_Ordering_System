@@ -5,6 +5,7 @@
 
 <head><!--Contact information, map and message form page-->
 <title>Contact Us</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 
 <style>
@@ -39,9 +40,32 @@ margin:5px 0px 8px 0px;}
 {text-align:center;
 margin:20px 0px 10px 0px;}
 
-.map-box img
+.map-box iframe
 {border:2px solid #C8102E;
-border-radius:8px;}
+border-radius:8px;
+box-sizing:border-box;
+display:block;
+height:auto;
+margin:auto;
+max-width:100%;
+aspect-ratio:4/3;
+width:700px;}
+
+.map-box .map-actions
+{align-items:center;
+display:flex;
+flex-wrap:wrap;
+gap:8px 18px;
+justify-content:center;
+margin:10px 0px 0px 0px;}
+
+.map-box .map-actions a
+{color:#9E0B22;
+font-weight:bold;}
+
+.map-box .map-attribution
+{color:#666666;
+font-size:9pt;}
 
 #contact-area
 {text-align:center;}
@@ -64,6 +88,38 @@ padding:8px 10px 8px 10px;}
 {color:#C8102E;
 font-weight:bold;
 font-size:0.8em;}
+
+body.contact-page .form-box
+{box-sizing:border-box;
+max-width:100%;}
+
+@media(max-width:800px)
+{
+	body.contact-page #main
+	{box-sizing:border-box;}
+
+	body.contact-page .contact-card
+	{box-sizing:border-box;
+	float:none;
+	margin:10px 0px;
+	width:100%;}
+}
+
+@media(max-width:600px)
+{
+
+	body.contact-page .form-box
+	{padding:20px 16px;
+	width:100%;}
+
+	body.contact-page #contact-area input[type="text"],
+	body.contact-page #contact-area input[type="email"],
+	body.contact-page #contact-area select,
+	body.contact-page #contact-area textarea
+	{box-sizing:border-box;
+	max-width:100%;
+	width:100%;}
+}
 </style>
 
 <script>
@@ -130,7 +186,7 @@ function contact_check()//Validate customer contact form
 
 </head>
 
-<body>
+<body class="contact-page">
 
 <div id="header"><!--Header section for logo, website name and slogan-->
 <img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
@@ -179,9 +235,14 @@ function contact_check()//Validate customer contact form
 <h2 class="section-title">Find Us Here</h2>
 <p class="intro">Drop by our store or use the map below to locate us.</p>
 <p class="intro">Open Monday - Sunday, 10am - 10pm.</p>
+<p class="intro">The map marker shows our approximate location near Jalan Tun Abdul Razak in Johor Bahru.</p>
 
 <div class="map-box"><!--Location map section-->
-<img src="image/map.jpg" width="700px" height="525px" alt="EasyOrder Location Map" title="EasyOrder in Johor Bahru">
+<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=103.7505%2C1.4600%2C103.7665%2C1.4728&amp;layer=mapnik&amp;marker=1.4664%2C103.7585" title="EasyOrder approximate location in Johor Bahru" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<p class="map-actions">
+	<a href="https://www.openstreetmap.org/?mlat=1.4664&amp;mlon=103.7585#map=16/1.4664/103.7585" target="_blank" rel="noopener noreferrer">Open larger map</a>
+	<span class="map-attribution">Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></span>
+</p>
 </div>
 
 <hr>
