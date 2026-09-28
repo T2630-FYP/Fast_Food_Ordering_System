@@ -11,6 +11,24 @@ if(!isset($_SESSION["admin_id"]))
 include("dataconnection.php");
 require_once("admin_shell.php");
 
+// Refresh authorization from the live staff row before showing Super Admin data.
+$dashboard_staff_id = (string)$_SESSION["admin_id"];
+$dashboard_role = "";
+$dashboard_role_stmt = mysqli_prepare($connect,"SELECT staff_role FROM staff WHERE staff_id=? AND staff_isDelete=0 LIMIT 1");
+if($dashboard_role_stmt)
+{
+	mysqli_stmt_bind_param($dashboard_role_stmt,"s",$dashboard_staff_id);
+	mysqli_stmt_execute($dashboard_role_stmt);
+	$dashboard_role_result = mysqli_stmt_get_result($dashboard_role_stmt);
+	$dashboard_role_row = mysqli_fetch_assoc($dashboard_role_result) ?: null;
+	$dashboard_role = (string)($dashboard_role_row["staff_role"] ?? "");
+	mysqli_stmt_close($dashboard_role_stmt);
+}
+$_SESSION["admin_role"] = $dashboard_role;
+$is_super_admin = $dashboard_role==="Manager";
+$authorization_flash = $_SESSION["admin_authorization_flash"] ?? null;
+unset($_SESSION["admin_authorization_flash"]);
+
 // Return one numeric dashboard value while keeping a safe fallback when a
 // database query cannot be completed.
 function easyorder_dashboard_scalar($connect,$sql,$column,$fallback=0)
@@ -66,6 +84,8 @@ $total_members = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS to
 $total_products = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM product WHERE product_isDelete=0","total");
 $total_orders = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM orders WHERE order_isDelete=0","total");
 $total_revenue = (float)easyorder_dashboard_scalar($connect,"SELECT COALESCE(SUM(order_total),0) AS total FROM orders WHERE order_isDelete=0 AND LOWER(order_payment_status)='paid' AND LOWER(order_status)<>'cancelled'","total",0);
+$active_staff = $is_super_admin ? (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM staff WHERE staff_isDelete=0","total") : 0;
+$deleted_staff = $is_super_admin ? (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM staff WHERE staff_isDelete=1","total") : 0;
 
 // Recent sales KPIs follow the same paid and non-cancelled sales definition.
 $today_orders = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM orders WHERE order_isDelete=0 AND DATE(order_date)=CURDATE()","total");
@@ -119,6 +139,12 @@ $recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_da
 
 <?php easyorder_admin_shell_start("admin_dashboard.php"); ?>
 
+<?php if($authorization_flash): ?>
+	<div class="admin-alert admin-alert-<?php echo htmlspecialchars($authorization_flash["type"],ENT_QUOTES,"UTF-8"); ?>" role="status">
+		<?php echo htmlspecialchars($authorization_flash["message"],ENT_QUOTES,"UTF-8"); ?>
+	</div>
+<?php endif; ?>
+
 <!-- Dashboard heading and live data definition. -->
 <section class="admin-page-heading">
 	<div>
@@ -128,6 +154,19 @@ $recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_da
 	</div>
 	<span class="admin-live-indicator"><i></i> Live database</span>
 </section>
+
+<?php if($is_super_admin): ?>
+<section id="super-admin-control-panel" class="admin-panel" aria-labelledby="super-admin-title">
+	<header class="admin-panel-heading">
+		<div><p>SUPER ADMIN</p><h2 id="super-admin-title">Staff Control Panel</h2></div>
+		<div class="admin-output-actions"><a class="admin-secondary-link" href="admin_restore.php?type=staff">Restore Staff</a><a class="admin-primary-link" href="admin_staff.php">Manage Staff</a></div>
+	</header>
+	<div class="admin-kpi-list">
+		<div><span>Active staff</span><strong><?php echo $active_staff; ?></strong></div>
+		<div><span>Deleted staff</span><strong><?php echo $deleted_staff; ?></strong></div>
+	</div>
+</section>
+<?php endif; ?>
 
 <!-- High-level system totals. -->
 <section class="admin-stat-grid" aria-label="EasyOrder overview statistics">

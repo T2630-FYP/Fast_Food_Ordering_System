@@ -103,6 +103,7 @@ if(!$admin_profile)
 	header("Location: admin_login.php");
 	exit();
 }
+$display_staff_role = $admin_profile["staff_role"]==="Manager" ? "Super Admin" : $admin_profile["staff_role"];
 
 $profile_flash = $_SESSION["admin_profile_flash"] ?? null;
 unset($_SESSION["admin_profile_flash"]);
@@ -142,7 +143,7 @@ unset($_SESSION["admin_profile_flash"]);
 				<p class="admin-eyebrow">PROFILE DETAILS</p>
 				<h2><?php echo admin_profile_html($admin_profile["staff_name"]); ?></h2>
 			</div>
-			<span class="admin-status-badge status-info"><?php echo admin_profile_html($admin_profile["staff_role"]); ?></span>
+			<span class="admin-status-badge status-info"><?php echo admin_profile_html($display_staff_role); ?></span>
 		</header>
 
 		<form class="admin-account-form" method="post" action="admin_profile.php">
@@ -157,7 +158,7 @@ unset($_SESSION["admin_profile_flash"]);
 				</label>
 				<label class="admin-form-field">
 					<span>Assigned role</span>
-					<input type="text" name="staff_role" value="<?php echo admin_profile_html($admin_profile["staff_role"]); ?>" readonly>
+					<input type="text" name="staff_role" value="<?php echo admin_profile_html($display_staff_role); ?>" readonly>
 					<small>Role changes are handled through staff management.</small>
 				</label>
 				<label class="admin-form-field">
