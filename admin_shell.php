@@ -40,11 +40,15 @@ if(!function_exists("easyorder_admin_shell_start"))
 			array("page"=>"admin_product.php","label"=>"Products","icon"=>"PR"),
 			array("page"=>"admin_category.php","label"=>"Categories","icon"=>"CA"),
 			array("page"=>"admin_member.php","label"=>"Members","icon"=>"ME"),
-			array("page"=>"admin_staff.php","label"=>"Staff","icon"=>"ST"),
 			array("page"=>"admin_reward.php","label"=>"Rewards","icon"=>"RW"),
 			array("page"=>"admin_report.php","label"=>"Reports","icon"=>"RP"),
 			array("page"=>"admin_restore.php","label"=>"Recycle Bin","icon"=>"RB")
 		);
+		if($admin_role==="Manager")
+		{
+			array_splice($navigation,5,0,array(array("page"=>"admin_staff.php","label"=>"Staff","icon"=>"ST")));
+		}
+		$display_admin_role = $admin_role==="Manager" ? "Super Admin" : $admin_role;
 
 		if($active_page==="")
 		{
@@ -86,7 +90,7 @@ if(!function_exists("easyorder_admin_shell_start"))
 						<span class="admin-avatar" aria-hidden="true"><?php echo htmlspecialchars(strtoupper(substr($admin_name,0,1)),ENT_QUOTES,"UTF-8"); ?></span>
 						<a class="admin-account-copy" href="admin_profile.php" aria-label="Open administrator profile">
 							<strong><?php echo htmlspecialchars($admin_name,ENT_QUOTES,"UTF-8"); ?></strong>
-							<small><?php echo htmlspecialchars($admin_role,ENT_QUOTES,"UTF-8"); ?></small>
+							<small><?php echo htmlspecialchars($display_admin_role,ENT_QUOTES,"UTF-8"); ?></small>
 						</a>
 						<!-- Keep account settings available without adding more management items to the sidebar. -->
 						<div class="admin-account-actions">

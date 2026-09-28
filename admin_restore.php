@@ -41,6 +41,11 @@ function admin_restore_html($value)
 	return htmlspecialchars((string)$value,ENT_QUOTES,"UTF-8");
 }
 
+function admin_restore_role_label($role)
+{
+	return (string)$role==="Manager" ? "Super Admin" : (string)$role;
+}
+
 // Store feedback in the session and redirect so refresh never repeats a restore.
 function admin_restore_redirect($type,$message,$resource_filter="all",$search="")
 {
@@ -59,8 +64,15 @@ function admin_restore_redirect($type,$message,$resource_filter="all",$search=""
 	exit();
 }
 
-$allowed_filters = array("all","member","product","staff");
+$allowed_filters = $can_restore_staff ? array("all","member","product","staff") : array("all","member","product");
 $resource_filter = strtolower(trim((string)($_GET["type"] ?? $_POST["return_type"] ?? "all")));
+
+// Reject staff recovery routes before any deleted-staff count or record query.
+$requested_restore_type = strtolower(trim((string)($_POST["resource_type"] ?? "")));
+if(!$can_restore_staff && ($resource_filter==="staff" || $requested_restore_type==="staff"))
+{
+	admin_restore_redirect("error","Only a Super Admin can access deleted staff records.");
+}
 if(!in_array($resource_filter,$allowed_filters,true))
 {
 	$resource_filter = "all";
@@ -118,12 +130,6 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 
 	if($resource_type==="staff")
 	{
-		// Normal administrators may view deleted staff but cannot restore an account.
-		if(!$can_restore_staff)
-		{
-			admin_restore_redirect("error","Only a Manager can restore staff accounts.",$resource_filter,$search);
-		}
-
 		$restore_stmt = mysqli_prepare($connect,"UPDATE staff SET staff_isDelete=0 WHERE staff_id=? AND staff_isDelete=1");
 		if($restore_stmt)
 		{
@@ -159,11 +165,10 @@ $restore_flash = $_SESSION["admin_restore_flash"] ?? null;
 unset($_SESSION["admin_restore_flash"]);
 
 // Count all deleted records separately from the current search results.
-$count_result = mysqli_query($connect,
-	"SELECT
-	 (SELECT COUNT(*) FROM member WHERE member_isDelete=1) AS member_total,
-	 (SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total,
-	 (SELECT COUNT(*) FROM staff WHERE staff_isDelete=1) AS staff_total");
+$count_sql = $can_restore_staff
+	? "SELECT (SELECT COUNT(*) FROM member WHERE member_isDelete=1) AS member_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total,(SELECT COUNT(*) FROM staff WHERE staff_isDelete=1) AS staff_total"
+	: "SELECT (SELECT COUNT(*) FROM member WHERE member_isDelete=1) AS member_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total";
+$count_result = mysqli_query($connect,$count_sql);
 $count_row = $count_result ? mysqli_fetch_assoc($count_result) : array();
 $deleted_counts = array(
 	"member"=>(int)($count_row["member_total"] ?? 0),
@@ -213,22 +218,25 @@ if($product_stmt)
 }
 
 $deleted_staff = array();
-$staff_stmt = mysqli_prepare($connect,
-	"SELECT staff_id,staff_name,staff_role,staff_email,staff_phone
-	 FROM staff
-	 WHERE staff_isDelete=1
-	 AND (?='' OR staff_id LIKE ? OR staff_name LIKE ? OR staff_role LIKE ? OR staff_email LIKE ? OR staff_phone LIKE ?)
-	 ORDER BY staff_name");
-if($staff_stmt)
+if($can_restore_staff)
 {
-	mysqli_stmt_bind_param($staff_stmt,"ssssss",$search,$like_search,$like_search,$like_search,$like_search,$like_search);
-	mysqli_stmt_execute($staff_stmt);
-	$staff_result = mysqli_stmt_get_result($staff_stmt);
-	while($staff_row = mysqli_fetch_assoc($staff_result))
+	$staff_stmt = mysqli_prepare($connect,
+		"SELECT staff_id,staff_name,staff_role,staff_email,staff_phone
+		 FROM staff
+		 WHERE staff_isDelete=1
+		 AND (?='' OR staff_id LIKE ? OR staff_name LIKE ? OR staff_role LIKE ? OR staff_email LIKE ? OR staff_phone LIKE ?)
+		 ORDER BY staff_name");
+	if($staff_stmt)
 	{
-		$deleted_staff[] = $staff_row;
+		mysqli_stmt_bind_param($staff_stmt,"ssssss",$search,$like_search,$like_search,$like_search,$like_search,$like_search);
+		mysqli_stmt_execute($staff_stmt);
+		$staff_result = mysqli_stmt_get_result($staff_stmt);
+		while($staff_row = mysqli_fetch_assoc($staff_result))
+		{
+			$deleted_staff[] = $staff_row;
+		}
+		mysqli_stmt_close($staff_stmt);
 	}
-	mysqli_stmt_close($staff_stmt);
 }
 ?>
 <!DOCTYPE html>
@@ -248,9 +256,9 @@ if($staff_stmt)
 		<div>
 			<p class="admin-eyebrow">RECOVERY MANAGEMENT</p>
 			<h1>Recycle Bin</h1>
-			<p>Review and restore deleted member, product and staff records.</p>
+			<p>Review and restore deleted member and product records<?php echo $can_restore_staff ? ", including staff accounts" : ""; ?>.</p>
 		</div>
-		<span class="admin-restore-role"><?php echo $can_restore_staff ? "Manager restore access" : "Standard restore access"; ?></span>
+		<span class="admin-restore-role"><?php echo $can_restore_staff ? "Super Admin restore access" : "Standard restore access"; ?></span>
 	</section>
 
 	<?php if($restore_flash): ?>
@@ -263,7 +271,7 @@ if($staff_stmt)
 	<section class="admin-restore-stat-grid" aria-label="Deleted record totals">
 		<article><span>ME</span><div><strong><?php echo $deleted_counts["member"]; ?></strong><small>Deleted members</small></div></article>
 		<article><span>PR</span><div><strong><?php echo $deleted_counts["product"]; ?></strong><small>Deleted products</small></div></article>
-		<article><span>ST</span><div><strong><?php echo $deleted_counts["staff"]; ?></strong><small>Deleted staff</small></div></article>
+		<?php if($can_restore_staff): ?><article><span>ST</span><div><strong><?php echo $deleted_counts["staff"]; ?></strong><small>Deleted staff</small></div></article><?php endif; ?>
 	</section>
 
 	<!-- Type and search filters use GET so the selected recycle-bin view is shareable. -->
@@ -273,14 +281,14 @@ if($staff_stmt)
 				<option value="all"<?php echo $resource_filter==="all" ? " selected" : ""; ?>>All records</option>
 				<option value="member"<?php echo $resource_filter==="member" ? " selected" : ""; ?>>Members</option>
 				<option value="product"<?php echo $resource_filter==="product" ? " selected" : ""; ?>>Products</option>
-				<option value="staff"<?php echo $resource_filter==="staff" ? " selected" : ""; ?>>Staff</option>
+				<?php if($can_restore_staff): ?><option value="staff"<?php echo $resource_filter==="staff" ? " selected" : ""; ?>>Staff</option><?php endif; ?>
 			</select></label>
 			<label class="admin-restore-search"><span>Search deleted records</span><input type="search" name="search" value="<?php echo admin_restore_html($search); ?>" placeholder="ID, name, email, phone, category or role"></label>
 			<div class="admin-restore-filter-actions"><button type="submit">Apply</button><a href="admin_restore.php">Reset</a></div>
 		</form>
 	</section>
 
-	<p class="admin-restore-note"><strong>Restore rule:</strong> Products return as Inactive for review. Staff restoration is restricted to Managers and is checked again on the server.</p>
+	<p class="admin-restore-note"><strong>Restore rule:</strong> Products return as Inactive for review.<?php if($can_restore_staff): ?> Staff restoration is restricted to Super Admins.<?php endif; ?></p>
 
 	<?php if($resource_filter==="all" || $resource_filter==="member"): ?>
 	<section class="admin-restore-panel" aria-labelledby="restore-members-title">
@@ -316,7 +324,7 @@ if($staff_stmt)
 	</section>
 	<?php endif; ?>
 
-	<?php if($resource_filter==="all" || $resource_filter==="staff"): ?>
+	<?php if($can_restore_staff && ($resource_filter==="all" || $resource_filter==="staff")): ?>
 	<section class="admin-restore-panel" aria-labelledby="restore-staff-title">
 		<div class="admin-section-heading"><div><p>ADMINISTRATOR RECORDS</p><h2 id="restore-staff-title">Deleted Staff</h2></div><span><?php echo count($deleted_staff); ?> result<?php echo count($deleted_staff)===1 ? "" : "s"; ?></span></div>
 		<?php if(!$deleted_staff): ?>
@@ -324,8 +332,8 @@ if($staff_stmt)
 		<?php else: ?>
 			<div class="admin-restore-table-wrap"><table class="admin-restore-table"><thead><tr><th>Staff</th><th>Role</th><th>Email</th><th>Phone</th><th>Action</th></tr></thead><tbody>
 			<?php foreach($deleted_staff as $staff): ?>
-				<tr><td><strong><?php echo admin_restore_html($staff["staff_name"]); ?></strong><small><?php echo admin_restore_html($staff["staff_id"]); ?></small></td><td><span class="admin-status-badge status-info"><?php echo admin_restore_html($staff["staff_role"]); ?></span></td><td><?php echo admin_restore_html($staff["staff_email"]); ?></td><td><?php echo admin_restore_html($staff["staff_phone"]); ?></td><td>
-					<?php if($can_restore_staff): ?><form method="post" action="admin_restore.php" onsubmit="return confirm('Restore this staff account?')"><input type="hidden" name="csrf_token" value="<?php echo admin_restore_html($restore_csrf); ?>"><input type="hidden" name="action" value="restore_record"><input type="hidden" name="resource_type" value="staff"><input type="hidden" name="resource_id" value="<?php echo admin_restore_html($staff["staff_id"]); ?>"><input type="hidden" name="return_type" value="<?php echo admin_restore_html($resource_filter); ?>"><input type="hidden" name="return_search" value="<?php echo admin_restore_html($search); ?>"><button type="submit">Restore</button></form><?php else: ?><span class="admin-restore-locked">Manager only</span><?php endif; ?>
+				<tr><td><strong><?php echo admin_restore_html($staff["staff_name"]); ?></strong><small><?php echo admin_restore_html($staff["staff_id"]); ?></small></td><td><span class="admin-status-badge status-info"><?php echo admin_restore_html(admin_restore_role_label($staff["staff_role"])); ?></span></td><td><?php echo admin_restore_html($staff["staff_email"]); ?></td><td><?php echo admin_restore_html($staff["staff_phone"]); ?></td><td>
+					<?php if($can_restore_staff): ?><form method="post" action="admin_restore.php" onsubmit="return confirm('Restore this staff account?')"><input type="hidden" name="csrf_token" value="<?php echo admin_restore_html($restore_csrf); ?>"><input type="hidden" name="action" value="restore_record"><input type="hidden" name="resource_type" value="staff"><input type="hidden" name="resource_id" value="<?php echo admin_restore_html($staff["staff_id"]); ?>"><input type="hidden" name="return_type" value="<?php echo admin_restore_html($resource_filter); ?>"><input type="hidden" name="return_search" value="<?php echo admin_restore_html($search); ?>"><button type="submit">Restore</button></form><?php else: ?><span class="admin-restore-locked">Super Admin only</span><?php endif; ?>
 				</td></tr>
 			<?php endforeach; ?>
 			</tbody></table></div>
