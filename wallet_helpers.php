@@ -66,26 +66,3 @@ function easyorder_wallet_reference($prefix)
 	return strtoupper((string)$prefix)."-".date("YmdHis")."-".strtoupper(bin2hex(random_bytes(5)));
 }
 
-// Validate simulated card numbers without retaining them.
-function easyorder_wallet_luhn_valid($number)
-{
-	$sum = 0;
-	$double = false;
-	for($i=strlen($number)-1;$i>=0;$i--)
-	{
-		$digit = (int)$number[$i];
-		if($double)
-		{
-			$digit *= 2;
-			if($digit>9)
-			{
-				$digit -= 9;
-			}
-		}
-		$sum += $digit;
-		$double = !$double;
-	}
-
-	return $sum>0 && $sum%10===0;
-}
-

@@ -52,7 +52,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["topup_wallet"]))
 	{
 		$topup_error = "Please enter the cardholder name shown on the card.";
 	}
-	else if(strlen($card_number)<13 || strlen($card_number)>19 || !easyorder_wallet_luhn_valid($card_number))
+	else if(strlen($card_number)<13 || strlen($card_number)>19)
 	{
 		$topup_error = "Please enter a valid card number.";
 	}
@@ -202,12 +202,12 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <input type="hidden" name="wallet_topup_token" value="<?php echo easyorder_wallet_html($wallet_topup_token); ?>">
 <div class="wallet-field"><label for="topup-amount">Top-Up Amount (RM)</label><input id="topup-amount" type="number" name="topup_amount" min="1" max="1000" step="0.01" value="<?php echo easyorder_wallet_html($amount_value); ?>" required placeholder="50.00"></div>
 <div class="wallet-field"><label for="cardholder">Cardholder Name</label><input id="cardholder" type="text" name="cardholder" maxlength="60" value="<?php echo easyorder_wallet_html($cardholder); ?>" required autocomplete="cc-name"></div>
-<div class="wallet-field"><label for="card-number">Card Number</label><input id="card-number" type="text" name="card_number" inputmode="numeric" maxlength="23" required autocomplete="off" placeholder="4111 1111 1111 1111"></div>
+<div class="wallet-field"><label for="card-number">Card Number</label><input id="card-number" type="text" name="card_number" inputmode="numeric" maxlength="23" required autocomplete="off" placeholder="4966 2312 3456 7890"></div>
 <div class="wallet-field-row">
 <div class="wallet-field"><label for="expiry">Expiry (MM/YY)</label><input id="expiry" type="text" name="expiry" inputmode="numeric" maxlength="5" required autocomplete="off" placeholder="12/30"></div>
 <div class="wallet-field"><label for="cvv">CVV</label><input id="cvv" type="password" name="cvv" inputmode="numeric" maxlength="4" required autocomplete="off" placeholder="123"></div>
 </div>
-<div class="payment-test-note"><strong>Simulation:</strong> Use 4111 1111 1111 1111 for success or 4000 0000 0000 0002 for a decline. Use any future expiry and 3-digit CVV.</div>
+<div class="payment-test-note">Use 4966 2312 3456 7890 for success or 4000 0000 0000 0002 for a decline. Use any future expiry and 3-digit CVV.</div>
 <button class="wallet-primary-button" type="submit" name="topup_wallet" value="1">Confirm Top-Up</button>
 </form>
 </section>
