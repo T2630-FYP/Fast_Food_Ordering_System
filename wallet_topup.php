@@ -189,7 +189,7 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <div id="navbar"><a href="category.php">Menu</a><a href="cart.php">Cart</a><a href="dashboard.php">My Dashboard</a><a href="order_history.php">Order History</a><a href="wallet.php">Wallet</a><a href="reward.php">Rewards</a><a href="view_review.php">View Reviews</a><a href="about.html">About Us</a><a href="contact.php">Contact Us</a><a href="logout.php">Logout</a></div>
 
 <main id="main" class="wallet-page">
-<div class="wallet-page-heading"><div><p class="checkout-step-label">SIMULATED CARD PAYMENT</p><h2 class="section-title">Top Up Wallet</h2><p class="intro">Add funds to your EasyOrder Wallet using the secure simulated card flow.</p></div><a class="checkout-return-link" href="wallet.php">&larr; Back to Wallet</a></div>
+<div class="wallet-page-heading"><div><h2 class="section-title">Top Up Wallet</h2><p class="intro">Add funds to your EasyOrder Wallet using the secure simulated card flow.</p></div><a class="checkout-return-link" href="wallet.php">&larr; Back to Wallet</a></div>
 <?php if($topup_error!=="") { ?><div class="checkout-message checkout-message-error" role="alert"><?php echo easyorder_wallet_html($topup_error); ?></div><?php } ?>
 <?php if($topup_notice_error!=="") { ?><div class="checkout-message checkout-message-error" role="status"><?php echo easyorder_wallet_html($topup_notice_error); ?></div><?php } ?>
 <?php if($topup_success!=="") { ?><div class="wallet-message-success" role="status"><?php echo easyorder_wallet_html($topup_success); ?></div><?php } ?>
@@ -207,7 +207,6 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <div class="wallet-field"><label for="expiry">Expiry (MM/YY)</label><input id="expiry" type="text" name="expiry" inputmode="numeric" maxlength="5" required autocomplete="off" placeholder="12/30"></div>
 <div class="wallet-field"><label for="cvv">CVV</label><input id="cvv" type="password" name="cvv" inputmode="numeric" maxlength="4" required autocomplete="off" placeholder="123"></div>
 </div>
-<div class="payment-test-note">Use 4966 2312 3456 7890 for success or 4000 0000 0000 0002 for a decline. Use any future expiry and 3-digit CVV.</div>
 <button class="wallet-primary-button" type="submit" name="topup_wallet" value="1">Confirm Top-Up</button>
 </form>
 </section>
