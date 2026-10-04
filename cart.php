@@ -340,7 +340,7 @@ $removed_items = array();
 $stock_adjustments = array();
 foreach($cart as $pid => $qty)
 {
-	$stmt = mysqli_prepare($connect,"SELECT product_name,product_desc,product_category,product_price,product_stock,product_status FROM product WHERE product_id=? AND product_isDelete=0 AND product_status='Active'");
+	$stmt = mysqli_prepare($connect,"SELECT product_name,product_desc,product_image,product_category,product_price,product_stock,product_status FROM product WHERE product_id=? AND product_isDelete=0 AND product_status='Active'");
 	mysqli_stmt_bind_param($stmt,"s",$pid);
 	mysqli_stmt_execute($stmt);
 	$avail = mysqli_stmt_get_result($stmt);
@@ -398,7 +398,7 @@ $reward_count = 0;
 $reward_result = false;
 if($redemption_ready)
 {
-	$stmt = mysqli_prepare($connect,"SELECT r.*,p.product_name FROM redemption r LEFT JOIN product p ON p.product_id=r.redeem_product WHERE r.redeem_member=? AND r.redeem_status='Cart' ORDER BY r.redeem_date DESC,r.redeem_id DESC");
+	$stmt = mysqli_prepare($connect,"SELECT r.*,p.product_image FROM redemption r LEFT JOIN product p ON p.product_id=r.redeem_product WHERE r.redeem_member=? AND r.redeem_status='Cart' ORDER BY r.redeem_date DESC,r.redeem_id DESC");
 	mysqli_stmt_bind_param($stmt,"i",$mid);
 	mysqli_stmt_execute($stmt);
 	$reward_result = mysqli_stmt_get_result($stmt);
@@ -506,7 +506,7 @@ $subtotal = $pprice * $qty;
 ?>
 <article class="cart-item-card">
 <a class="cart-item-image" href="product.php?id=<?php echo rawurlencode($pid); ?>">
-<img src="<?php echo catalog_h(catalog_product_image($pname)); ?>" alt="<?php echo catalog_h($pname); ?>">
+<img src="<?php echo catalog_h(catalog_product_image($row["product_image"])); ?>" alt="<?php echo catalog_h($pname); ?>">
 </a>
 <div class="cart-item-content">
 <div class="cart-item-top">
@@ -543,11 +543,10 @@ $subtotal = $pprice * $qty;
 <?php
 $rd_id = (int)$rrow["redeem_id"];
 $rd_name = $rrow["redeem_reward"];
-$rd_product_name = $rrow["product_name"] ?: $rd_name;
 ?>
 <article class="cart-item-card cart-reward-card">
 <div class="cart-item-image">
-<img src="<?php echo catalog_h(catalog_product_image($rd_product_name)); ?>" alt="<?php echo catalog_h($rd_name); ?>">
+<img src="<?php echo catalog_h(catalog_product_image($rrow["product_image"])); ?>" alt="<?php echo catalog_h($rd_name); ?>">
 </div>
 <div class="cart-item-content">
 <div class="cart-item-top">
