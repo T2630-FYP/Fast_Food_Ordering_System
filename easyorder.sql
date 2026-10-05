@@ -109,10 +109,10 @@ CREATE TABLE `member` (
 --
 
 INSERT INTO `member` (`member_id`, `member_name`, `member_email`, `member_password`, `member_phone`, `member_gender`, `member_dob`, `member_address`, `member_state`, `member_city`, `member_postcode`, `member_points`, `member_joindate`, `member_isDelete`) VALUES
-(1, 'Tan Mei Ling', 'meiling@email.com', 'meiling123', '0123344556', 'Female', '2000-05-12', '', 'Selangor', 'Shah Alam', '40000', 585, '2026-01-12', 0),
-(2, 'Muhammad Faiz', 'faiz@email.com', 'faiz123', '0198877665', 'Male', '1999-08-03', '', 'Kuala Lumpur', 'Kuala Lumpur', '50000', 233, '2026-02-03', 0),
-(3, 'Priya Devi', 'priya@email.com', 'priya123', '0167788990', 'Female', '2001-02-21', '', 'Johor', 'Johor Bahru', '80000', 392, '2026-02-21', 0),
-(4, 'Wong Jia Hui', 'jiahui@email.com', 'jiahui123', '0112233445', 'Female', '2000-03-09', '', 'Pulau Pinang', 'George Town', '10000', 188, '2026-03-09', 0);
+(1, 'Tan Mei Ling', 'meiling@gmail.com', 'meiling123', '0123344556', 'Female', '2000-05-12', '', 'Selangor', 'Shah Alam', '40000', 585, '2026-01-12', 0),
+(2, 'Muhammad Faiz', 'faiz@gmail.com', 'faiz123', '0198877665', 'Male', '1999-08-03', '', 'Kuala Lumpur', 'Kuala Lumpur', '50000', 233, '2026-02-03', 0),
+(3, 'Priya Devi', 'priya@gmail.com', 'priya123', '0167788990', 'Female', '2001-02-21', '', 'Johor', 'Johor Bahru', '80000', 392, '2026-02-21', 0),
+(4, 'Wong Jia Hui', 'jiahui@gmail.com', 'jiahui123', '0112233445', 'Female', '2000-03-09', '', 'Pulau Pinang', 'George Town', '10000', 188, '2026-03-09', 0);
 
 -- --------------------------------------------------------
 
@@ -383,10 +383,10 @@ CREATE TABLE `staff` (
 --
 
 INSERT INTO `staff` (`staff_id`, `staff_name`, `staff_role`, `staff_email`, `staff_phone`, `staff_password`, `staff_isDelete`) VALUES
-('S001', 'Andrew Tan Yong Ling', 'Manager', 'andrew@easyorder.com', '0123456789', 'admin123', 0),
-('S002', 'Siti Nurhaliza', 'Cashier', 'siti@easyorder.com', '0129876543', 'admin123', 0),
-('S003', 'Raj Kumar', 'Chef', 'raj@easyorder.com', '0134567890', 'admin123', 0),
-('S004', 'Lim Wei Ming', 'Delivery', 'lim@easyorder.com', '0145678901', 'admin123', 0);
+('S001', 'Andrew Tan Yong Ling', 'Manager', 'andrew@gmail.com', '0123456789', 'admin123', 0),
+('S002', 'Siti Nurhaliza', 'Cashier', 'siti@gmail.com', '0129876543', 'admin123', 0),
+('S003', 'Raj Kumar', 'Chef', 'raj@gmail.com', '0134567890', 'admin123', 0),
+('S004', 'Lim Wei Ming', 'Delivery', 'lim@gmail.com', '0145678901', 'admin123', 0);
 
 --
 -- Indexes for dumped tables
