@@ -49,15 +49,15 @@ if(!function_exists("easyorder_clear_verified_reset"))
 {
 	function easyorder_clear_verified_reset()
 	{
-		unset($_SESSION["password_reset_id"],$_SESSION["password_reset_member_id"],$_SESSION["password_reset_verified_at"]);
+		unset($_SESSION["password_reset_id"],$_SESSION["password_reset_customer_id"],$_SESSION["password_reset_verified_at"]);
 	}
 }
 
 if(!function_exists("easyorder_send_reset_email"))
 {
-	function easyorder_send_reset_email($recipient_email,$member_name,$code)
+	function easyorder_send_reset_email($recipient_email,$customer_name,$code)
 	{
-		$clean_name = trim(str_replace(array("\r","\n")," ",(string)$member_name));
+		$clean_name = trim(str_replace(array("\r","\n")," ",(string)$customer_name));
 		$clean_email = str_replace(array("\r","\n"),"",(string)$recipient_email);
 		$subject = "EasyOrder Password Reset Verification Code";
 		$message = "Hello ".$clean_name.",\r\n\r\n";
@@ -85,8 +85,8 @@ if(!function_exists("easyorder_create_password_reset"))
 {
 	function easyorder_create_password_reset($connect,$submitted_email)
 	{
-		$member = false;
-		$stmt = mysqli_prepare($connect,"SELECT member_id,member_name,member_email FROM member WHERE member_email=? AND member_isDelete=0 LIMIT 1");
+		$customer = false;
+		$stmt = mysqli_prepare($connect,"SELECT customer_id,customer_name,customer_email FROM customer WHERE customer_email=? AND customer_isDelete=0 LIMIT 1");
 		if(!$stmt)
 		{
 			return false;
@@ -95,46 +95,46 @@ if(!function_exists("easyorder_create_password_reset"))
 		mysqli_stmt_bind_param($stmt,"s",$submitted_email);
 		mysqli_stmt_execute($stmt);
 		$result = mysqli_stmt_get_result($stmt);
-		$member = mysqli_fetch_assoc($result);
+		$customer = mysqli_fetch_assoc($result);
 		mysqli_stmt_close($stmt);
 
 		//Return the same successful result when the account does not exist so the
 		//public response does not reveal which email addresses are registered.
-		if(!$member)
+		if(!$customer)
 		{
 			return true;
 		}
 
 		$code = (string)random_int(100000,999999);
 		$code_hash = easyorder_reset_code_hash($code);
-		$member_id = (int)$member["member_id"];
+		$customer_id = (int)$customer["customer_id"];
 		$request_id = 0;
 		$database_ok = true;
 
 		mysqli_begin_transaction($connect);
 
-		$stmt = mysqli_prepare($connect,"UPDATE password_reset SET used_at=NOW() WHERE member_id=? AND used_at IS NULL");
+		$stmt = mysqli_prepare($connect,"UPDATE password_reset SET used_at=NOW() WHERE customer_id=? AND used_at IS NULL");
 		if(!$stmt)
 		{
 			$database_ok = false;
 		}
 		else
 		{
-			mysqli_stmt_bind_param($stmt,"i",$member_id);
+			mysqli_stmt_bind_param($stmt,"i",$customer_id);
 			$database_ok = mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 		}
 
 		if($database_ok)
 		{
-			$stmt = mysqli_prepare($connect,"INSERT INTO password_reset(member_id,reset_code_hash,expires_at) VALUES(?,?,DATE_ADD(NOW(),INTERVAL 10 MINUTE))");
+			$stmt = mysqli_prepare($connect,"INSERT INTO password_reset(customer_id,reset_code_hash,expires_at) VALUES(?,?,DATE_ADD(NOW(),INTERVAL 10 MINUTE))");
 			if(!$stmt)
 			{
 				$database_ok = false;
 			}
 			else
 			{
-				mysqli_stmt_bind_param($stmt,"is",$member_id,$code_hash);
+				mysqli_stmt_bind_param($stmt,"is",$customer_id,$code_hash);
 				$database_ok = mysqli_stmt_execute($stmt);
 				$request_id = (int)mysqli_insert_id($connect);
 				mysqli_stmt_close($stmt);
@@ -148,7 +148,7 @@ if(!function_exists("easyorder_create_password_reset"))
 		}
 
 		mysqli_commit($connect);
-		if(!easyorder_send_reset_email($member["member_email"],$member["member_name"],$code))
+		if(!easyorder_send_reset_email($customer["customer_email"],$customer["customer_name"],$code))
 		{
 			$stmt = mysqli_prepare($connect,"UPDATE password_reset SET used_at=NOW() WHERE reset_id=?");
 			if($stmt)

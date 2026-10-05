@@ -1,7 +1,7 @@
 <?php
-//only logged in members can use the cart
+//only logged in customers can use the cart
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -9,7 +9,7 @@ if(!isset($_SESSION["member_id"]))
 include("dataconnection.php");
 require_once("product_catalog_helpers.php");
 
-$mid = $_SESSION["member_id"];
+$mid = $_SESSION["customer_id"];
 
 //check the redemption table exists (created by importing the latest easyorder.sql)
 $redemption_ready = false;
@@ -21,7 +21,7 @@ if(mysqli_num_rows($tbl_check)>0)
 
 //----- cart operations (done before the cart is displayed) -----
 //the cart is saved in the database (table 'cart'), so it stays even after logout or re-login
-//all changes lock the member row first, so two tabs for the same member cannot change the cart at the same time
+//all changes lock the customer row first, so two tabs for the same customer cannot change the cart at the same time
 $cart_action = "";
 if(isset($_GET["add"]))
 {
@@ -53,17 +53,17 @@ if($cart_action!="")
 		mysqli_begin_transaction($connect);
 		$transaction_started = true;
 
-		//this row is also used as a per-member lock for every cart/reward operation
-		$stmt = mysqli_prepare($connect,"SELECT member_isDelete FROM member WHERE member_id=? FOR UPDATE");
+		//this row is also used as a per-customer lock for every cart/reward operation
+		$stmt = mysqli_prepare($connect,"SELECT customer_isDelete FROM customer WHERE customer_id=? FOR UPDATE");
 		mysqli_stmt_bind_param($stmt,"i",$mid);
 		mysqli_stmt_execute($stmt);
-		$member_result = mysqli_stmt_get_result($stmt);
-		$member_row = mysqli_fetch_assoc($member_result);
+		$customer_result = mysqli_stmt_get_result($stmt);
+		$customer_row = mysqli_fetch_assoc($customer_result);
 		mysqli_stmt_close($stmt);
 
-		if(!$member_row || $member_row["member_isDelete"]==1)
+		if(!$customer_row || $customer_row["customer_isDelete"]==1)
 		{
-			throw new Exception("This member account is no longer active.");
+			throw new Exception("This customer account is no longer active.");
 		}
 
 		if($cart_action=="add" || $cart_action=="update" || $cart_action=="remove")
@@ -91,7 +91,7 @@ if($cart_action!="")
 			}
 			else
 			{
-				$stmt = mysqli_prepare($connect,"SELECT cart_qty FROM cart WHERE cart_member=? AND cart_product=? FOR UPDATE");
+				$stmt = mysqli_prepare($connect,"SELECT cart_qty FROM cart WHERE cart_customer=? AND cart_product=? FOR UPDATE");
 				mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 				mysqli_stmt_execute($stmt);
 				$cart_rows = mysqli_stmt_get_result($stmt);
@@ -110,12 +110,12 @@ if($cart_action!="")
 				else
 				{
 					//replace any old duplicate rows with one accurate row
-					$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+					$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
 					mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_close($stmt);
 
-					$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_member,cart_product,cart_qty) VALUES(?,?,?)");
+					$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_customer,cart_product,cart_qty) VALUES(?,?,?)");
 					mysqli_stmt_bind_param($stmt,"isi",$mid,$pid,$newqty);
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_close($stmt);
@@ -133,7 +133,7 @@ if($cart_action!="")
 			$prow = mysqli_fetch_assoc($product_result);
 			mysqli_stmt_close($stmt);
 
-			$stmt = mysqli_prepare($connect,"SELECT cart_id FROM cart WHERE cart_member=? AND cart_product=? FOR UPDATE");
+			$stmt = mysqli_prepare($connect,"SELECT cart_id FROM cart WHERE cart_customer=? AND cart_product=? FOR UPDATE");
 			mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_store_result($stmt);
@@ -141,7 +141,7 @@ if($cart_action!="")
 
 			if(!$prow || $prow["product_isDelete"]==1 || $prow["product_status"]!="Active" || $qty<=0 || $prow["product_stock"]<=0)
 			{
-				$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+				$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
 				mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
@@ -158,12 +158,12 @@ if($cart_action!="")
 					$_SESSION["cart_error"] = "Only ".$qty." of ".$prow["product_name"]." are available, so the quantity has been set to ".$qty.".";
 				}
 
-				$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+				$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
 				mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
 
-				$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_member,cart_product,cart_qty) VALUES(?,?,?)");
+				$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_customer,cart_product,cart_qty) VALUES(?,?,?)");
 				mysqli_stmt_bind_param($stmt,"isi",$mid,$pid,$qty);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
@@ -175,13 +175,13 @@ if($cart_action!="")
 		}
 		else if($cart_action=="remove")
 		{
-			$stmt = mysqli_prepare($connect,"SELECT cart_id FROM cart WHERE cart_member=? AND cart_product=? FOR UPDATE");
+			$stmt = mysqli_prepare($connect,"SELECT cart_id FROM cart WHERE cart_customer=? AND cart_product=? FOR UPDATE");
 			mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_store_result($stmt);
 			mysqli_stmt_close($stmt);
 
-			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
 			mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
@@ -194,7 +194,7 @@ if($cart_action!="")
 
 			if($redemption_ready)
 			{
-				$stmt = mysqli_prepare($connect,"SELECT redeem_product,redeem_points FROM redemption WHERE redeem_member=? AND redeem_status='Cart' FOR UPDATE");
+				$stmt = mysqli_prepare($connect,"SELECT redeem_product,redeem_points FROM redemption WHERE redeem_customer=? AND redeem_status='Cart' FOR UPDATE");
 				mysqli_stmt_bind_param($stmt,"i",$mid);
 				mysqli_stmt_execute($stmt);
 				$clr_result = mysqli_stmt_get_result($stmt);
@@ -223,25 +223,25 @@ if($cart_action!="")
 
 				if($total_refund_points>0)
 				{
-					$stmt = mysqli_prepare($connect,"UPDATE member SET member_points=member_points+? WHERE member_id=?");
+					$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_points=customer_points+? WHERE customer_id=?");
 					mysqli_stmt_bind_param($stmt,"ii",$total_refund_points,$mid);
 					mysqli_stmt_execute($stmt);
 					mysqli_stmt_close($stmt);
 				}
 
-				$stmt = mysqli_prepare($connect,"DELETE FROM redemption WHERE redeem_member=? AND redeem_status='Cart'");
+				$stmt = mysqli_prepare($connect,"DELETE FROM redemption WHERE redeem_customer=? AND redeem_status='Cart'");
 				mysqli_stmt_bind_param($stmt,"i",$mid);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
 			}
 
-			$stmt = mysqli_prepare($connect,"SELECT cart_id FROM cart WHERE cart_member=? FOR UPDATE");
+			$stmt = mysqli_prepare($connect,"SELECT cart_id FROM cart WHERE cart_customer=? FOR UPDATE");
 			mysqli_stmt_bind_param($stmt,"i",$mid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_store_result($stmt);
 			mysqli_stmt_close($stmt);
 
-			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=?");
+			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=?");
 			mysqli_stmt_bind_param($stmt,"i",$mid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
@@ -255,7 +255,7 @@ if($cart_action!="")
 			}
 
 			$redeem_id = (int)($_POST["redeem_id"] ?? 0);
-			$stmt = mysqli_prepare($connect,"SELECT redeem_product,redeem_points FROM redemption WHERE redeem_id=? AND redeem_member=? AND redeem_status='Cart' FOR UPDATE");
+			$stmt = mysqli_prepare($connect,"SELECT redeem_product,redeem_points FROM redemption WHERE redeem_id=? AND redeem_customer=? AND redeem_status='Cart' FOR UPDATE");
 			mysqli_stmt_bind_param($stmt,"ii",$redeem_id,$mid);
 			mysqli_stmt_execute($stmt);
 			$reward_result = mysqli_stmt_get_result($stmt);
@@ -279,12 +279,12 @@ if($cart_action!="")
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
 
-				$stmt = mysqli_prepare($connect,"UPDATE member SET member_points=member_points+? WHERE member_id=?");
+				$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_points=customer_points+? WHERE customer_id=?");
 				mysqli_stmt_bind_param($stmt,"ii",$refund_points,$mid);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
 
-				$stmt = mysqli_prepare($connect,"DELETE FROM redemption WHERE redeem_id=? AND redeem_member=? AND redeem_status='Cart'");
+				$stmt = mysqli_prepare($connect,"DELETE FROM redemption WHERE redeem_id=? AND redeem_customer=? AND redeem_status='Cart'");
 				mysqli_stmt_bind_param($stmt,"ii",$redeem_id,$mid);
 				mysqli_stmt_execute($stmt);
 				mysqli_stmt_close($stmt);
@@ -321,10 +321,10 @@ if(isset($_SESSION["cart_notice"]))
 	unset($_SESSION["cart_notice"]);
 }
 
-//load this member's saved cart (normal items) from the database
+//load this customer's saved cart (normal items) from the database
 $cart = array();
 $cart_products = array();
-$stmt = mysqli_prepare($connect,"SELECT cart_product,cart_qty FROM cart WHERE cart_member=?");
+$stmt = mysqli_prepare($connect,"SELECT cart_product,cart_qty FROM cart WHERE cart_customer=?");
 mysqli_stmt_bind_param($stmt,"i",$mid);
 mysqli_stmt_execute($stmt);
 $cart_result = mysqli_stmt_get_result($stmt);
@@ -363,7 +363,7 @@ foreach($cart as $pid => $qty)
 			$removed_items[] = "an item that is no longer available";
 		}
 		mysqli_stmt_close($stmt);
-		$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+		$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
 		mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
@@ -375,12 +375,12 @@ foreach($cart as $pid => $qty)
 		$latest_stock = (int)$product_row["product_stock"];
 		if($qty>$latest_stock)
 		{
-			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_member=? AND cart_product=?");
+			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
 			mysqli_stmt_bind_param($stmt,"is",$mid,$pid);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 
-			$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_member,cart_product,cart_qty) VALUES(?,?,?)");
+			$stmt = mysqli_prepare($connect,"INSERT INTO cart(cart_customer,cart_product,cart_qty) VALUES(?,?,?)");
 			mysqli_stmt_bind_param($stmt,"isi",$mid,$pid,$latest_stock);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
@@ -398,7 +398,7 @@ $reward_count = 0;
 $reward_result = false;
 if($redemption_ready)
 {
-	$stmt = mysqli_prepare($connect,"SELECT r.*,p.product_image FROM redemption r LEFT JOIN product p ON p.product_id=r.redeem_product WHERE r.redeem_member=? AND r.redeem_status='Cart' ORDER BY r.redeem_date DESC,r.redeem_id DESC");
+	$stmt = mysqli_prepare($connect,"SELECT r.*,p.product_image FROM redemption r LEFT JOIN product p ON p.product_id=r.redeem_product WHERE r.redeem_customer=? AND r.redeem_status='Cart' ORDER BY r.redeem_date DESC,r.redeem_id DESC");
 	mysqli_stmt_bind_param($stmt,"i",$mid);
 	mysqli_stmt_execute($stmt);
 	$reward_result = mysqli_stmt_get_result($stmt);

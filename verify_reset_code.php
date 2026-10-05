@@ -52,25 +52,25 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 
 	if(count($verify_errors)===0)
 	{
-		$member = false;
-		$stmt = mysqli_prepare($connect,"SELECT member_id FROM member WHERE member_email=? AND member_isDelete=0 LIMIT 1");
+		$customer = false;
+		$stmt = mysqli_prepare($connect,"SELECT customer_id FROM customer WHERE customer_email=? AND customer_isDelete=0 LIMIT 1");
 		if($stmt)
 		{
 			mysqli_stmt_bind_param($stmt,"s",$submitted_email);
 			mysqli_stmt_execute($stmt);
 			$result = mysqli_stmt_get_result($stmt);
-			$member = mysqli_fetch_assoc($result);
+			$customer = mysqli_fetch_assoc($result);
 			mysqli_stmt_close($stmt);
 		}
 
 		$reset_request = false;
-		if($member)
+		if($customer)
 		{
-			$member_id = (int)$member["member_id"];
-			$stmt = mysqli_prepare($connect,"SELECT reset_id,reset_code_hash,attempt_count FROM password_reset WHERE member_id=? AND used_at IS NULL AND verified_at IS NULL AND expires_at>NOW() ORDER BY reset_id DESC LIMIT 1");
+			$customer_id = (int)$customer["customer_id"];
+			$stmt = mysqli_prepare($connect,"SELECT reset_id,reset_code_hash,attempt_count FROM password_reset WHERE customer_id=? AND used_at IS NULL AND verified_at IS NULL AND expires_at>NOW() ORDER BY reset_id DESC LIMIT 1");
 			if($stmt)
 			{
-				mysqli_stmt_bind_param($stmt,"i",$member_id);
+				mysqli_stmt_bind_param($stmt,"i",$customer_id);
 				mysqli_stmt_execute($stmt);
 				$result = mysqli_stmt_get_result($stmt);
 				$reset_request = mysqli_fetch_assoc($result);
@@ -124,7 +124,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 			{
 				easyorder_clear_verified_reset();
 				$_SESSION["password_reset_id"] = $reset_id;
-				$_SESSION["password_reset_member_id"] = (int)$member["member_id"];
+				$_SESSION["password_reset_customer_id"] = (int)$customer["customer_id"];
 				$_SESSION["password_reset_verified_at"] = time();
 				$_SESSION["reset_request_email"] = $submitted_email;
 				unset($_SESSION["verify_reset_csrf"],$_SESSION["reset_password_csrf"]);

@@ -70,9 +70,9 @@ else
 {
 	// Join the customer and optional payment row into one administrator record.
 	$order_sql = "SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.order_payment_status,o.order_delivery,o.order_address,o.order_status,"
-		."m.member_id,m.member_name,m.member_email,m.member_phone,m.member_address,m.member_city,m.member_state,m.member_postcode,"
+		."m.customer_id,m.customer_name,m.customer_email,m.customer_phone,m.customer_address,m.customer_city,m.customer_state,m.customer_postcode,"
 		."p.payment_reference,p.payment_method AS saved_payment_method,p.payment_amount,p.payment_status AS saved_payment_status,p.payment_paid_at,p.payment_created_at "
-		."FROM orders o INNER JOIN member m ON m.member_id=o.order_member "
+		."FROM orders o INNER JOIN customer m ON m.customer_id=o.order_customer "
 		."LEFT JOIN payments p ON p.payment_order=o.order_id "
 		."WHERE o.order_id=? AND o.order_isDelete=0 LIMIT 1";
 	$order_stmt = mysqli_prepare($connect,$order_sql);
@@ -161,9 +161,9 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 	$pdf = new EasyOrderPdfDocument("Administrator Order #".$order_id,"Database order record | ".admin_order_details_datetime($order["order_date"]),"portrait");
 	$pdf->addSectionTitle("Customer and Fulfilment");
 	$pdf->addDefinitionList(array(
-		"Customer" => $order["member_name"]." (#".$order["member_id"].")",
-		"Email" => $order["member_email"],
-		"Phone" => $order["member_phone"],
+		"Customer" => $order["customer_name"]." (#".$order["customer_id"].")",
+		"Email" => $order["customer_email"],
+		"Phone" => $order["customer_phone"],
 		"Fulfilment" => $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup",
 		"Address" => $order["order_delivery"]==="Yes" ? $order["order_address"] : "EasyOrder pickup counter",
 		"Order Status" => $order["order_status"]
@@ -245,7 +245,7 @@ unset($_SESSION["admin_order_flash"]);
 <section class="admin-order-detail-hero">
 	<div>
 		<p>ORDER #<?php echo (int)$order["order_id"]; ?></p>
-		<h2><?php echo admin_order_details_html($order["member_name"]); ?></h2>
+		<h2><?php echo admin_order_details_html($order["customer_name"]); ?></h2>
 		<span>Placed <?php echo admin_order_details_html(admin_order_details_datetime($order["order_date"])); ?></span>
 	</div>
 	<div class="admin-order-detail-statuses">
@@ -259,9 +259,9 @@ unset($_SESSION["admin_order_flash"]);
 	<section class="admin-detail-card">
 		<header><p>CUSTOMER</p><h2>Customer &amp; Fulfilment</h2></header>
 		<dl class="admin-detail-list">
-			<div><dt>Customer</dt><dd><?php echo admin_order_details_html($order["member_name"]); ?> <small>#<?php echo (int)$order["member_id"]; ?></small></dd></div>
-			<div><dt>Email</dt><dd><?php echo admin_order_details_html($order["member_email"]); ?></dd></div>
-			<div><dt>Phone</dt><dd><?php echo admin_order_details_html($order["member_phone"]); ?></dd></div>
+			<div><dt>Customer</dt><dd><?php echo admin_order_details_html($order["customer_name"]); ?> <small>#<?php echo (int)$order["customer_id"]; ?></small></dd></div>
+			<div><dt>Email</dt><dd><?php echo admin_order_details_html($order["customer_email"]); ?></dd></div>
+			<div><dt>Phone</dt><dd><?php echo admin_order_details_html($order["customer_phone"]); ?></dd></div>
 			<div><dt>Method</dt><dd><?php echo $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup"; ?></dd></div>
 			<div class="wide"><dt>Address</dt><dd><?php echo $order["order_delivery"]==="Yes" ? admin_order_details_html($order["order_address"]) : "EasyOrder pickup counter"; ?></dd></div>
 		</dl>

@@ -1,7 +1,7 @@
 <?php
-// Only logged-in members can access the simulated card payment page.
+// Only logged-in customers can access the simulated card payment page.
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -9,7 +9,7 @@ if(!isset($_SESSION["member_id"]))
 
 include("dataconnection.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $order_id = (int)($_POST["order_id"] ?? $_GET["order_id"] ?? 0);
 $payment_error = "";
 $cardholder = "";
@@ -44,15 +44,15 @@ function payment_luhn_valid($number)
 	return $sum>0 && $sum%10===0;
 }
 
-// Load only an order owned by the logged-in member. The optional row lock is
+// Load only an order owned by the logged-in customer. The optional row lock is
 // used during payment confirmation to stop two requests paying the same order.
-function payment_load_order($connect,$order_id,$member_id,$lock=false)
+function payment_load_order($connect,$order_id,$customer_id,$lock=false)
 {
 	$sql = "SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.order_payment_status,o.order_status,"
 		."p.payment_id,p.payment_reference,p.payment_method AS saved_payment_method,"
 		."p.payment_amount,p.payment_status AS saved_payment_status,p.payment_paid_at "
 		."FROM orders o LEFT JOIN payments p ON p.payment_order=o.order_id "
-		."WHERE o.order_id=? AND o.order_member=? AND o.order_isDelete=0 LIMIT 1";
+		."WHERE o.order_id=? AND o.order_customer=? AND o.order_isDelete=0 LIMIT 1";
 	if($lock)
 	{
 		$sql .= " FOR UPDATE";
@@ -63,7 +63,7 @@ function payment_load_order($connect,$order_id,$member_id,$lock=false)
 	{
 		throw new Exception("The payment request could not be loaded.");
 	}
-	mysqli_stmt_bind_param($stmt,"ii",$order_id,$member_id);
+	mysqli_stmt_bind_param($stmt,"ii",$order_id,$customer_id);
 	if(!mysqli_stmt_execute($stmt))
 	{
 		mysqli_stmt_close($stmt);
@@ -222,7 +222,7 @@ else if($_SERVER["REQUEST_METHOD"]==="POST" && $order["order_payment"]==="Credit
 				}
 				mysqli_stmt_close($stmt);
 
-				$stmt = mysqli_prepare($connect,"UPDATE orders SET order_payment_status='Paid' WHERE order_id=? AND order_member=? AND order_payment_status='Pending'");
+				$stmt = mysqli_prepare($connect,"UPDATE orders SET order_payment_status='Paid' WHERE order_id=? AND order_customer=? AND order_payment_status='Pending'");
 				mysqli_stmt_bind_param($stmt,"ii",$order_id,$mid);
 				if(!mysqli_stmt_execute($stmt) || mysqli_stmt_affected_rows($stmt)!==1)
 				{

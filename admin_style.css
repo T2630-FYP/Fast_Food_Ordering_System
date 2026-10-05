@@ -1748,7 +1748,7 @@ margin-top:3px;}
 .admin-category-editor-form .admin-catalog-form-actions
 {margin-top:16px;}
 
-/* Unit 6D: member/staff search and current administrator account pages */
+/* Unit 6D: customer/staff search and current administrator account pages */
 .admin-account-copy
 {text-decoration:none;}
 
@@ -2420,7 +2420,7 @@ white-space:nowrap;}
 	{grid-template-columns:1fr;}
 }
 
-/* Unit 7A: unified restore centre for deleted member, product and staff records */
+/* Unit 7A: unified restore centre for deleted customer, product and staff records */
 .admin-restore-role
 {display:inline-flex;
 align-items:center;

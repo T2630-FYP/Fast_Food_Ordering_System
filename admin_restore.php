@@ -64,7 +64,7 @@ function admin_restore_redirect($type,$message,$resource_filter="all",$search=""
 	exit();
 }
 
-$allowed_filters = $can_restore_staff ? array("all","member","product","staff") : array("all","member","product");
+$allowed_filters = $can_restore_staff ? array("all","customer","product","staff") : array("all","customer","product");
 $resource_filter = strtolower(trim((string)($_GET["type"] ?? $_POST["return_type"] ?? "all")));
 
 // Reject staff recovery routes before any deleted-staff count or record query.
@@ -95,23 +95,23 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 	$action = (string)($_POST["action"] ?? "");
 	$resource_type = strtolower(trim((string)($_POST["resource_type"] ?? "")));
 	$resource_id = strtoupper(trim((string)($_POST["resource_id"] ?? "")));
-	if($action!=="restore_record" || !in_array($resource_type,array("member","product","staff"),true))
+	if($action!=="restore_record" || !in_array($resource_type,array("customer","product","staff"),true))
 	{
 		admin_restore_redirect("error","The requested restore action is not supported.",$resource_filter,$search);
 	}
 
-	if($resource_type==="member")
+	if($resource_type==="customer")
 	{
-		$member_id = filter_var($resource_id,FILTER_VALIDATE_INT,array("options"=>array("min_range"=>1)));
-		if($member_id===false)
+		$customer_id = filter_var($resource_id,FILTER_VALIDATE_INT,array("options"=>array("min_range"=>1)));
+		if($customer_id===false)
 		{
-			admin_restore_redirect("error","The selected member is invalid.",$resource_filter,$search);
+			admin_restore_redirect("error","The selected customer is invalid.",$resource_filter,$search);
 		}
 
-		$restore_stmt = mysqli_prepare($connect,"UPDATE member SET member_isDelete=0 WHERE member_id=? AND member_isDelete=1");
+		$restore_stmt = mysqli_prepare($connect,"UPDATE customer SET customer_isDelete=0 WHERE customer_id=? AND customer_isDelete=1");
 		if($restore_stmt)
 		{
-			mysqli_stmt_bind_param($restore_stmt,"i",$member_id);
+			mysqli_stmt_bind_param($restore_stmt,"i",$customer_id);
 			mysqli_stmt_execute($restore_stmt);
 			$restored = mysqli_stmt_affected_rows($restore_stmt)===1;
 			mysqli_stmt_close($restore_stmt);
@@ -120,7 +120,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 		{
 			$restored = false;
 		}
-		admin_restore_redirect($restored ? "success" : "error",$restored ? "Member restored successfully." : "The member is no longer available for restore.",$resource_filter,$search);
+		admin_restore_redirect($restored ? "success" : "error",$restored ? "Customer restored successfully." : "The customer is no longer available for restore.",$resource_filter,$search);
 	}
 
 	if(preg_match("/^[A-Z0-9]{1,5}$/",$resource_id)!==1)
@@ -166,34 +166,34 @@ unset($_SESSION["admin_restore_flash"]);
 
 // Count all deleted records separately from the current search results.
 $count_sql = $can_restore_staff
-	? "SELECT (SELECT COUNT(*) FROM member WHERE member_isDelete=1) AS member_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total,(SELECT COUNT(*) FROM staff WHERE staff_isDelete=1) AS staff_total"
-	: "SELECT (SELECT COUNT(*) FROM member WHERE member_isDelete=1) AS member_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total";
+	? "SELECT (SELECT COUNT(*) FROM customer WHERE customer_isDelete=1) AS customer_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total,(SELECT COUNT(*) FROM staff WHERE staff_isDelete=1) AS staff_total"
+	: "SELECT (SELECT COUNT(*) FROM customer WHERE customer_isDelete=1) AS customer_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total";
 $count_result = mysqli_query($connect,$count_sql);
 $count_row = $count_result ? mysqli_fetch_assoc($count_result) : array();
 $deleted_counts = array(
-	"member"=>(int)($count_row["member_total"] ?? 0),
+	"customer"=>(int)($count_row["customer_total"] ?? 0),
 	"product"=>(int)($count_row["product_total"] ?? 0),
 	"staff"=>(int)($count_row["staff_total"] ?? 0)
 );
 
 $like_search = "%".$search."%";
-$deleted_members = array();
-$member_stmt = mysqli_prepare($connect,
-	"SELECT member_id,member_name,member_email,member_phone,member_joindate
-	 FROM member
-	 WHERE member_isDelete=1
-	 AND (?='' OR CAST(member_id AS CHAR) LIKE ? OR member_name LIKE ? OR member_email LIKE ? OR member_phone LIKE ?)
-	 ORDER BY member_id DESC");
-if($member_stmt)
+$deleted_customers = array();
+$customer_stmt = mysqli_prepare($connect,
+	"SELECT customer_id,customer_name,customer_email,customer_phone,customer_joindate
+	 FROM customer
+	 WHERE customer_isDelete=1
+	 AND (?='' OR CAST(customer_id AS CHAR) LIKE ? OR customer_name LIKE ? OR customer_email LIKE ? OR customer_phone LIKE ?)
+	 ORDER BY customer_id DESC");
+if($customer_stmt)
 {
-	mysqli_stmt_bind_param($member_stmt,"sssss",$search,$like_search,$like_search,$like_search,$like_search);
-	mysqli_stmt_execute($member_stmt);
-	$member_result = mysqli_stmt_get_result($member_stmt);
-	while($member_row = mysqli_fetch_assoc($member_result))
+	mysqli_stmt_bind_param($customer_stmt,"sssss",$search,$like_search,$like_search,$like_search,$like_search);
+	mysqli_stmt_execute($customer_stmt);
+	$customer_result = mysqli_stmt_get_result($customer_stmt);
+	while($customer_row = mysqli_fetch_assoc($customer_result))
 	{
-		$deleted_members[] = $member_row;
+		$deleted_customers[] = $customer_row;
 	}
-	mysqli_stmt_close($member_stmt);
+	mysqli_stmt_close($customer_stmt);
 }
 
 $deleted_products = array();
@@ -257,7 +257,7 @@ if($can_restore_staff)
 		<div>
 			<p class="admin-eyebrow">RECOVERY MANAGEMENT</p>
 			<h1>Recycle Bin</h1>
-			<p>Review and restore deleted member and product records<?php echo $can_restore_staff ? ", including staff accounts" : ""; ?>.</p>
+			<p>Review and restore deleted customer and product records<?php echo $can_restore_staff ? ", including staff accounts" : ""; ?>.</p>
 		</div>
 		<span class="admin-restore-role"><?php echo $can_restore_staff ? "Super Admin restore access" : "Standard restore access"; ?></span>
 	</section>
@@ -270,7 +270,7 @@ if($can_restore_staff)
 
 	<!-- Restore totals make the remaining soft-deleted records visible at a glance. -->
 	<section class="admin-restore-stat-grid" aria-label="Deleted record totals">
-		<article><span>ME</span><div><strong><?php echo $deleted_counts["member"]; ?></strong><small>Deleted members</small></div></article>
+		<article><span>ME</span><div><strong><?php echo $deleted_counts["customer"]; ?></strong><small>Deleted customers</small></div></article>
 		<article><span>PR</span><div><strong><?php echo $deleted_counts["product"]; ?></strong><small>Deleted products</small></div></article>
 		<?php if($can_restore_staff): ?><article><span>ST</span><div><strong><?php echo $deleted_counts["staff"]; ?></strong><small>Deleted staff</small></div></article><?php endif; ?>
 	</section>
@@ -280,7 +280,7 @@ if($can_restore_staff)
 		<form class="admin-restore-filter-form" method="get" action="admin_restore.php">
 			<label><span>Record type</span><select name="type">
 				<option value="all"<?php echo $resource_filter==="all" ? " selected" : ""; ?>>All records</option>
-				<option value="member"<?php echo $resource_filter==="member" ? " selected" : ""; ?>>Members</option>
+				<option value="customer"<?php echo $resource_filter==="customer" ? " selected" : ""; ?>>Customers</option>
 				<option value="product"<?php echo $resource_filter==="product" ? " selected" : ""; ?>>Products</option>
 				<?php if($can_restore_staff): ?><option value="staff"<?php echo $resource_filter==="staff" ? " selected" : ""; ?>>Staff</option><?php endif; ?>
 			</select></label>
@@ -291,16 +291,16 @@ if($can_restore_staff)
 
 	<p class="admin-restore-note"><strong>Restore rule:</strong> Products return as Inactive for review.<?php if($can_restore_staff): ?> Staff restoration is restricted to Super Admins.<?php endif; ?></p>
 
-	<?php if($resource_filter==="all" || $resource_filter==="member"): ?>
-	<section class="admin-restore-panel" aria-labelledby="restore-members-title">
-		<div class="admin-section-heading"><div><p>MEMBER RECORDS</p><h2 id="restore-members-title">Deleted Members</h2></div><span><?php echo count($deleted_members); ?> result<?php echo count($deleted_members)===1 ? "" : "s"; ?></span></div>
-		<?php if(!$deleted_members): ?>
-			<div class="admin-empty-state"><span>0</span><strong>No deleted members found</strong><p>Deleted member accounts that match the search will appear here.</p></div>
+	<?php if($resource_filter==="all" || $resource_filter==="customer"): ?>
+	<section class="admin-restore-panel" aria-labelledby="restore-customers-title">
+		<div class="admin-section-heading"><div><p>CUSTOMER RECORDS</p><h2 id="restore-customers-title">Deleted Customers</h2></div><span><?php echo count($deleted_customers); ?> result<?php echo count($deleted_customers)===1 ? "" : "s"; ?></span></div>
+		<?php if(!$deleted_customers): ?>
+			<div class="admin-empty-state"><span>0</span><strong>No deleted customers found</strong><p>Deleted customer accounts that match the search will appear here.</p></div>
 		<?php else: ?>
-			<div class="admin-restore-table-wrap"><table class="admin-restore-table"><thead><tr><th>Member</th><th>Email</th><th>Phone</th><th>Joined</th><th>Action</th></tr></thead><tbody>
-			<?php foreach($deleted_members as $member): ?>
-				<tr><td><strong><?php echo admin_restore_html($member["member_name"]); ?></strong><small>#<?php echo (int)$member["member_id"]; ?></small></td><td><?php echo admin_restore_html($member["member_email"]); ?></td><td><?php echo admin_restore_html($member["member_phone"]); ?></td><td><?php echo admin_restore_html($member["member_joindate"]); ?></td><td>
-					<form method="post" action="admin_restore.php" onsubmit="return confirm('Restore this member account?')"><input type="hidden" name="csrf_token" value="<?php echo admin_restore_html($restore_csrf); ?>"><input type="hidden" name="action" value="restore_record"><input type="hidden" name="resource_type" value="member"><input type="hidden" name="resource_id" value="<?php echo (int)$member["member_id"]; ?>"><input type="hidden" name="return_type" value="<?php echo admin_restore_html($resource_filter); ?>"><input type="hidden" name="return_search" value="<?php echo admin_restore_html($search); ?>"><button type="submit">Restore</button></form>
+			<div class="admin-restore-table-wrap"><table class="admin-restore-table"><thead><tr><th>Customer</th><th>Email</th><th>Phone</th><th>Joined</th><th>Action</th></tr></thead><tbody>
+			<?php foreach($deleted_customers as $customer): ?>
+				<tr><td><strong><?php echo admin_restore_html($customer["customer_name"]); ?></strong><small>#<?php echo (int)$customer["customer_id"]; ?></small></td><td><?php echo admin_restore_html($customer["customer_email"]); ?></td><td><?php echo admin_restore_html($customer["customer_phone"]); ?></td><td><?php echo admin_restore_html($customer["customer_joindate"]); ?></td><td>
+					<form method="post" action="admin_restore.php" onsubmit="return confirm('Restore this customer account?')"><input type="hidden" name="csrf_token" value="<?php echo admin_restore_html($restore_csrf); ?>"><input type="hidden" name="action" value="restore_record"><input type="hidden" name="resource_type" value="customer"><input type="hidden" name="resource_id" value="<?php echo (int)$customer["customer_id"]; ?>"><input type="hidden" name="return_type" value="<?php echo admin_restore_html($resource_filter); ?>"><input type="hidden" name="return_search" value="<?php echo admin_restore_html($search); ?>"><button type="submit">Restore</button></form>
 				</td></tr>
 			<?php endforeach; ?>
 			</tbody></table></div>

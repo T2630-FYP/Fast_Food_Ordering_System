@@ -1,7 +1,7 @@
 <?php
 include("dataconnection.php");
 
-if(isset($_SESSION["member_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
+if(isset($_SESSION["customer_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
 	header("location:dashboard.php");
 	exit();
@@ -53,7 +53,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["loginbtn"]))
 	if(count($login_errors)===0)
 	{
 		$row = false;
-		$stmt = mysqli_prepare($connect,"SELECT member_id,member_name,member_password FROM member WHERE member_email=? AND member_isDelete=0 LIMIT 1");
+		$stmt = mysqli_prepare($connect,"SELECT customer_id,customer_name,customer_password FROM customer WHERE customer_email=? AND customer_isDelete=0 LIMIT 1");
 		if($stmt)
 		{
 			mysqli_stmt_bind_param($stmt,"s",$login_email);
@@ -63,10 +63,10 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["loginbtn"]))
 			mysqli_stmt_close($stmt);
 		}
 
-		if($row && easyorder_password_verify($password,$row["member_password"]))
+		if($row && easyorder_password_verify($password,$row["customer_password"]))
 		{
-			$_SESSION["member_id"] = (int)$row["member_id"];
-			$_SESSION["member_name"] = $row["member_name"];
+			$_SESSION["customer_id"] = (int)$row["customer_id"];
+			$_SESSION["customer_name"] = $row["customer_name"];
 			unset($_SESSION["login_csrf"]);
 			session_regenerate_id(true);
 			header("location:dashboard.php");
@@ -89,7 +89,7 @@ function login_h($value)
 <link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Member Login</title>
+<title>Customer Login</title>
 <link rel="stylesheet" href="style.css?v=20260916-1">
 </head>
 <body>
@@ -106,7 +106,7 @@ function login_h($value)
 </div>
 
 <main id="main">
-<h2 class="section-title">Member Login</h2>
+<h2 class="section-title">Customer Login</h2>
 <p class="intro">Log in to order food, manage your profile and review your orders.</p>
 
 <div class="entry-card entry-card-narrow">

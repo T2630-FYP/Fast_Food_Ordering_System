@@ -1,7 +1,7 @@
 <?php
-//only logged in members can leave a review
+//only logged in customers can leave a review
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -16,10 +16,10 @@ if(isset($_SESSION["placed_order_id"]))
 	unset($_SESSION["placed_order_id"]);
 }
 
-//get the latest order placed by this member so the review is linked to an Order ID
-$mid = $_SESSION["member_id"];
+//get the latest order placed by this customer so the review is linked to an Order ID
+$mid = $_SESSION["customer_id"];
 $current_order = 0;
-$order_result = mysqli_query($connect,"SELECT order_id FROM orders WHERE order_member='$mid' AND order_isDelete=0 ORDER BY order_id DESC LIMIT 1");
+$order_result = mysqli_query($connect,"SELECT order_id FROM orders WHERE order_customer='$mid' AND order_isDelete=0 ORDER BY order_id DESC LIMIT 1");
 if(mysqli_num_rows($order_result)>0)
 {
 	$order_row = mysqli_fetch_assoc($order_result);
@@ -155,17 +155,17 @@ if($placed_order_id>0)
 //save the review when the form is submitted
 if(isset($_POST["submitbtn"]))
 {
-	$mid = mysqli_real_escape_string($connect,$_SESSION["member_id"]);
+	$mid = mysqli_real_escape_string($connect,$_SESSION["customer_id"]);
 	$order_id = mysqli_real_escape_string($connect,$_POST["order_id"]);
 	$rating = mysqli_real_escape_string($connect,$_POST["rating"]);
 	$comment = mysqli_real_escape_string($connect,$_POST["cust_comment"]);
 	$date = date("Y-m-d");
 
-	//only save the review if the Order ID belongs to the logged in member
-	$order_check = mysqli_query($connect,"SELECT * FROM orders WHERE order_id='$order_id' AND order_member='$mid' AND order_isDelete=0");
+	//only save the review if the Order ID belongs to the logged in customer
+	$order_check = mysqli_query($connect,"SELECT * FROM orders WHERE order_id='$order_id' AND order_customer='$mid' AND order_isDelete=0");
 	if(mysqli_num_rows($order_check)>0)
 	{
-		mysqli_query($connect,"INSERT INTO review(review_member,review_order,review_rating,review_comment,review_date)VALUES('$mid','$order_id','$rating','$comment','$date')");
+		mysqli_query($connect,"INSERT INTO review(review_customer,review_order,review_rating,review_comment,review_date)VALUES('$mid','$order_id','$rating','$comment','$date')");
 	}
 	else
 	{

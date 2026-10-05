@@ -1,14 +1,14 @@
 <?php
-//only logged in members can see their dashboard
+//only logged in customers can see their dashboard
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
 }
 include("dataconnection.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
 $profile_errors = array();
 $profile_success = "";
@@ -18,30 +18,30 @@ function profile_h($value)
 	return htmlspecialchars((string)$value,ENT_QUOTES,"UTF-8");
 }
 
-//Always identify the editable record from the current session, never from a URL or hidden member id.
-$stmt = mysqli_prepare($connect,"SELECT * FROM member WHERE member_id=? AND member_isDelete=0 LIMIT 1");
+//Always identify the editable record from the current session, never from a URL or hidden customer id.
+$stmt = mysqli_prepare($connect,"SELECT * FROM customer WHERE customer_id=? AND customer_isDelete=0 LIMIT 1");
 mysqli_stmt_bind_param($stmt,"i",$mid);
 mysqli_stmt_execute($stmt);
-$member_result = mysqli_stmt_get_result($stmt);
-$member = mysqli_fetch_assoc($member_result);
+$customer_result = mysqli_stmt_get_result($stmt);
+$customer = mysqli_fetch_assoc($customer_result);
 mysqli_stmt_close($stmt);
 
-if(!$member)
+if(!$customer)
 {
-	unset($_SESSION["member_id"],$_SESSION["member_name"]);
+	unset($_SESSION["customer_id"],$_SESSION["customer_name"]);
 	header("location:login.php");
 	exit();
 }
 
 $profile_values = array(
-	"name" => $member["member_name"],
-	"phone" => $member["member_phone"],
-	"gender" => $member["member_gender"],
-	"dob" => $member["member_dob"],
-	"address" => $member["member_address"],
-	"state" => $member["member_state"],
-	"city" => $member["member_city"],
-	"postcode" => $member["member_postcode"]
+	"name" => $customer["customer_name"],
+	"phone" => $customer["customer_phone"],
+	"gender" => $customer["customer_gender"],
+	"dob" => $customer["customer_dob"],
+	"address" => $customer["customer_address"],
+	"state" => $customer["customer_state"],
+	"city" => $customer["customer_city"],
+	"postcode" => $customer["customer_postcode"]
 );
 
 if(!isset($_SESSION["profile_csrf"]))
@@ -58,14 +58,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["update_profile"]))
 	}
 
 	$profile_values = array(
-		"name" => trim((string)($_POST["member_name"] ?? "")),
-		"phone" => trim((string)($_POST["member_phone"] ?? "")),
-		"gender" => trim((string)($_POST["member_gender"] ?? "")),
-		"dob" => trim((string)($_POST["member_dob"] ?? "")),
-		"address" => trim((string)($_POST["member_address"] ?? "")),
-		"state" => trim((string)($_POST["member_state"] ?? "")),
-		"city" => trim((string)($_POST["member_city"] ?? "")),
-		"postcode" => trim((string)($_POST["member_postcode"] ?? ""))
+		"name" => trim((string)($_POST["customer_name"] ?? "")),
+		"phone" => trim((string)($_POST["customer_phone"] ?? "")),
+		"gender" => trim((string)($_POST["customer_gender"] ?? "")),
+		"dob" => trim((string)($_POST["customer_dob"] ?? "")),
+		"address" => trim((string)($_POST["customer_address"] ?? "")),
+		"state" => trim((string)($_POST["customer_state"] ?? "")),
+		"city" => trim((string)($_POST["customer_city"] ?? "")),
+		"postcode" => trim((string)($_POST["customer_postcode"] ?? ""))
 	);
 
 	if(strlen($profile_values["name"])<2 || strlen($profile_values["name"])>100)
@@ -104,7 +104,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["update_profile"]))
 
 	if(count($profile_errors)===0)
 	{
-		$stmt = mysqli_prepare($connect,"UPDATE member SET member_name=?,member_phone=?,member_gender=?,member_dob=?,member_address=?,member_state=?,member_city=?,member_postcode=? WHERE member_id=? AND member_isDelete=0");
+		$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_name=?,customer_phone=?,customer_gender=?,customer_dob=?,customer_address=?,customer_state=?,customer_city=?,customer_postcode=? WHERE customer_id=? AND customer_isDelete=0");
 		mysqli_stmt_bind_param(
 			$stmt,
 			"ssssssssi",
@@ -121,7 +121,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["update_profile"]))
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 
-		$_SESSION["member_name"] = $profile_values["name"];
+		$_SESSION["customer_name"] = $profile_values["name"];
 		$_SESSION["profile_success"] = "Your profile and default delivery address were updated successfully.";
 		unset($_SESSION["profile_csrf"]);
 		header("location:dashboard.php#profile");
@@ -135,28 +135,28 @@ if(isset($_SESSION["profile_success"]))
 	unset($_SESSION["profile_success"]);
 }
 
-//Reload persisted member data after a normal request. On a failed POST, keep submitted values in the form.
+//Reload persisted customer data after a normal request. On a failed POST, keep submitted values in the form.
 if($_SERVER["REQUEST_METHOD"]!=="POST")
 {
 	$profile_values = array(
-		"name" => $member["member_name"],
-		"phone" => $member["member_phone"],
-		"gender" => $member["member_gender"],
-		"dob" => $member["member_dob"],
-		"address" => $member["member_address"],
-		"state" => $member["member_state"],
-		"city" => $member["member_city"],
-		"postcode" => $member["member_postcode"]
+		"name" => $customer["customer_name"],
+		"phone" => $customer["customer_phone"],
+		"gender" => $customer["customer_gender"],
+		"dob" => $customer["customer_dob"],
+		"address" => $customer["customer_address"],
+		"state" => $customer["customer_state"],
+		"city" => $customer["customer_city"],
+		"postcode" => $customer["customer_postcode"]
 	);
 }
 
-$stmt = mysqli_prepare($connect,"SELECT COUNT(*) AS order_count FROM orders WHERE order_member=? AND order_isDelete=0");
+$stmt = mysqli_prepare($connect,"SELECT COUNT(*) AS order_count FROM orders WHERE order_customer=? AND order_isDelete=0");
 mysqli_stmt_bind_param($stmt,"i",$mid);
 mysqli_stmt_execute($stmt);
 $order_result = mysqli_stmt_get_result($stmt);
 $order_count = (int)mysqli_fetch_assoc($order_result)["order_count"];
 mysqli_stmt_close($stmt);
-$member_points = (int)$member["member_points"];
+$customer_points = (int)$customer["customer_points"];
 ?>
 
 <!DOCTYPE html>
@@ -316,7 +316,7 @@ margin-left:8px;}
 <div id="main" role="main"><!--Main content section-->
 
 <div id="welcome-box">
-<h3>Welcome back, <?php echo profile_h($member["member_name"]); ?>!</h3>
+<h3>Welcome back, <?php echo profile_h($customer["customer_name"]); ?>!</h3>
 <p>This is your account dashboard. Here you can view your profile and track your orders.</p>
 </div>
 
@@ -325,12 +325,12 @@ margin-left:8px;}
 <tr>
 <th>Total Orders</th>
 <th>Loyalty Points</th>
-<th>Member Since</th>
+<th>Customer Since</th>
 </tr>
 <tr>
 <td align="center"><?php echo $order_count; ?></td>
-<td align="center"><?php echo $member_points; ?></td>
-<td align="center"><?php echo profile_h($member["member_joindate"]); ?></td>
+<td align="center"><?php echo $customer_points; ?></td>
+<td align="center"><?php echo profile_h($customer["customer_joindate"]); ?></td>
 </tr>
 </table>
 
@@ -356,66 +356,66 @@ margin-left:8px;}
 
 <div class="profile-grid">
 <div class="profile-field full-width">
-<label for="member_email">Email Address</label>
-<input type="email" id="member_email" autocomplete="email" aria-describedby="profile-email-note" value="<?php echo profile_h($member["member_email"]); ?>" readonly>
+<label for="customer_email">Email Address</label>
+<input type="email" id="customer_email" autocomplete="email" aria-describedby="profile-email-note" value="<?php echo profile_h($customer["customer_email"]); ?>" readonly>
 <small id="profile-email-note">Email is used for login and cannot be changed here.</small>
 </div>
 
 <div class="profile-field">
-<label for="member_name">Full Name *</label>
-<input type="text" id="member_name" autocomplete="name" name="member_name" minlength="2" maxlength="100"<?php if(isset($profile_errors["name"])) { ?> aria-invalid="true" aria-describedby="member_name-error"<?php } ?> required value="<?php echo profile_h($profile_values["name"]); ?>">
-<?php if(isset($profile_errors["name"])) { ?><span class="profile-error" id="member_name-error"><?php echo profile_h($profile_errors["name"]); ?></span><?php } ?>
+<label for="customer_name">Full Name *</label>
+<input type="text" id="customer_name" autocomplete="name" name="customer_name" minlength="2" maxlength="100"<?php if(isset($profile_errors["name"])) { ?> aria-invalid="true" aria-describedby="customer_name-error"<?php } ?> required value="<?php echo profile_h($profile_values["name"]); ?>">
+<?php if(isset($profile_errors["name"])) { ?><span class="profile-error" id="customer_name-error"><?php echo profile_h($profile_errors["name"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
-<label for="member_phone">Phone Number *</label>
-<input type="text" id="member_phone" autocomplete="tel" name="member_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15"<?php if(isset($profile_errors["phone"])) { ?> aria-invalid="true" aria-describedby="member_phone-error"<?php } ?> required value="<?php echo profile_h($profile_values["phone"]); ?>">
-<?php if(isset($profile_errors["phone"])) { ?><span class="profile-error" id="member_phone-error"><?php echo profile_h($profile_errors["phone"]); ?></span><?php } ?>
+<label for="customer_phone">Phone Number *</label>
+<input type="text" id="customer_phone" autocomplete="tel" name="customer_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15"<?php if(isset($profile_errors["phone"])) { ?> aria-invalid="true" aria-describedby="customer_phone-error"<?php } ?> required value="<?php echo profile_h($profile_values["phone"]); ?>">
+<?php if(isset($profile_errors["phone"])) { ?><span class="profile-error" id="customer_phone-error"><?php echo profile_h($profile_errors["phone"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
-<label for="member_gender">Gender *</label>
-<select id="member_gender" name="member_gender"<?php if(isset($profile_errors["gender"])) { ?> aria-invalid="true" aria-describedby="member_gender-error"<?php } ?> required>
+<label for="customer_gender">Gender *</label>
+<select id="customer_gender" name="customer_gender"<?php if(isset($profile_errors["gender"])) { ?> aria-invalid="true" aria-describedby="customer_gender-error"<?php } ?> required>
 <option value="">Select gender</option>
 <option value="Male" <?php if($profile_values["gender"]==="Male") echo "selected"; ?>>Male</option>
 <option value="Female" <?php if($profile_values["gender"]==="Female") echo "selected"; ?>>Female</option>
 </select>
-<?php if(isset($profile_errors["gender"])) { ?><span class="profile-error" id="member_gender-error"><?php echo profile_h($profile_errors["gender"]); ?></span><?php } ?>
+<?php if(isset($profile_errors["gender"])) { ?><span class="profile-error" id="customer_gender-error"><?php echo profile_h($profile_errors["gender"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
-<label for="member_dob">Date of Birth *</label>
-<input type="date" id="member_dob" autocomplete="bday" name="member_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>"<?php if(isset($profile_errors["dob"])) { ?> aria-invalid="true" aria-describedby="member_dob-error"<?php } ?> required value="<?php echo profile_h($profile_values["dob"]); ?>">
-<?php if(isset($profile_errors["dob"])) { ?><span class="profile-error" id="member_dob-error"><?php echo profile_h($profile_errors["dob"]); ?></span><?php } ?>
+<label for="customer_dob">Date of Birth *</label>
+<input type="date" id="customer_dob" autocomplete="bday" name="customer_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>"<?php if(isset($profile_errors["dob"])) { ?> aria-invalid="true" aria-describedby="customer_dob-error"<?php } ?> required value="<?php echo profile_h($profile_values["dob"]); ?>">
+<?php if(isset($profile_errors["dob"])) { ?><span class="profile-error" id="customer_dob-error"><?php echo profile_h($profile_errors["dob"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field full-width">
-<label for="member_address">Default Street Address *</label>
-<textarea id="member_address" autocomplete="street-address" name="member_address" minlength="5" maxlength="140"<?php if(isset($profile_errors["address"])) { ?> aria-invalid="true" aria-describedby="member_address-error"<?php } ?> required placeholder="House number, building, street and unit number"><?php echo profile_h($profile_values["address"]); ?></textarea>
-<?php if(isset($profile_errors["address"])) { ?><span class="profile-error" id="member_address-error"><?php echo profile_h($profile_errors["address"]); ?></span><?php } ?>
+<label for="customer_address">Default Street Address *</label>
+<textarea id="customer_address" autocomplete="street-address" name="customer_address" minlength="5" maxlength="140"<?php if(isset($profile_errors["address"])) { ?> aria-invalid="true" aria-describedby="customer_address-error"<?php } ?> required placeholder="House number, building, street and unit number"><?php echo profile_h($profile_values["address"]); ?></textarea>
+<?php if(isset($profile_errors["address"])) { ?><span class="profile-error" id="customer_address-error"><?php echo profile_h($profile_errors["address"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
-<label for="member_state">State *</label>
-<select id="member_state" autocomplete="address-level1" name="member_state"<?php if(isset($profile_errors["state"])) { ?> aria-invalid="true" aria-describedby="member_state-error"<?php } ?> required>
+<label for="customer_state">State *</label>
+<select id="customer_state" autocomplete="address-level1" name="customer_state"<?php if(isset($profile_errors["state"])) { ?> aria-invalid="true" aria-describedby="customer_state-error"<?php } ?> required>
 <option value="">Select state</option>
 <?php foreach($states as $state_name) { ?>
 <option value="<?php echo profile_h($state_name); ?>" <?php if($profile_values["state"]===$state_name) echo "selected"; ?>><?php echo profile_h($state_name); ?></option>
 <?php } ?>
 </select>
-<?php if(isset($profile_errors["state"])) { ?><span class="profile-error" id="member_state-error"><?php echo profile_h($profile_errors["state"]); ?></span><?php } ?>
+<?php if(isset($profile_errors["state"])) { ?><span class="profile-error" id="customer_state-error"><?php echo profile_h($profile_errors["state"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
-<label for="member_city">City *</label>
-<input type="text" id="member_city" autocomplete="address-level2" name="member_city" minlength="2" maxlength="50"<?php if(isset($profile_errors["city"])) { ?> aria-invalid="true" aria-describedby="member_city-error"<?php } ?> required value="<?php echo profile_h($profile_values["city"]); ?>">
-<?php if(isset($profile_errors["city"])) { ?><span class="profile-error" id="member_city-error"><?php echo profile_h($profile_errors["city"]); ?></span><?php } ?>
+<label for="customer_city">City *</label>
+<input type="text" id="customer_city" autocomplete="address-level2" name="customer_city" minlength="2" maxlength="50"<?php if(isset($profile_errors["city"])) { ?> aria-invalid="true" aria-describedby="customer_city-error"<?php } ?> required value="<?php echo profile_h($profile_values["city"]); ?>">
+<?php if(isset($profile_errors["city"])) { ?><span class="profile-error" id="customer_city-error"><?php echo profile_h($profile_errors["city"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
-<label for="member_postcode">Postcode *</label>
-<input type="text" id="member_postcode" autocomplete="postal-code" name="member_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5"<?php if(isset($profile_errors["postcode"])) { ?> aria-invalid="true" aria-describedby="member_postcode-error"<?php } ?> required value="<?php echo profile_h($profile_values["postcode"]); ?>">
-<?php if(isset($profile_errors["postcode"])) { ?><span class="profile-error" id="member_postcode-error"><?php echo profile_h($profile_errors["postcode"]); ?></span><?php } ?>
+<label for="customer_postcode">Postcode *</label>
+<input type="text" id="customer_postcode" autocomplete="postal-code" name="customer_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5"<?php if(isset($profile_errors["postcode"])) { ?> aria-invalid="true" aria-describedby="customer_postcode-error"<?php } ?> required value="<?php echo profile_h($profile_values["postcode"]); ?>">
+<?php if(isset($profile_errors["postcode"])) { ?><span class="profile-error" id="customer_postcode-error"><?php echo profile_h($profile_errors["postcode"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-actions">

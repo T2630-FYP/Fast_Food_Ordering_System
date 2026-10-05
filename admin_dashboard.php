@@ -80,7 +80,7 @@ function easyorder_dashboard_status_class($status)
 
 // Overview counts use active records only. Revenue is counted only after a
 // payment is marked Paid and excludes cancelled orders.
-$total_members = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM member WHERE member_isDelete=0","total");
+$total_customers = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM customer WHERE customer_isDelete=0","total");
 $total_products = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM product WHERE product_isDelete=0","total");
 $total_orders = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM orders WHERE order_isDelete=0","total");
 $total_revenue = (float)easyorder_dashboard_scalar($connect,"SELECT COALESCE(SUM(order_total),0) AS total FROM orders WHERE order_isDelete=0 AND LOWER(order_payment_status)='paid' AND LOWER(order_status)<>'cancelled'","total",0);
@@ -118,9 +118,9 @@ for($day_offset=6;$day_offset>=0;$day_offset--)
 $max_chart_sales = max(array_column($sales_chart,"value"));
 
 // Today's best sellers and latest orders are read directly from the live
-// order, order item, member, and payment-status relationships.
+// order, order item, customer, and payment-status relationships.
 $top_products = easyorder_dashboard_rows($connect,"SELECT oi.item_name,SUM(oi.item_qty) AS units_sold,SUM(oi.item_subtotal) AS sales_total FROM order_items oi INNER JOIN orders o ON o.order_id=oi.item_order WHERE o.order_isDelete=0 AND DATE(o.order_date)=CURDATE() AND LOWER(o.order_payment_status)='paid' AND LOWER(o.order_status)<>'cancelled' GROUP BY oi.item_product,oi.item_name ORDER BY units_sold DESC,sales_total DESC LIMIT 3");
-$recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.order_payment_status,o.order_status,m.member_name FROM orders o INNER JOIN member m ON m.member_id=o.order_member WHERE o.order_isDelete=0 ORDER BY o.order_date DESC,o.order_id DESC LIMIT 6");
+$recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.order_payment_status,o.order_status,m.customer_name FROM orders o INNER JOIN customer m ON m.customer_id=o.order_customer WHERE o.order_isDelete=0 ORDER BY o.order_date DESC,o.order_id DESC LIMIT 6");
 
 ?>
 
@@ -173,7 +173,7 @@ $recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_da
 <section class="admin-stat-grid" aria-label="EasyOrder overview statistics">
 	<article class="admin-stat-card">
 		<span class="admin-stat-icon">ME</span>
-		<div><strong><?php echo $total_members; ?></strong><span>Active Members</span><small>Registered customer accounts</small></div>
+		<div><strong><?php echo $total_customers; ?></strong><span>Active Customers</span><small>Registered customer accounts</small></div>
 	</article>
 	<article class="admin-stat-card">
 		<span class="admin-stat-icon">PR</span>
@@ -252,7 +252,7 @@ $recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_da
 					<?php foreach($recent_orders as $order): ?>
 						<tr>
 							<td><a class="admin-order-number" href="admin_order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>">#<?php echo (int)$order["order_id"]; ?></a><small><?php echo htmlspecialchars($order["order_payment"],ENT_QUOTES,"UTF-8"); ?></small></td>
-							<td><?php echo htmlspecialchars($order["member_name"],ENT_QUOTES,"UTF-8"); ?></td>
+							<td><?php echo htmlspecialchars($order["customer_name"],ENT_QUOTES,"UTF-8"); ?></td>
 							<td><?php echo htmlspecialchars(date("d M Y, h:i A",strtotime($order["order_date"])),ENT_QUOTES,"UTF-8"); ?></td>
 							<td>RM <?php echo number_format($order["order_total"],2); ?></td>
 							<td><span class="admin-status-badge <?php echo easyorder_dashboard_status_class($order["order_payment_status"]); ?>"><?php echo htmlspecialchars($order["order_payment_status"],ENT_QUOTES,"UTF-8"); ?></span></td>

@@ -8,7 +8,7 @@ $forgot_csrf = easyorder_reset_csrf("forgot_password_csrf");
 
 if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 {
-	$submitted_email = strtolower(trim((string)($_POST["member_email"] ?? "")));
+	$submitted_email = strtolower(trim((string)($_POST["customer_email"] ?? "")));
 	$submitted_token = (string)($_POST["forgot_password_csrf"] ?? "");
 
 	if(!easyorder_reset_csrf_valid("forgot_password_csrf",$submitted_token))
@@ -75,9 +75,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 <input type="hidden" name="forgot_password_csrf" value="<?php echo easyorder_reset_h($forgot_csrf); ?>">
 
 <div class="recovery-field">
-<label for="member_email">Registered Email *</label>
-<input type="email" id="member_email" name="member_email" maxlength="100" autocomplete="email" value="<?php echo easyorder_reset_h($submitted_email); ?>" placeholder="e.g. customer@email.com"<?php if(isset($forgot_errors["email"])) { ?> aria-invalid="true" aria-describedby="member_email-error"<?php } ?> required>
-<?php if(isset($forgot_errors["email"])) { ?><span class="field-error" id="member_email-error"><?php echo easyorder_reset_h($forgot_errors["email"]); ?></span><?php } ?>
+<label for="customer_email">Registered Email *</label>
+<input type="email" id="customer_email" name="customer_email" maxlength="100" autocomplete="email" value="<?php echo easyorder_reset_h($submitted_email); ?>" placeholder="e.g. customer@email.com"<?php if(isset($forgot_errors["email"])) { ?> aria-invalid="true" aria-describedby="customer_email-error"<?php } ?> required>
+<?php if(isset($forgot_errors["email"])) { ?><span class="field-error" id="customer_email-error"><?php echo easyorder_reset_h($forgot_errors["email"]); ?></span><?php } ?>
 </div>
 
 <div class="recovery-actions">

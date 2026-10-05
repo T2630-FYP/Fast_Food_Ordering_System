@@ -39,7 +39,7 @@ if(!function_exists("easyorder_admin_shell_start"))
 			array("page"=>"admin_order.php","label"=>"Orders","icon"=>"OR"),
 			array("page"=>"admin_product.php","label"=>"Products","icon"=>"PR"),
 			array("page"=>"admin_category.php","label"=>"Categories","icon"=>"CA"),
-			array("page"=>"admin_member.php","label"=>"Members","icon"=>"ME"),
+			array("page"=>"admin_customer.php","label"=>"Customers","icon"=>"CU"),
 			array("page"=>"admin_reward.php","label"=>"Rewards","icon"=>"RW"),
 			array("page"=>"admin_report.php","label"=>"Reports","icon"=>"RP"),
 			array("page"=>"admin_restore.php","label"=>"Recycle Bin","icon"=>"RB")
