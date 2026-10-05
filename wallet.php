@@ -84,13 +84,8 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && $wallet_error==="")
 					throw new Exception("A wallet already exists for this customer account.");
 				}
 
-				$pin_hash = password_hash($wallet_pin,PASSWORD_DEFAULT);
-				if($pin_hash===false)
-				{
-					throw new Exception("The Wallet PIN could not be protected.");
-				}
 				$stmt = mysqli_prepare($connect,"INSERT INTO wallets(wallet_member,wallet_pin_hash) VALUES(?,?)");
-				mysqli_stmt_bind_param($stmt,"is",$mid,$pin_hash);
+				mysqli_stmt_bind_param($stmt,"is",$mid,$wallet_pin);
 				if(!mysqli_stmt_execute($stmt))
 				{
 					mysqli_stmt_close($stmt);
@@ -101,7 +96,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && $wallet_error==="")
 				mysqli_commit($connect);
 				$transaction_started = false;
 				easyorder_wallet_unlock($mid);
-				$_SESSION["wallet_success"] = "Your EasyOrder Wallet has been created securely.";
+				$_SESSION["wallet_success"] = "Your EasyOrder Wallet has been created.";
 				header("location:wallet.php");
 				exit();
 			}
@@ -118,15 +113,22 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && $wallet_error==="")
 	else if($wallet && isset($_POST["unlock_wallet"]))
 	{
 		$wallet_pin = (string)($_POST["wallet_pin"] ?? "");
-		if(!easyorder_wallet_pin_valid($wallet_pin) || !password_verify($wallet_pin,$wallet["wallet_pin_hash"]))
+		try
 		{
-			$wallet_error = "The Wallet PIN is incorrect.";
+			if(!easyorder_wallet_verify_pin($connect,$wallet,$wallet_pin))
+			{
+				$wallet_error = "The Wallet PIN is incorrect.";
+			}
+			else
+			{
+				easyorder_wallet_unlock($mid);
+				header("location:wallet.php");
+				exit();
+			}
 		}
-		else
+		catch(Throwable $error)
 		{
-			easyorder_wallet_unlock($mid);
-			header("location:wallet.php");
-			exit();
+			$wallet_error = "The wallet service is temporarily unavailable. Please try again later.";
 		}
 	}
 }
@@ -224,7 +226,7 @@ if($wallet_unlocked)
 <input id="confirm-pin" type="password" name="confirm_pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password">
 </div>
 </div>
-<p class="wallet-security-note">Your Wallet PIN is stored as a secure hash and cannot be read back.</p>
+<p class="wallet-security-note">Use your 6-digit Wallet PIN to open your wallet and confirm wallet payments.</p>
 <button class="wallet-primary-button" type="submit" name="create_wallet" value="1">Create Wallet</button>
 </form>
 </section>

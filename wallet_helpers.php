@@ -7,6 +7,44 @@ function easyorder_wallet_pin_valid($pin)
 	return preg_match("/^\d{6}$/",(string)$pin)===1;
 }
 
+// The legacy column name is retained. New PINs are six-digit text; an existing
+// hash is replaced only after the customer supplies the matching original PIN.
+function easyorder_wallet_verify_pin($connect,$wallet,$pin)
+{
+	$pin = (string)$pin;
+	if(!easyorder_wallet_pin_valid($pin))
+	{
+		return false;
+	}
+
+	$stored_pin = (string)$wallet["wallet_pin_hash"];
+	if(easyorder_wallet_pin_valid($stored_pin))
+	{
+		return hash_equals($stored_pin,$pin);
+	}
+	if(!password_verify($pin,$stored_pin))
+	{
+		return false;
+	}
+
+	$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_pin_hash=? WHERE wallet_id=? AND wallet_member=? AND BINARY wallet_pin_hash=?");
+	if(!$stmt)
+	{
+		throw new Exception("The wallet service is temporarily unavailable.");
+	}
+	mysqli_stmt_bind_param($stmt,"siis",$pin,$wallet["wallet_id"],$wallet["wallet_member"],$stored_pin);
+	if(!mysqli_stmt_execute($stmt))
+	{
+		mysqli_stmt_close($stmt);
+		throw new Exception("The wallet service is temporarily unavailable.");
+	}
+	$updated = mysqli_stmt_affected_rows($stmt)===1;
+	mysqli_stmt_close($stmt);
+
+	// A concurrent PIN change must not be overwritten by this conversion.
+	return $updated;
+}
+
 function easyorder_wallet_html($value)
 {
 	return htmlspecialchars((string)$value,ENT_QUOTES,"ISO-8859-1");

@@ -55,7 +55,7 @@ if(isset($_POST["placeorderbtn"]))
 	$delivery_city = trim((string)($_POST["delivery_city"] ?? ""));
 	$delivery_state = trim((string)($_POST["delivery_state"] ?? ""));
 	$delivery_postcode = trim((string)($_POST["delivery_postcode"] ?? ""));
-	// Wallet PIN is request-only and is never saved in the session or database.
+	// Read the submitted PIN without copying it into the session or order record.
 	$wallet_pin = (string)($_POST["wallet_pin"] ?? "");
 
 	// Keep only non-sensitive form values when server-side validation fails.
@@ -214,7 +214,7 @@ if(isset($_POST["placeorderbtn"]))
 			{
 				throw new Exception("Create an EasyOrder Wallet before choosing wallet payment.");
 			}
-			if(!password_verify($wallet_pin,$locked_wallet["wallet_pin_hash"]))
+			if(!easyorder_wallet_verify_pin($connect,$locked_wallet,$wallet_pin))
 			{
 				throw new Exception("The Wallet PIN is incorrect. No order was created and no balance was deducted.");
 			}
@@ -685,7 +685,7 @@ catch(Throwable $error)
 <label for="checkout-wallet-pin">Wallet PIN <span aria-hidden="true">*</span></label>
 <input id="checkout-wallet-pin" type="password" name="wallet_pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="6-digit PIN">
 </div>
-<p>The PIN is verified securely for this payment and is never saved. <a href="wallet_pin_recovery.php">Forgot PIN?</a></p>
+<p>Enter your 6-digit Wallet PIN to confirm this payment. <a href="wallet_pin_recovery.php">Forgot PIN?</a></p>
 </div>
 </section>
 

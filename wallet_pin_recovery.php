@@ -70,14 +70,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["change_wallet_pin"]))
 			{
 				throw new Exception("The wallet could not be found.");
 			}
-			$pin_hash = password_hash($new_pin,PASSWORD_DEFAULT);
-			if($pin_hash===false)
-			{
-				throw new Exception("The new Wallet PIN could not be protected.");
-			}
 			$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_pin_hash=? WHERE wallet_id=? AND wallet_member=?");
-			mysqli_stmt_bind_param($stmt,"sii",$pin_hash,$locked_wallet["wallet_id"],$mid);
-			if(!mysqli_stmt_execute($stmt) || mysqli_stmt_affected_rows($stmt)!==1)
+			mysqli_stmt_bind_param($stmt,"sii",$new_pin,$locked_wallet["wallet_id"],$mid);
+			if(!mysqli_stmt_execute($stmt))
 			{
 				mysqli_stmt_close($stmt);
 				throw new Exception("The Wallet PIN could not be changed.");
@@ -136,7 +131,7 @@ $wallet_recovery_token = $_SESSION["wallet_recovery_token"];
 <div class="wallet-field"><label for="new-wallet-pin">New 6-Digit Wallet PIN</label><input id="new-wallet-pin" type="password" name="new_wallet_pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password"></div>
 <div class="wallet-field"><label for="confirm-wallet-pin">Confirm New Wallet PIN</label><input id="confirm-wallet-pin" type="password" name="confirm_wallet_pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password"></div>
 </div>
-<p class="wallet-security-note">The new PIN is hashed before it is saved. EasyOrder never stores or displays the original PIN.</p>
+<p class="wallet-security-note">Use your new 6-digit PIN to open your wallet and confirm wallet payments.</p>
 <button class="wallet-primary-button" type="submit" name="change_wallet_pin" value="1">Change Wallet PIN</button>
 </form>
 </section>
