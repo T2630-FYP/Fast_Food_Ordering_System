@@ -182,6 +182,7 @@ CREATE TABLE `payments` (
 
 --
 -- Table structure for table `wallets`
+-- New Wallet PINs are six-digit plain text; the legacy column name is retained.
 --
 
 CREATE TABLE `wallets` (
