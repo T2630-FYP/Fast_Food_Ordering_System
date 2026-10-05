@@ -147,6 +147,10 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verify Reset Code</title>
 <link rel="stylesheet" href="style.css?v=20260915-2">
+<style>
+.recovery-note strong
+{overflow-wrap:anywhere;}
+</style>
 </head>
 <body>
 
@@ -162,21 +166,21 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 <a href="./">Home</a>
 </div>
 
-<div id="main">
+<div id="main" role="main">
 <h2 class="section-title">Verify Your Code</h2>
 <p class="intro">Enter the six-digit code from the EasyOrder password reset email.</p>
 
 <div class="recovery-card">
-<?php if($request_notice!=="") { ?><p class="form-message form-message-info"><?php echo easyorder_reset_h($request_notice); ?></p><?php } ?>
-<?php if(isset($verify_errors["general"])) { ?><p class="form-message form-message-error"><?php echo easyorder_reset_h($verify_errors["general"]); ?></p><?php } ?>
+<?php if($request_notice!=="") { ?><p class="form-message form-message-info" role="status"><?php echo easyorder_reset_h($request_notice); ?></p><?php } ?>
+<?php if(isset($verify_errors["general"])) { ?><p class="form-message form-message-error" role="alert"><?php echo easyorder_reset_h($verify_errors["general"]); ?></p><?php } ?>
 
 <form method="post" action="verify_reset_code.php" novalidate>
 <input type="hidden" name="verify_reset_csrf" value="<?php echo easyorder_reset_h($verify_csrf); ?>">
 
 <div class="recovery-field">
 <label for="verification_code">Verification Code *</label>
-<input class="verification-code-input" type="text" id="verification_code" name="verification_code" maxlength="6" inputmode="numeric" autocomplete="one-time-code" value="<?php echo easyorder_reset_h($submitted_code); ?>" placeholder="000000" required>
-<?php if(isset($verify_errors["code"])) { ?><span class="field-error"><?php echo easyorder_reset_h($verify_errors["code"]); ?></span><?php } ?>
+<input class="verification-code-input" type="text" id="verification_code" name="verification_code" maxlength="6" inputmode="numeric" autocomplete="one-time-code" value="<?php echo easyorder_reset_h($submitted_code); ?>" placeholder="000000"<?php if(isset($verify_errors["code"])) { ?> aria-invalid="true" aria-describedby="verification_code-error"<?php } ?> required>
+<?php if(isset($verify_errors["code"])) { ?><span class="field-error" id="verification_code-error"><?php echo easyorder_reset_h($verify_errors["code"]); ?></span><?php } ?>
 </div>
 
 <div class="recovery-actions">
@@ -193,6 +197,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
+
+<script>
+(function()
+{
+	const firstError=document.querySelector('form [aria-invalid="true"]');
+	if(firstError) firstError.focus();
+})();
+</script>
 
 </body>
 </html>

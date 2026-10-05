@@ -97,7 +97,7 @@ if(isset($_SESSION["change_password_success"]))
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
 <link rel="icon" type="image/png" href="image/logo.png">
@@ -178,17 +178,17 @@ margin-top:20px;}
 <a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
 </div>
 
-<div id="main">
+<div id="main" role="main">
 <h2 class="section-title">Change Password</h2>
 <p class="intro">Confirm your current password, then choose a different password for your EasyOrder account.</p>
 
 <div class="form-box" id="password-box">
 <?php if($password_success!=="") { ?>
-<p class="password-success"><?php echo change_password_h($password_success); ?></p>
+<p class="password-success" role="status"><?php echo change_password_h($password_success); ?></p>
 <?php } ?>
 
 <?php if(isset($password_errors["general"])) { ?>
-<p class="msg"><?php echo change_password_h($password_errors["general"]); ?></p>
+<p class="msg" role="alert"><?php echo change_password_h($password_errors["general"]); ?></p>
 <?php } ?>
 
 <form method="post" action="change_password.php" novalidate>
@@ -196,22 +196,22 @@ margin-top:20px;}
 
 <div class="password-field">
 <label for="old_password">Current Password *</label>
-<input type="password" id="old_password" name="old_password" autocomplete="current-password" required>
-<?php if(isset($password_errors["old"])) { ?><span class="password-error"><?php echo change_password_h($password_errors["old"]); ?></span><?php } ?>
+<input type="password" id="old_password" name="old_password" autocomplete="current-password"<?php if(isset($password_errors["old"])) { ?> aria-invalid="true" aria-describedby="old_password-error"<?php } ?> required>
+<?php if(isset($password_errors["old"])) { ?><span class="password-error" id="old_password-error"><?php echo change_password_h($password_errors["old"]); ?></span><?php } ?>
 </div>
 
 <div class="password-field">
 <label for="new_password">New Password *</label>
-<input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-strength="change-password-strength" required>
+<input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-strength="change-password-strength" aria-describedby="change-password-strength<?php if(isset($password_errors["new"])) echo " new_password-error"; ?>"<?php if(isset($password_errors["new"])) { ?> aria-invalid="true"<?php } ?> required>
 <small id="change-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
-<?php if(isset($password_errors["new"])) { ?><span class="password-error"><?php echo change_password_h($password_errors["new"]); ?></span><?php } ?>
+<?php if(isset($password_errors["new"])) { ?><span class="password-error" id="new_password-error"><?php echo change_password_h($password_errors["new"]); ?></span><?php } ?>
 </div>
 
 <div class="password-field">
 <label for="confirm_password">Confirm New Password *</label>
-<input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-confirm="new_password" data-password-match="change-password-match" required>
+<input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-confirm="new_password" data-password-match="change-password-match" aria-describedby="change-password-match<?php if(isset($password_errors["confirm"])) echo " confirm_password-error"; ?>"<?php if(isset($password_errors["confirm"])) { ?> aria-invalid="true"<?php } ?> required>
 <small id="change-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
-<?php if(isset($password_errors["confirm"])) { ?><span class="password-error"><?php echo change_password_h($password_errors["confirm"]); ?></span><?php } ?>
+<?php if(isset($password_errors["confirm"])) { ?><span class="password-error" id="confirm_password-error"><?php echo change_password_h($password_errors["confirm"]); ?></span><?php } ?>
 </div>
 
 <div class="password-actions">
@@ -226,6 +226,14 @@ margin-top:20px;}
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
+
+<script>
+(function()
+{
+	const firstError=document.querySelector('form [aria-invalid="true"]');
+	if(firstError) firstError.focus();
+})();
+</script>
 
 </body>
 </html>
