@@ -434,6 +434,17 @@ margin-left:8px;}
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
 
+<script>
+window.addEventListener("load",function()
+{
+	requestAnimationFrame(function()
+	{
+		const firstError=document.querySelector('form [aria-invalid="true"]');
+		if(firstError) firstError.focus();
+	});
+});
+</script>
+
 </body>
 
 </html>
