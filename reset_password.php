@@ -166,33 +166,33 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 <a href="./">Home</a>
 </div>
 
-<div id="main">
+<div id="main" role="main">
 <h2 class="section-title">Reset Password</h2>
 <p class="intro">Choose a new password for your EasyOrder account.</p>
 
 <div class="recovery-card">
 <?php if(!$reset_available) { ?>
-<p class="form-message form-message-error">This reset request is invalid or has expired.</p>
+<p class="form-message form-message-error" role="alert">This reset request is invalid or has expired.</p>
 <div class="recovery-actions"><a class="btn" href="forgot_password.php">Request New Code</a></div>
 <?php } else { ?>
 
-<?php if(isset($reset_errors["general"])) { ?><p class="form-message form-message-error"><?php echo easyorder_reset_h($reset_errors["general"]); ?></p><?php } ?>
+<?php if(isset($reset_errors["general"])) { ?><p class="form-message form-message-error" role="alert"><?php echo easyorder_reset_h($reset_errors["general"]); ?></p><?php } ?>
 
 <form method="post" action="reset_password.php" novalidate>
 <input type="hidden" name="reset_password_csrf" value="<?php echo easyorder_reset_h($reset_csrf); ?>">
 
 <div class="recovery-field">
 <label for="new_password">New Password *</label>
-<input type="password" id="new_password" name="new_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-strength="reset-password-strength" required>
+<input type="password" id="new_password" name="new_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-strength="reset-password-strength" aria-describedby="reset-password-strength<?php if(isset($reset_errors["new"])) echo " new_password-error"; ?>"<?php if(isset($reset_errors["new"])) { ?> aria-invalid="true"<?php } ?> required>
 <small id="reset-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
-<?php if(isset($reset_errors["new"])) { ?><span class="field-error"><?php echo easyorder_reset_h($reset_errors["new"]); ?></span><?php } ?>
+<?php if(isset($reset_errors["new"])) { ?><span class="field-error" id="new_password-error"><?php echo easyorder_reset_h($reset_errors["new"]); ?></span><?php } ?>
 </div>
 
 <div class="recovery-field">
 <label for="confirm_password">Confirm New Password *</label>
-<input type="password" id="confirm_password" name="confirm_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-confirm="new_password" data-password-match="reset-password-match" required>
+<input type="password" id="confirm_password" name="confirm_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-confirm="new_password" data-password-match="reset-password-match" aria-describedby="reset-password-match<?php if(isset($reset_errors["confirm"])) echo " confirm_password-error"; ?>"<?php if(isset($reset_errors["confirm"])) { ?> aria-invalid="true"<?php } ?> required>
 <small id="reset-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
-<?php if(isset($reset_errors["confirm"])) { ?><span class="field-error"><?php echo easyorder_reset_h($reset_errors["confirm"]); ?></span><?php } ?>
+<?php if(isset($reset_errors["confirm"])) { ?><span class="field-error" id="confirm_password-error"><?php echo easyorder_reset_h($reset_errors["confirm"]); ?></span><?php } ?>
 </div>
 
 <div class="recovery-actions">
@@ -209,6 +209,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
+
+<script>
+(function()
+{
+	const firstError=document.querySelector('form [aria-invalid="true"]');
+	if(firstError) firstError.focus();
+})();
+</script>
 
 </body>
 </html>
