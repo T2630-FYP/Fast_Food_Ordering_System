@@ -160,7 +160,7 @@ $member_points = (int)$member["member_points"];
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head><!--Customer dashboard page after login-->
 <link rel="icon" type="image/png" href="image/logo.png">
@@ -313,7 +313,7 @@ margin-left:8px;}
 <a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
 </div>
 
-<div id="main"><!--Main content section-->
+<div id="main" role="main"><!--Main content section-->
 
 <div id="welcome-box">
 <h3>Welcome back, <?php echo profile_h($member["member_name"]); ?>!</h3>
@@ -344,11 +344,11 @@ margin-left:8px;}
 <h3>Profile Information</h3>
 
 <?php if($profile_success!=="") { ?>
-<p class="profile-success"><?php echo profile_h($profile_success); ?></p>
+<p class="profile-success" role="status"><?php echo profile_h($profile_success); ?></p>
 <?php } ?>
 
 <?php if(isset($profile_errors["general"])) { ?>
-<p class="msg"><?php echo profile_h($profile_errors["general"]); ?></p>
+<p class="msg" role="alert"><?php echo profile_h($profile_errors["general"]); ?></p>
 <?php } ?>
 
 <form method="post" action="dashboard.php#profile" novalidate>
@@ -357,65 +357,65 @@ margin-left:8px;}
 <div class="profile-grid">
 <div class="profile-field full-width">
 <label for="member_email">Email Address</label>
-<input type="email" id="member_email" value="<?php echo profile_h($member["member_email"]); ?>" readonly>
-<small>Email is used for login and cannot be changed here.</small>
+<input type="email" id="member_email" autocomplete="email" aria-describedby="profile-email-note" value="<?php echo profile_h($member["member_email"]); ?>" readonly>
+<small id="profile-email-note">Email is used for login and cannot be changed here.</small>
 </div>
 
 <div class="profile-field">
 <label for="member_name">Full Name *</label>
-<input type="text" id="member_name" name="member_name" minlength="2" maxlength="100" required value="<?php echo profile_h($profile_values["name"]); ?>">
-<?php if(isset($profile_errors["name"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["name"]); ?></span><?php } ?>
+<input type="text" id="member_name" autocomplete="name" name="member_name" minlength="2" maxlength="100"<?php if(isset($profile_errors["name"])) { ?> aria-invalid="true" aria-describedby="member_name-error"<?php } ?> required value="<?php echo profile_h($profile_values["name"]); ?>">
+<?php if(isset($profile_errors["name"])) { ?><span class="profile-error" id="member_name-error"><?php echo profile_h($profile_errors["name"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
 <label for="member_phone">Phone Number *</label>
-<input type="text" id="member_phone" name="member_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" required value="<?php echo profile_h($profile_values["phone"]); ?>">
-<?php if(isset($profile_errors["phone"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["phone"]); ?></span><?php } ?>
+<input type="text" id="member_phone" autocomplete="tel" name="member_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15"<?php if(isset($profile_errors["phone"])) { ?> aria-invalid="true" aria-describedby="member_phone-error"<?php } ?> required value="<?php echo profile_h($profile_values["phone"]); ?>">
+<?php if(isset($profile_errors["phone"])) { ?><span class="profile-error" id="member_phone-error"><?php echo profile_h($profile_errors["phone"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
 <label for="member_gender">Gender *</label>
-<select id="member_gender" name="member_gender" required>
+<select id="member_gender" name="member_gender"<?php if(isset($profile_errors["gender"])) { ?> aria-invalid="true" aria-describedby="member_gender-error"<?php } ?> required>
 <option value="">Select gender</option>
 <option value="Male" <?php if($profile_values["gender"]==="Male") echo "selected"; ?>>Male</option>
 <option value="Female" <?php if($profile_values["gender"]==="Female") echo "selected"; ?>>Female</option>
 </select>
-<?php if(isset($profile_errors["gender"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["gender"]); ?></span><?php } ?>
+<?php if(isset($profile_errors["gender"])) { ?><span class="profile-error" id="member_gender-error"><?php echo profile_h($profile_errors["gender"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
 <label for="member_dob">Date of Birth *</label>
-<input type="date" id="member_dob" name="member_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>" required value="<?php echo profile_h($profile_values["dob"]); ?>">
-<?php if(isset($profile_errors["dob"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["dob"]); ?></span><?php } ?>
+<input type="date" id="member_dob" autocomplete="bday" name="member_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>"<?php if(isset($profile_errors["dob"])) { ?> aria-invalid="true" aria-describedby="member_dob-error"<?php } ?> required value="<?php echo profile_h($profile_values["dob"]); ?>">
+<?php if(isset($profile_errors["dob"])) { ?><span class="profile-error" id="member_dob-error"><?php echo profile_h($profile_errors["dob"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field full-width">
 <label for="member_address">Default Street Address *</label>
-<textarea id="member_address" name="member_address" minlength="5" maxlength="140" required placeholder="House number, building, street and unit number"><?php echo profile_h($profile_values["address"]); ?></textarea>
-<?php if(isset($profile_errors["address"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["address"]); ?></span><?php } ?>
+<textarea id="member_address" autocomplete="street-address" name="member_address" minlength="5" maxlength="140"<?php if(isset($profile_errors["address"])) { ?> aria-invalid="true" aria-describedby="member_address-error"<?php } ?> required placeholder="House number, building, street and unit number"><?php echo profile_h($profile_values["address"]); ?></textarea>
+<?php if(isset($profile_errors["address"])) { ?><span class="profile-error" id="member_address-error"><?php echo profile_h($profile_errors["address"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
 <label for="member_state">State *</label>
-<select id="member_state" name="member_state" required>
+<select id="member_state" autocomplete="address-level1" name="member_state"<?php if(isset($profile_errors["state"])) { ?> aria-invalid="true" aria-describedby="member_state-error"<?php } ?> required>
 <option value="">Select state</option>
 <?php foreach($states as $state_name) { ?>
 <option value="<?php echo profile_h($state_name); ?>" <?php if($profile_values["state"]===$state_name) echo "selected"; ?>><?php echo profile_h($state_name); ?></option>
 <?php } ?>
 </select>
-<?php if(isset($profile_errors["state"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["state"]); ?></span><?php } ?>
+<?php if(isset($profile_errors["state"])) { ?><span class="profile-error" id="member_state-error"><?php echo profile_h($profile_errors["state"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
 <label for="member_city">City *</label>
-<input type="text" id="member_city" name="member_city" minlength="2" maxlength="50" required value="<?php echo profile_h($profile_values["city"]); ?>">
-<?php if(isset($profile_errors["city"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["city"]); ?></span><?php } ?>
+<input type="text" id="member_city" autocomplete="address-level2" name="member_city" minlength="2" maxlength="50"<?php if(isset($profile_errors["city"])) { ?> aria-invalid="true" aria-describedby="member_city-error"<?php } ?> required value="<?php echo profile_h($profile_values["city"]); ?>">
+<?php if(isset($profile_errors["city"])) { ?><span class="profile-error" id="member_city-error"><?php echo profile_h($profile_errors["city"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-field">
 <label for="member_postcode">Postcode *</label>
-<input type="text" id="member_postcode" name="member_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5" required value="<?php echo profile_h($profile_values["postcode"]); ?>">
-<?php if(isset($profile_errors["postcode"])) { ?><span class="profile-error"><?php echo profile_h($profile_errors["postcode"]); ?></span><?php } ?>
+<input type="text" id="member_postcode" autocomplete="postal-code" name="member_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5"<?php if(isset($profile_errors["postcode"])) { ?> aria-invalid="true" aria-describedby="member_postcode-error"<?php } ?> required value="<?php echo profile_h($profile_values["postcode"]); ?>">
+<?php if(isset($profile_errors["postcode"])) { ?><span class="profile-error" id="member_postcode-error"><?php echo profile_h($profile_errors["postcode"]); ?></span><?php } ?>
 </div>
 
 <div class="profile-actions">
