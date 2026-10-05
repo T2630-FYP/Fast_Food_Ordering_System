@@ -155,7 +155,7 @@ CREATE TABLE `orders` (
 --
 
 INSERT INTO `orders` (`order_id`, `order_customer`, `order_date`, `order_total`, `order_payment`, `order_payment_status`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`) VALUES
-(1, 1, '2026-05-20 00:00:00', 27.77, 'Online Banking', 'Pending', 'No', '', 'Delivered', 0),
+(1, 1, '2026-05-20 00:00:00', 27.77, 'Cash', 'Unpaid', 'No', '', 'Delivered', 0),
 (2, 2, '2026-05-21 00:00:00', 24.70, 'Credit Card', 'Pending', 'No', '', 'Preparing', 0),
 (3, 3, '2026-05-22 00:00:00', 41.25, 'Cash on Delivery', 'Unpaid', 'Yes', 'No. 12, Jalan Mawar, Taman Pelangi, Johor Bahru', 'Preparing', 0),
 (4, 4, '2026-05-22 00:00:00', 19.93, 'E-Wallet', 'Pending', 'No', '', 'Out for Delivery', 0),

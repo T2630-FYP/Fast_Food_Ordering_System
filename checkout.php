@@ -88,7 +88,7 @@ if(isset($_POST["placeorderbtn"]))
 			throw new Exception("Please select pickup or delivery.");
 		}
 
-		if(!in_array($payment,array("Credit Card","Online Banking","Cash","EasyOrder Wallet"),true))
+		if(!in_array($payment,array("Credit Card","Cash","EasyOrder Wallet"),true))
 		{
 			throw new Exception("Please select a valid payment method.");
 		}
@@ -113,7 +113,7 @@ if(isset($_POST["placeorderbtn"]))
 			}
 		}
 
-		// Payment status is independent from order status. Online methods remain
+		// Payment status is independent from order status. Card payments remain
 		// Pending until the simulated payment step confirms success.
 		$payment_status = $payment==="Cash" ? "Unpaid" : ($payment==="EasyOrder Wallet" ? "Paid" : "Pending");
 		$order_datetime = date("Y-m-d H:i:s");
@@ -387,7 +387,7 @@ unset($_SESSION["checkout_form"]);
 $saved_delivery_method = $checkout_form["delivery_method"] ?? "Pickup";
 $selected_delivery_method = in_array($saved_delivery_method,array("Pickup","Delivery"),true) ? $saved_delivery_method : "Pickup";
 $saved_payment = $checkout_form["payment"] ?? "";
-$selected_payment = in_array($saved_payment,array("Credit Card","Online Banking","Cash","EasyOrder Wallet"),true) ? $saved_payment : "";
+$selected_payment = in_array($saved_payment,array("Credit Card","Cash","EasyOrder Wallet"),true) ? $saved_payment : "";
 $form_address = $checkout_form["delivery_address"] ?? $saved_address["address"];
 $form_city = $checkout_form["delivery_city"] ?? $saved_address["city"];
 $form_state = $checkout_form["delivery_state"] ?? $saved_address["state"];
@@ -651,7 +651,7 @@ catch(Throwable $error)
 <span class="checkout-step-number" aria-hidden="true">2</span>
 <div>
 <h3 id="payment-heading">Payment Method</h3>
-<p>Select one method. Online payment remains pending until it is confirmed.</p>
+<p>Select one method. Card payment remains pending until it is confirmed.</p>
 </div>
 </div>
 
@@ -661,11 +661,6 @@ catch(Throwable $error)
 <label class="checkout-choice-card">
 <input type="radio" name="payment" value="Credit Card" <?php if($selected_payment==="Credit Card") echo "checked"; ?>>
 <span class="checkout-choice-copy"><strong>Credit / Debit Card</strong><small>Continue to the secure payment step</small></span>
-</label>
-
-<label class="checkout-choice-card">
-<input type="radio" name="payment" value="Online Banking" <?php if($selected_payment==="Online Banking") echo "checked"; ?>>
-<span class="checkout-choice-copy"><strong>Online Banking</strong><small>Payment remains pending until confirmation</small></span>
 </label>
 
 <label class="checkout-choice-card">
