@@ -21,29 +21,6 @@ function payment_html($value)
 	return htmlspecialchars((string)$value,ENT_QUOTES,"ISO-8859-1");
 }
 
-// Validate the card number with the standard Luhn checksum.
-function payment_luhn_valid($number)
-{
-	$sum = 0;
-	$double = false;
-	for($i=strlen($number)-1;$i>=0;$i--)
-	{
-		$digit = (int)$number[$i];
-		if($double)
-		{
-			$digit *= 2;
-			if($digit>9)
-			{
-				$digit -= 9;
-			}
-		}
-		$sum += $digit;
-		$double = !$double;
-	}
-
-	return $sum>0 && $sum%10===0;
-}
-
 // Load only an order owned by the logged-in customer. The optional row lock is
 // used during payment confirmation to stop two requests paying the same order.
 function payment_load_order($connect,$order_id,$customer_id,$lock=false)
@@ -129,7 +106,7 @@ else if($_SERVER["REQUEST_METHOD"]==="POST" && $order["order_payment"]==="Credit
 		{
 			$payment_error = "Please enter the cardholder name shown on the card.";
 		}
-		else if(strlen($card_number)<13 || strlen($card_number)>19 || !payment_luhn_valid($card_number))
+		else if(strlen($card_number)<13 || strlen($card_number)>19)
 		{
 			$payment_error = "Please enter a valid card number.";
 		}
@@ -396,12 +373,6 @@ if($payment_available)
 </div>
 
 <p class="payment-security-note" id="card-security-note">EasyOrder does not save the full card number or CVV.</p>
-
-<div class="payment-test-note">
-<strong>Prototype test cards</strong>
-<span>Success: 4242 4242 4242 4242</span>
-<span>Declined: 4000 0000 0000 0002</span>
-</div>
 
 <div class="payment-form-actions">
 <button class="payment-primary-button" id="pay-now" type="submit" name="pay_now" value="1">Pay RM <?php echo number_format((float)$order["order_total"],2); ?></button>
