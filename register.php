@@ -216,76 +216,76 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 <div class="entry-grid">
 <div class="entry-field entry-field-full">
 <label for="cust_name">Full Name *</label>
-<input type="text" id="cust_name" name="cust_name" minlength="2" maxlength="100" autocomplete="name" value="<?php echo register_h($register_values["name"]); ?>" placeholder="e.g. Ali bin Ahmad" required>
-<?php if(isset($register_errors["name"])) { ?><span class="field-error"><?php echo register_h($register_errors["name"]); ?></span><?php } ?>
+<input type="text" id="cust_name" name="cust_name" minlength="2" maxlength="100" autocomplete="name" value="<?php echo register_h($register_values["name"]); ?>" placeholder="e.g. Ali bin Ahmad"<?php if(isset($register_errors["name"])) { ?> aria-invalid="true" aria-describedby="cust_name-error"<?php } ?> required>
+<?php if(isset($register_errors["name"])) { ?><span class="field-error" id="cust_name-error"><?php echo register_h($register_errors["name"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_email">Email *</label>
-<input type="email" id="cust_email" name="cust_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["email"]); ?>" placeholder="e.g. customer@email.com" required>
-<?php if(isset($register_errors["email"])) { ?><span class="field-error"><?php echo register_h($register_errors["email"]); ?></span><?php } ?>
+<input type="email" id="cust_email" name="cust_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["email"]); ?>" placeholder="e.g. customer@email.com"<?php if(isset($register_errors["email"])) { ?> aria-invalid="true" aria-describedby="cust_email-error"<?php } ?> required>
+<?php if(isset($register_errors["email"])) { ?><span class="field-error" id="cust_email-error"><?php echo register_h($register_errors["email"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_confirm_email">Confirm Email *</label>
-<input type="email" id="cust_confirm_email" name="cust_confirm_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["confirm_email"]); ?>" required>
-<?php if(isset($register_errors["confirm_email"])) { ?><span class="field-error"><?php echo register_h($register_errors["confirm_email"]); ?></span><?php } ?>
+<input type="email" id="cust_confirm_email" name="cust_confirm_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["confirm_email"]); ?>"<?php if(isset($register_errors["confirm_email"])) { ?> aria-invalid="true" aria-describedby="cust_confirm_email-error"<?php } ?> required>
+<?php if(isset($register_errors["confirm_email"])) { ?><span class="field-error" id="cust_confirm_email-error"><?php echo register_h($register_errors["confirm_email"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_password">Password *</label>
-<input type="password" id="cust_password" name="cust_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-strength="register-password-strength" required>
+<input type="password" id="cust_password" name="cust_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-strength="register-password-strength" aria-describedby="register-password-strength<?php if(isset($register_errors["password"])) echo " cust_password-error"; ?>"<?php if(isset($register_errors["password"])) { ?> aria-invalid="true"<?php } ?> required>
 <small id="register-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
-<?php if(isset($register_errors["password"])) { ?><span class="field-error"><?php echo register_h($register_errors["password"]); ?></span><?php } ?>
+<?php if(isset($register_errors["password"])) { ?><span class="field-error" id="cust_password-error"><?php echo register_h($register_errors["password"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_confirm_password">Confirm Password *</label>
-<input type="password" id="cust_confirm_password" name="cust_confirm_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-confirm="cust_password" data-password-match="register-password-match" required>
+<input type="password" id="cust_confirm_password" name="cust_confirm_password" minlength="8" maxlength="72" autocomplete="new-password" data-password-confirm="cust_password" data-password-match="register-password-match" aria-describedby="register-password-match<?php if(isset($register_errors["confirm_password"])) echo " cust_confirm_password-error"; ?>"<?php if(isset($register_errors["confirm_password"])) { ?> aria-invalid="true"<?php } ?> required>
 <small id="register-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
-<?php if(isset($register_errors["confirm_password"])) { ?><span class="field-error"><?php echo register_h($register_errors["confirm_password"]); ?></span><?php } ?>
+<?php if(isset($register_errors["confirm_password"])) { ?><span class="field-error" id="cust_confirm_password-error"><?php echo register_h($register_errors["confirm_password"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_phone">Phone Number *</label>
-<input type="text" id="cust_phone" name="cust_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" autocomplete="tel" value="<?php echo register_h($register_values["phone"]); ?>" placeholder="e.g. 0123456789" required>
-<?php if(isset($register_errors["phone"])) { ?><span class="field-error"><?php echo register_h($register_errors["phone"]); ?></span><?php } ?>
+<input type="text" id="cust_phone" name="cust_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" autocomplete="tel" value="<?php echo register_h($register_values["phone"]); ?>" placeholder="e.g. 0123456789"<?php if(isset($register_errors["phone"])) { ?> aria-invalid="true" aria-describedby="cust_phone-error"<?php } ?> required>
+<?php if(isset($register_errors["phone"])) { ?><span class="field-error" id="cust_phone-error"><?php echo register_h($register_errors["phone"]); ?></span><?php } ?>
 </div>
 
 <fieldset class="entry-choice-group">
 <legend>Gender *</legend>
-<label><input type="radio" name="gender" value="Male" <?php if($register_values["gender"]==="Male") echo "checked"; ?>> Male</label>
-<label><input type="radio" name="gender" value="Female" <?php if($register_values["gender"]==="Female") echo "checked"; ?>> Female</label>
-<?php if(isset($register_errors["gender"])) { ?><span class="field-error"><?php echo register_h($register_errors["gender"]); ?></span><?php } ?>
+<label><input type="radio" id="gender_male" name="gender" value="Male"<?php if(isset($register_errors["gender"])) { ?> aria-invalid="true" aria-describedby="gender-error"<?php } ?> <?php if($register_values["gender"]==="Male") echo "checked"; ?>> Male</label>
+<label><input type="radio" id="gender_female" name="gender" value="Female"<?php if(isset($register_errors["gender"])) { ?> aria-invalid="true" aria-describedby="gender-error"<?php } ?> <?php if($register_values["gender"]==="Female") echo "checked"; ?>> Female</label>
+<?php if(isset($register_errors["gender"])) { ?><span class="field-error" id="gender-error"><?php echo register_h($register_errors["gender"]); ?></span><?php } ?>
 </fieldset>
 
 <div class="entry-field">
 <label for="cust_dob">Date of Birth *</label>
-<input type="date" id="cust_dob" name="cust_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>" autocomplete="bday" value="<?php echo register_h($register_values["dob"]); ?>" required>
-<?php if(isset($register_errors["dob"])) { ?><span class="field-error"><?php echo register_h($register_errors["dob"]); ?></span><?php } ?>
+<input type="date" id="cust_dob" name="cust_dob" min="1900-01-01" max="<?php echo date("Y-m-d"); ?>" autocomplete="bday" value="<?php echo register_h($register_values["dob"]); ?>"<?php if(isset($register_errors["dob"])) { ?> aria-invalid="true" aria-describedby="cust_dob-error"<?php } ?> required>
+<?php if(isset($register_errors["dob"])) { ?><span class="field-error" id="cust_dob-error"><?php echo register_h($register_errors["dob"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="state">State *</label>
-<select id="state" name="state" autocomplete="address-level1" required>
+<select id="state" name="state" autocomplete="address-level1"<?php if(isset($register_errors["state"])) { ?> aria-invalid="true" aria-describedby="state-error"<?php } ?> required>
 <option value="">Select your state</option>
 <?php foreach($states as $state_name) { ?>
 <option value="<?php echo register_h($state_name); ?>" <?php if($register_values["state"]===$state_name) echo "selected"; ?>><?php echo register_h($state_name); ?></option>
 <?php } ?>
 </select>
-<?php if(isset($register_errors["state"])) { ?><span class="field-error"><?php echo register_h($register_errors["state"]); ?></span><?php } ?>
+<?php if(isset($register_errors["state"])) { ?><span class="field-error" id="state-error"><?php echo register_h($register_errors["state"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_city">City *</label>
-<input type="text" id="cust_city" name="cust_city" minlength="2" maxlength="50" autocomplete="address-level2" value="<?php echo register_h($register_values["city"]); ?>" placeholder="e.g. Muar" required>
-<?php if(isset($register_errors["city"])) { ?><span class="field-error"><?php echo register_h($register_errors["city"]); ?></span><?php } ?>
+<input type="text" id="cust_city" name="cust_city" minlength="2" maxlength="50" autocomplete="address-level2" value="<?php echo register_h($register_values["city"]); ?>" placeholder="e.g. Muar"<?php if(isset($register_errors["city"])) { ?> aria-invalid="true" aria-describedby="cust_city-error"<?php } ?> required>
+<?php if(isset($register_errors["city"])) { ?><span class="field-error" id="cust_city-error"><?php echo register_h($register_errors["city"]); ?></span><?php } ?>
 </div>
 
 <div class="entry-field">
 <label for="cust_postcode">Postcode *</label>
-<input type="text" id="cust_postcode" name="cust_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5" autocomplete="postal-code" value="<?php echo register_h($register_values["postcode"]); ?>" placeholder="e.g. 84000" required>
-<?php if(isset($register_errors["postcode"])) { ?><span class="field-error"><?php echo register_h($register_errors["postcode"]); ?></span><?php } ?>
+<input type="text" id="cust_postcode" name="cust_postcode" inputmode="numeric" pattern="[0-9]{5}" minlength="5" maxlength="5" autocomplete="postal-code" value="<?php echo register_h($register_values["postcode"]); ?>" placeholder="e.g. 84000"<?php if(isset($register_errors["postcode"])) { ?> aria-invalid="true" aria-describedby="cust_postcode-error"<?php } ?> required>
+<?php if(isset($register_errors["postcode"])) { ?><span class="field-error" id="cust_postcode-error"><?php echo register_h($register_errors["postcode"]); ?></span><?php } ?>
 </div>
 </div>
 
