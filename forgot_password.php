@@ -62,13 +62,13 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 <a href="./">Home</a>
 </div>
 
-<div id="main">
+<div id="main" role="main">
 <h2 class="section-title">Forgot Password</h2>
 <p class="intro">Enter the email address registered with your EasyOrder account.</p>
 
 <div class="recovery-card">
 <?php if(isset($forgot_errors["general"])) { ?>
-<p class="form-message form-message-error"><?php echo easyorder_reset_h($forgot_errors["general"]); ?></p>
+<p class="form-message form-message-error" role="alert"><?php echo easyorder_reset_h($forgot_errors["general"]); ?></p>
 <?php } ?>
 
 <form method="post" action="forgot_password.php" novalidate>
@@ -76,8 +76,8 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 
 <div class="recovery-field">
 <label for="member_email">Registered Email *</label>
-<input type="email" id="member_email" name="member_email" maxlength="100" autocomplete="email" value="<?php echo easyorder_reset_h($submitted_email); ?>" placeholder="e.g. customer@email.com" required>
-<?php if(isset($forgot_errors["email"])) { ?><span class="field-error"><?php echo easyorder_reset_h($forgot_errors["email"]); ?></span><?php } ?>
+<input type="email" id="member_email" name="member_email" maxlength="100" autocomplete="email" value="<?php echo easyorder_reset_h($submitted_email); ?>" placeholder="e.g. customer@email.com"<?php if(isset($forgot_errors["email"])) { ?> aria-invalid="true" aria-describedby="member_email-error"<?php } ?> required>
+<?php if(isset($forgot_errors["email"])) { ?><span class="field-error" id="member_email-error"><?php echo easyorder_reset_h($forgot_errors["email"]); ?></span><?php } ?>
 </div>
 
 <div class="recovery-actions">
@@ -94,6 +94,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
+
+<script>
+(function()
+{
+	const firstError=document.querySelector('form [aria-invalid="true"]');
+	if(firstError) firstError.focus();
+})();
+</script>
 
 </body>
 </html>
