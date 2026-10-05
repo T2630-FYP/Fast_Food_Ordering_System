@@ -198,5 +198,13 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
 
+<script>
+(function()
+{
+	const firstError=document.querySelector('form [aria-invalid="true"]');
+	if(firstError) firstError.focus();
+})();
+</script>
+
 </body>
 </html>
