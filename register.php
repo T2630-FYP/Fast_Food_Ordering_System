@@ -304,5 +304,38 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 <p><a href="admin_login.php">Admin Login</a></p>
 </footer>
 
+<script>
+(function()
+{
+	const form=document.querySelector('form[action="register.php"]');
+	form.addEventListener("reset",function(event)
+	{
+		event.preventDefault();
+		const errorIds=new Set(Array.from(form.querySelectorAll(".field-error"),function(error){ return error.id; }));
+		form.querySelectorAll("input:not([type=hidden]):not([type=submit]):not([type=reset]),select").forEach(function(input)
+		{
+			if(input.type==="radio") input.checked=false;
+			else input.value="";
+			input.setCustomValidity("");
+			input.removeAttribute("aria-invalid");
+		});
+		form.querySelectorAll("[aria-describedby]").forEach(function(element)
+		{
+			const ids=element.getAttribute("aria-describedby").split(/\s+/).filter(function(id){ return !errorIds.has(id); });
+			if(ids.length) element.setAttribute("aria-describedby",ids.join(" "));
+			else element.removeAttribute("aria-describedby");
+		});
+		form.querySelectorAll(".field-error").forEach(function(error){ error.remove(); });
+		form.querySelectorAll("[data-password-strength],[data-password-confirm]").forEach(function(input)
+		{
+			input.dispatchEvent(new Event("input",{bubbles:true}));
+		});
+		document.getElementById("cust_name").focus();
+	});
+	const firstError=form.querySelector('[aria-invalid="true"]');
+	if(firstError) firstError.focus();
+})();
+</script>
+
 </body>
 </html>
