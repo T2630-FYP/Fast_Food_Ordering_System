@@ -29,7 +29,7 @@ SET time_zone = "+00:00";
 
 CREATE TABLE `cart` (
   `cart_id` int(11) NOT NULL,
-  `cart_member` int(11) NOT NULL,
+  `cart_customer` int(11) NOT NULL,
   `cart_product` char(5) NOT NULL,
   `cart_qty` int(4) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
@@ -84,31 +84,31 @@ INSERT INTO `contact_msg` (`msg_id`, `msg_name`, `msg_email`, `msg_subject`, `ms
 -- --------------------------------------------------------
 
 --
--- Table structure for table `member`
+-- Table structure for table `customer`
 --
 
-CREATE TABLE `member` (
-  `member_id` int(11) NOT NULL,
-  `member_name` varchar(100) NOT NULL,
-  `member_email` varchar(100) NOT NULL,
-  `member_password` varchar(255) NOT NULL,
-  `member_phone` varchar(15) NOT NULL,
-  `member_gender` varchar(10) NOT NULL,
-  `member_dob` date NOT NULL,
-  `member_address` varchar(140) NOT NULL DEFAULT '',
-  `member_state` varchar(30) NOT NULL,
-  `member_city` varchar(50) NOT NULL,
-  `member_postcode` char(5) NOT NULL,
-  `member_points` int(6) NOT NULL DEFAULT 0,
-  `member_joindate` date NOT NULL,
-  `member_isDelete` int(1) NOT NULL DEFAULT 0
+CREATE TABLE `customer` (
+  `customer_id` int(11) NOT NULL,
+  `customer_name` varchar(100) NOT NULL,
+  `customer_email` varchar(100) NOT NULL,
+  `customer_password` varchar(255) NOT NULL,
+  `customer_phone` varchar(15) NOT NULL,
+  `customer_gender` varchar(10) NOT NULL,
+  `customer_dob` date NOT NULL,
+  `customer_address` varchar(140) NOT NULL DEFAULT '',
+  `customer_state` varchar(30) NOT NULL,
+  `customer_city` varchar(50) NOT NULL,
+  `customer_postcode` char(5) NOT NULL,
+  `customer_points` int(6) NOT NULL DEFAULT 0,
+  `customer_joindate` date NOT NULL,
+  `customer_isDelete` int(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
--- Dumping data for table `member`
+-- Dumping data for table `customer`
 --
 
-INSERT INTO `member` (`member_id`, `member_name`, `member_email`, `member_password`, `member_phone`, `member_gender`, `member_dob`, `member_address`, `member_state`, `member_city`, `member_postcode`, `member_points`, `member_joindate`, `member_isDelete`) VALUES
+INSERT INTO `customer` (`customer_id`, `customer_name`, `customer_email`, `customer_password`, `customer_phone`, `customer_gender`, `customer_dob`, `customer_address`, `customer_state`, `customer_city`, `customer_postcode`, `customer_points`, `customer_joindate`, `customer_isDelete`) VALUES
 (1, 'Tan Mei Ling', 'meiling@gmail.com', 'meiling123', '0123344556', 'Female', '2000-05-12', '', 'Selangor', 'Shah Alam', '40000', 585, '2026-01-12', 0),
 (2, 'Muhammad Faiz', 'faiz@gmail.com', 'faiz123', '0198877665', 'Male', '1999-08-03', '', 'Kuala Lumpur', 'Kuala Lumpur', '50000', 233, '2026-02-03', 0),
 (3, 'Priya Devi', 'priya@gmail.com', 'priya123', '0167788990', 'Female', '2001-02-21', '', 'Johor', 'Johor Bahru', '80000', 392, '2026-02-21', 0),
@@ -122,7 +122,7 @@ INSERT INTO `member` (`member_id`, `member_name`, `member_email`, `member_passwo
 
 CREATE TABLE `password_reset` (
   `reset_id` int(11) NOT NULL,
-  `member_id` int(11) NOT NULL,
+  `customer_id` int(11) NOT NULL,
   `reset_code_hash` varchar(255) NOT NULL,
   `expires_at` datetime NOT NULL,
   `verified_at` datetime DEFAULT NULL,
@@ -139,7 +139,7 @@ CREATE TABLE `password_reset` (
 
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
-  `order_member` int(11) NOT NULL,
+  `order_customer` int(11) NOT NULL,
   `order_date` datetime NOT NULL,
   `order_total` decimal(7,2) NOT NULL,
   `order_payment` varchar(20) NOT NULL,
@@ -154,7 +154,7 @@ CREATE TABLE `orders` (
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `order_member`, `order_date`, `order_total`, `order_payment`, `order_payment_status`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`) VALUES
+INSERT INTO `orders` (`order_id`, `order_customer`, `order_date`, `order_total`, `order_payment`, `order_payment_status`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`) VALUES
 (1, 1, '2026-05-20 00:00:00', 27.77, 'Online Banking', 'Pending', 'No', '', 'Delivered', 0),
 (2, 2, '2026-05-21 00:00:00', 24.70, 'Credit Card', 'Pending', 'No', '', 'Preparing', 0),
 (3, 3, '2026-05-22 00:00:00', 41.25, 'Cash on Delivery', 'Unpaid', 'Yes', 'No. 12, Jalan Mawar, Taman Pelangi, Johor Bahru', 'Preparing', 0),
@@ -187,7 +187,7 @@ CREATE TABLE `payments` (
 
 CREATE TABLE `wallets` (
   `wallet_id` int(11) NOT NULL,
-  `wallet_member` int(11) NOT NULL,
+  `wallet_customer` int(11) NOT NULL,
   `wallet_pin_hash` varchar(255) NOT NULL,
   `wallet_balance` decimal(10,2) NOT NULL DEFAULT 0.00,
   `wallet_created_at` datetime NOT NULL DEFAULT current_timestamp(),
@@ -301,7 +301,7 @@ INSERT INTO `product` (`product_id`, `product_name`, `product_desc`, `product_im
 
 CREATE TABLE `redemption` (
   `redeem_id` int(11) NOT NULL,
-  `redeem_member` int(11) NOT NULL,
+  `redeem_customer` int(11) NOT NULL,
   `redeem_reward` varchar(100) NOT NULL,
   `redeem_product` char(5) NOT NULL,
   `redeem_points` int(6) NOT NULL,
@@ -317,7 +317,7 @@ CREATE TABLE `redemption` (
 
 CREATE TABLE `review` (
   `review_id` int(11) NOT NULL,
-  `review_member` int(11) NOT NULL,
+  `review_customer` int(11) NOT NULL,
   `review_order` int(11) NOT NULL,
   `review_rating` int(1) NOT NULL,
   `review_comment` text NOT NULL,
@@ -328,7 +328,7 @@ CREATE TABLE `review` (
 -- Dumping data for table `review`
 --
 
-INSERT INTO `review` (`review_id`, `review_member`, `review_order`, `review_rating`, `review_comment`, `review_date`) VALUES
+INSERT INTO `review` (`review_id`, `review_customer`, `review_order`, `review_rating`, `review_comment`, `review_date`) VALUES
 (1, 1, 1, 5, 'The food is fantastic!', '2026-05-21'),
 (2, 4, 4, 4, 'Quick delivery and the burgers were still hot.', '2026-05-23');
 
@@ -412,25 +412,25 @@ ALTER TABLE `contact_msg`
   ADD PRIMARY KEY (`msg_id`);
 
 --
--- Indexes for table `member`
+-- Indexes for table `customer`
 --
-ALTER TABLE `member`
-  ADD PRIMARY KEY (`member_id`),
-  ADD UNIQUE KEY `uq_member_email` (`member_email`);
+ALTER TABLE `customer`
+  ADD PRIMARY KEY (`customer_id`),
+  ADD UNIQUE KEY `uq_customer_email` (`customer_email`);
 
 --
 -- Indexes for table `password_reset`
 --
 ALTER TABLE `password_reset`
   ADD PRIMARY KEY (`reset_id`),
-  ADD KEY `idx_password_reset_member_active` (`member_id`,`used_at`,`verified_at`,`expires_at`);
+  ADD KEY `idx_password_reset_customer_active` (`customer_id`,`used_at`,`verified_at`,`expires_at`);
 
 --
 -- Indexes for table `orders`
 --
 ALTER TABLE `orders`
   ADD PRIMARY KEY (`order_id`),
-  ADD KEY `fk_orders_member` (`order_member`);
+  ADD KEY `fk_orders_customer` (`order_customer`);
 
 --
 -- Indexes for table `payments`
@@ -445,7 +445,7 @@ ALTER TABLE `payments`
 --
 ALTER TABLE `wallets`
   ADD PRIMARY KEY (`wallet_id`),
-  ADD UNIQUE KEY `uq_wallet_member` (`wallet_member`);
+  ADD UNIQUE KEY `uq_wallet_customer` (`wallet_customer`);
 
 --
 -- Indexes for table `wallet_transactions`
@@ -476,7 +476,7 @@ ALTER TABLE `product`
 --
 ALTER TABLE `redemption`
   ADD PRIMARY KEY (`redeem_id`),
-  ADD KEY `fk_redeem_member` (`redeem_member`),
+  ADD KEY `fk_redeem_customer` (`redeem_customer`),
   ADD KEY `fk_redeem_product` (`redeem_product`);
 
 --
@@ -484,7 +484,7 @@ ALTER TABLE `redemption`
 --
 ALTER TABLE `review`
   ADD PRIMARY KEY (`review_id`),
-  ADD KEY `fk_review_member` (`review_member`),
+  ADD KEY `fk_review_customer` (`review_customer`),
   ADD KEY `fk_review_order` (`review_order`);
 
 --
@@ -518,10 +518,10 @@ ALTER TABLE `contact_msg`
   MODIFY `msg_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
--- AUTO_INCREMENT for table `member`
+-- AUTO_INCREMENT for table `customer`
 --
-ALTER TABLE `member`
-  MODIFY `member_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+ALTER TABLE `customer`
+  MODIFY `customer_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `password_reset`
@@ -579,7 +579,7 @@ ALTER TABLE `review`
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_orders_member` FOREIGN KEY (`order_member`) REFERENCES `member` (`member_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_orders_customer` FOREIGN KEY (`order_customer`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `payments`
@@ -591,7 +591,7 @@ ALTER TABLE `payments`
 -- Constraints for table `wallets`
 --
 ALTER TABLE `wallets`
-  ADD CONSTRAINT `fk_wallet_member` FOREIGN KEY (`wallet_member`) REFERENCES `member` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_wallet_customer` FOREIGN KEY (`wallet_customer`) REFERENCES `customer` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `wallet_transactions`
@@ -604,7 +604,7 @@ ALTER TABLE `wallet_transactions`
 -- Constraints for table `password_reset`
 --
 ALTER TABLE `password_reset`
-  ADD CONSTRAINT `fk_password_reset_member` FOREIGN KEY (`member_id`) REFERENCES `member` (`member_id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_password_reset_customer` FOREIGN KEY (`customer_id`) REFERENCES `customer` (`customer_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Constraints for table `order_items`
@@ -622,14 +622,14 @@ ALTER TABLE `product`
 -- Constraints for table `redemption`
 --
 ALTER TABLE `redemption`
-  ADD CONSTRAINT `fk_redeem_member` FOREIGN KEY (`redeem_member`) REFERENCES `member` (`member_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_redeem_customer` FOREIGN KEY (`redeem_customer`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_redeem_product` FOREIGN KEY (`redeem_product`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `review`
 --
 ALTER TABLE `review`
-  ADD CONSTRAINT `fk_review_member` FOREIGN KEY (`review_member`) REFERENCES `member` (`member_id`) ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_review_customer` FOREIGN KEY (`review_customer`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_review_order` FOREIGN KEY (`review_order`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --

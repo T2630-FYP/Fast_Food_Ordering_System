@@ -2,7 +2,7 @@
 include("dataconnection.php");
 require_once("email_helpers.php");
 
-if(isset($_SESSION["member_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
+if(isset($_SESSION["customer_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
 	header("location:dashboard.php");
 	exit();
@@ -103,7 +103,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 
 	if(!isset($register_errors["email"]))
 	{
-		$stmt = mysqli_prepare($connect,"SELECT member_id FROM member WHERE member_email=? LIMIT 1");
+		$stmt = mysqli_prepare($connect,"SELECT customer_id FROM customer WHERE customer_email=? LIMIT 1");
 		if($stmt)
 		{
 			mysqli_stmt_bind_param($stmt,"s",$register_values["email"]);
@@ -120,7 +120,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 	if(count($register_errors)===0)
 	{
 		$join_date = date("Y-m-d");
-		$stmt = mysqli_prepare($connect,"INSERT INTO member(member_name,member_email,member_password,member_phone,member_gender,member_dob,member_state,member_city,member_postcode,member_joindate) VALUES(?,?,?,?,?,?,?,?,?,?)");
+		$stmt = mysqli_prepare($connect,"INSERT INTO customer(customer_name,customer_email,customer_password,customer_phone,customer_gender,customer_dob,customer_state,customer_city,customer_postcode,customer_joindate) VALUES(?,?,?,?,?,?,?,?,?,?)");
 		$inserted = false;
 		if($stmt)
 		{

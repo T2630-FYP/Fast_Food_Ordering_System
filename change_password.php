@@ -1,13 +1,13 @@
 <?php
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
 }
 include("dataconnection.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $password_errors = array();
 $password_success = "";
 
@@ -45,25 +45,25 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["change_password_btn"]))
 		$password_errors["confirm"] = "The new password and confirmation do not match.";
 	}
 
-	$stmt = mysqli_prepare($connect,"SELECT member_password FROM member WHERE member_id=? AND member_isDelete=0 LIMIT 1");
+	$stmt = mysqli_prepare($connect,"SELECT customer_password FROM customer WHERE customer_id=? AND customer_isDelete=0 LIMIT 1");
 	mysqli_stmt_bind_param($stmt,"i",$mid);
 	mysqli_stmt_execute($stmt);
 	$password_result = mysqli_stmt_get_result($stmt);
 	$password_row = mysqli_fetch_assoc($password_result);
 	mysqli_stmt_close($stmt);
 
-	if(!$password_row || !easyorder_password_verify($old_password,$password_row["member_password"]))
+	if(!$password_row || !easyorder_password_verify($old_password,$password_row["customer_password"]))
 	{
 		$password_errors["old"] = "The current password is incorrect.";
 	}
-	else if(easyorder_password_verify($new_password,$password_row["member_password"]))
+	else if(easyorder_password_verify($new_password,$password_row["customer_password"]))
 	{
 		$password_errors["new"] = "Your new password must be different from your current password.";
 	}
 
 	if(count($password_errors)===0)
 	{
-		$stmt = mysqli_prepare($connect,"UPDATE member SET member_password=? WHERE member_id=? AND member_isDelete=0");
+		$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_password=? WHERE customer_id=? AND customer_isDelete=0");
 		if(!$stmt)
 		{
 			$password_errors["general"] = "The password could not be updated. Please try again.";

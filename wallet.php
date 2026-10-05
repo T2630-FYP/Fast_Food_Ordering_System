@@ -1,7 +1,7 @@
 <?php
 // Only the signed-in customer may create or open their own wallet.
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -10,7 +10,7 @@ if(!isset($_SESSION["member_id"]))
 include("dataconnection.php");
 require_once("wallet_helpers.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $wallet_error = "";
 $wallet_success = (string)($_SESSION["wallet_success"] ?? "");
 unset($_SESSION["wallet_success"]);
@@ -68,13 +68,13 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && $wallet_error==="")
 				mysqli_begin_transaction($connect);
 				$transaction_started = true;
 
-				$stmt = mysqli_prepare($connect,"SELECT member_password FROM member WHERE member_id=? AND member_isDelete=0 FOR UPDATE");
+				$stmt = mysqli_prepare($connect,"SELECT customer_password FROM customer WHERE customer_id=? AND customer_isDelete=0 FOR UPDATE");
 				mysqli_stmt_bind_param($stmt,"i",$mid);
 				mysqli_stmt_execute($stmt);
 				$result = mysqli_stmt_get_result($stmt);
-				$member = mysqli_fetch_assoc($result);
+				$customer = mysqli_fetch_assoc($result);
 				mysqli_stmt_close($stmt);
-				if(!$member || !easyorder_password_verify($account_password,$member["member_password"]))
+				if(!$customer || !easyorder_password_verify($account_password,$customer["customer_password"]))
 				{
 					throw new Exception("The customer account password is incorrect.");
 				}
@@ -84,7 +84,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && $wallet_error==="")
 					throw new Exception("A wallet already exists for this customer account.");
 				}
 
-				$stmt = mysqli_prepare($connect,"INSERT INTO wallets(wallet_member,wallet_pin_hash) VALUES(?,?)");
+				$stmt = mysqli_prepare($connect,"INSERT INTO wallets(wallet_customer,wallet_pin_hash) VALUES(?,?)");
 				mysqli_stmt_bind_param($stmt,"is",$mid,$wallet_pin);
 				if(!mysqli_stmt_execute($stmt))
 				{

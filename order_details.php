@@ -1,7 +1,7 @@
 <?php
 // Only a logged-in customer can request an order detail page.
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -10,7 +10,7 @@ if(!isset($_SESSION["member_id"]))
 include("dataconnection.php");
 require_once("order_pricing_helpers.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $requested_order_id = filter_var($_GET["order_id"] ?? null,FILTER_VALIDATE_INT,array("options"=>array("min_range"=>1)));
 $order_id = $requested_order_id===false ? 0 : (int)$requested_order_id;
 $order = null;
@@ -59,15 +59,15 @@ if($order_id<=0)
 }
 else
 {
-	// The member condition is part of the SQL query so another customer can never
+	// The customer condition is part of the SQL query so another customer can never
 	// retrieve the order, delivery address or payment metadata by changing the URL.
 	$order_sql = "SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.order_payment_status,"
-		."o.order_delivery,o.order_address,o.order_status,m.member_name,m.member_email,m.member_phone,"
+		."o.order_delivery,o.order_address,o.order_status,m.customer_name,m.customer_email,m.customer_phone,"
 		."p.payment_reference,p.payment_method AS saved_payment_method,p.payment_amount,"
 		."p.payment_status AS saved_payment_status,p.payment_paid_at "
-		."FROM orders o INNER JOIN member m ON m.member_id=o.order_member "
+		."FROM orders o INNER JOIN customer m ON m.customer_id=o.order_customer "
 		."LEFT JOIN payments p ON p.payment_order=o.order_id "
-		."WHERE o.order_id=? AND o.order_member=? AND o.order_isDelete=0 LIMIT 1";
+		."WHERE o.order_id=? AND o.order_customer=? AND o.order_isDelete=0 LIMIT 1";
 	$order_stmt = mysqli_prepare($connect,$order_sql);
 	if(!$order_stmt)
 	{
@@ -154,9 +154,9 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 	$pdf = new EasyOrderPdfDocument("Order Receipt #".$order_id,"Customer order summary | ".order_details_datetime($order["order_date"]),"portrait");
 	$pdf->addSectionTitle("Order Information");
 	$pdf->addDefinitionList(array(
-		"Customer" => $order["member_name"],
-		"Email" => $order["member_email"],
-		"Phone" => $order["member_phone"],
+		"Customer" => $order["customer_name"],
+		"Email" => $order["customer_email"],
+		"Phone" => $order["customer_phone"],
 		"Fulfilment" => $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup",
 		"Address" => $order["order_delivery"]==="Yes" ? $order["order_address"] : "EasyOrder pickup counter",
 		"Order Status" => $order["order_status"]
@@ -289,8 +289,8 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 <h3 id="delivery-information-heading">Delivery Information</h3>
 <dl>
 <div><dt>Method</dt><dd><?php echo $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup"; ?></dd></div>
-<div><dt>Customer</dt><dd><?php echo order_details_html($order["member_name"]); ?></dd></div>
-<div><dt>Phone</dt><dd><?php echo order_details_html($order["member_phone"]); ?></dd></div>
+<div><dt>Customer</dt><dd><?php echo order_details_html($order["customer_name"]); ?></dd></div>
+<div><dt>Phone</dt><dd><?php echo order_details_html($order["customer_phone"]); ?></dd></div>
 <div class="order-information-address"><dt>Address</dt><dd><?php echo $order["order_delivery"]==="Yes" ? order_details_html($order["order_address"]) : "EasyOrder pickup counter"; ?></dd></div>
 </dl>
 </section>

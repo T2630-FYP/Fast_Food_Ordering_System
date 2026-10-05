@@ -202,7 +202,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 		mysqli_begin_transaction($connect);
 		try
 		{
-			$order_stmt = mysqli_prepare($connect,"SELECT order_member,order_total FROM orders WHERE order_id=? AND order_isDelete=0 FOR UPDATE");
+			$order_stmt = mysqli_prepare($connect,"SELECT order_customer,order_total FROM orders WHERE order_id=? AND order_isDelete=0 FOR UPDATE");
 			if(!$order_stmt)
 			{
 				throw new Exception("The order could not be prepared.");
@@ -220,17 +220,17 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 				throw new Exception("The selected order is unavailable.");
 			}
 
-			$member_id = (int)$order_row["order_member"];
+			$customer_id = (int)$order_row["order_customer"];
 			$earned_points = (int)floor((float)$order_row["order_total"]*10);
-			$points_stmt = mysqli_prepare($connect,"UPDATE member SET member_points=GREATEST(0,member_points-?) WHERE member_id=?");
+			$points_stmt = mysqli_prepare($connect,"UPDATE customer SET customer_points=GREATEST(0,customer_points-?) WHERE customer_id=?");
 			if(!$points_stmt)
 			{
-				throw new Exception("The member points could not be prepared.");
+				throw new Exception("The customer points could not be prepared.");
 			}
-			mysqli_stmt_bind_param($points_stmt,"ii",$earned_points,$member_id);
+			mysqli_stmt_bind_param($points_stmt,"ii",$earned_points,$customer_id);
 			if(!mysqli_stmt_execute($points_stmt))
 			{
-				throw new Exception("The member points could not be adjusted.");
+				throw new Exception("The customer points could not be adjusted.");
 			}
 			mysqli_stmt_close($points_stmt);
 
@@ -277,11 +277,11 @@ $search_like = "%".$search."%";
 
 // One prepared query supports search and filters without assembling raw SQL input.
 $list_sql = "SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.order_payment_status,o.order_delivery,o.order_status,"
-	."m.member_name,m.member_email,COALESCE(p.payment_status,o.order_payment_status) AS display_payment_status "
-	."FROM orders o INNER JOIN member m ON m.member_id=o.order_member "
+	."m.customer_name,m.customer_email,COALESCE(p.payment_status,o.order_payment_status) AS display_payment_status "
+	."FROM orders o INNER JOIN customer m ON m.customer_id=o.order_customer "
 	."LEFT JOIN payments p ON p.payment_order=o.order_id "
 	."WHERE o.order_isDelete=0 "
-	."AND (?='' OR CAST(o.order_id AS CHAR) LIKE ? OR m.member_name LIKE ? OR m.member_email LIKE ?) "
+	."AND (?='' OR CAST(o.order_id AS CHAR) LIKE ? OR m.customer_name LIKE ? OR m.customer_email LIKE ?) "
 	."AND (?='' OR LOWER(COALESCE(p.payment_status,o.order_payment_status))=LOWER(?)) "
 	."AND (?='' OR LOWER(o.order_status)=LOWER(?)) "
 	."AND (?='' OR o.order_delivery=?) "
@@ -444,7 +444,7 @@ $order_pdf_url = "admin_export.php?".http_build_query($order_pdf_params);
 				<?php foreach($orders as $order) { ?>
 					<tr>
 						<td><a class="admin-order-number" href="admin_order_details.php?order_id=<?php echo (int)$order["order_id"]; ?>">#<?php echo (int)$order["order_id"]; ?></a><small><?php echo admin_order_html($order["order_payment"]); ?></small></td>
-						<td><strong><?php echo admin_order_html($order["member_name"]); ?></strong><small><?php echo admin_order_html($order["member_email"]); ?></small></td>
+						<td><strong><?php echo admin_order_html($order["customer_name"]); ?></strong><small><?php echo admin_order_html($order["customer_email"]); ?></small></td>
 						<td><?php echo admin_order_html(admin_order_datetime($order["order_date"])); ?></td>
 						<td><?php echo $order["order_delivery"]==="Yes" ? "Delivery" : "Pickup"; ?></td>
 						<td><strong>RM <?php echo number_format((float)$order["order_total"],2); ?></strong></td>

@@ -2,7 +2,7 @@
 include("dataconnection.php");
 require_once("product_catalog_helpers.php");
 
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();

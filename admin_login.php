@@ -146,7 +146,7 @@ function admin_login_check()//Validate admin login form
 
 <div id="navbar"><!--Customer navigation bar-->
 <a href="./">Home</a>
-<a href="login.php">Member Login</a>
+<a href="login.php">Customer Login</a>
 </div>
 
 <div id="main"><!--Main content section-->

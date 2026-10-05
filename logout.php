@@ -1,6 +1,6 @@
 <?php
 
-// Log the member out completely, then return to the canonical home page.
+// Log the customer out completely, then return to the canonical home page.
 session_start();
 $_SESSION = [];
 

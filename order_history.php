@@ -1,7 +1,7 @@
 <?php
 // Only a logged-in customer can view their order history.
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -9,7 +9,7 @@ if(!isset($_SESSION["member_id"]))
 
 include("dataconnection.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $orders = array();
 $history_error = "";
 
@@ -48,7 +48,7 @@ $history_sql = "SELECT o.order_id,o.order_date,o.order_total,o.order_payment,o.o
 	."COALESCE(p.payment_status,o.order_payment_status) AS display_payment_status,"
 	."(SELECT COALESCE(SUM(oi.item_qty),0) FROM order_items oi WHERE oi.item_order=o.order_id) AS total_item_qty "
 	."FROM orders o LEFT JOIN payments p ON p.payment_order=o.order_id "
-	."WHERE o.order_member=? AND o.order_isDelete=0 "
+	."WHERE o.order_customer=? AND o.order_isDelete=0 "
 	."ORDER BY o.order_date DESC,o.order_id DESC";
 $history_stmt = mysqli_prepare($connect,$history_sql);
 if($history_stmt)

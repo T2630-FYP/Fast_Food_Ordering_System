@@ -16,7 +16,7 @@ if($connect)
 }
 
 // Compare the submitted password with the plain-text value stored in the
-// demonstration database for both member and administrator accounts.
+// demonstration database for both customer and administrator accounts.
 if(!function_exists("easyorder_password_verify"))
 {
 	function easyorder_password_verify($plain_password,$stored_password)
@@ -25,28 +25,28 @@ if(!function_exists("easyorder_password_verify"))
 	}
 }
 
-//check that a logged in member or staff account still exists and has not been deleted
+//check that a logged in customer or staff account still exists and has not been deleted
 //only log the account out after a successful database check, so a connection problem is not mistaken for a deleted account
 if($connect)
 {
-	$invalid_member = false;
+	$invalid_customer = false;
 	$invalid_admin = false;
 
-	if(isset($_SESSION["member_id"]))
+	if(isset($_SESSION["customer_id"]))
 	{
-		$member_check = mysqli_prepare($connect,"SELECT member_id FROM member WHERE member_id=? AND member_isDelete=0 LIMIT 1");
-		if($member_check)
+		$customer_check = mysqli_prepare($connect,"SELECT customer_id FROM customer WHERE customer_id=? AND customer_isDelete=0 LIMIT 1");
+		if($customer_check)
 		{
-			mysqli_stmt_bind_param($member_check,"i",$_SESSION["member_id"]);
-			if(mysqli_stmt_execute($member_check))
+			mysqli_stmt_bind_param($customer_check,"i",$_SESSION["customer_id"]);
+			if(mysqli_stmt_execute($customer_check))
 			{
-				mysqli_stmt_store_result($member_check);
-				if(mysqli_stmt_num_rows($member_check) == 0)
+				mysqli_stmt_store_result($customer_check);
+				if(mysqli_stmt_num_rows($customer_check) == 0)
 				{
-					$invalid_member = true;
+					$invalid_customer = true;
 				}
 			}
-			mysqli_stmt_close($member_check);
+			mysqli_stmt_close($customer_check);
 		}
 	}
 
@@ -70,11 +70,11 @@ if($connect)
 
 	$current_page = basename($_SERVER["PHP_SELF"] ?? "");
 	$admin_page = substr($current_page,0,6) == "admin_";
-	$member_pages = array("dashboard.php","change_password.php","cart.php","checkout.php","payment.php","order_history.php","order_details.php","review.php","reward.php","view_review.php","wallet.php","wallet_topup.php","wallet_pin_recovery.php");
+	$customer_pages = array("dashboard.php","change_password.php","cart.php","checkout.php","payment.php","order_history.php","order_details.php","review.php","reward.php","view_review.php","wallet.php","wallet_topup.php","wallet_pin_recovery.php");
 
-	if($invalid_member)
+	if($invalid_customer)
 	{
-		unset($_SESSION["member_id"],$_SESSION["member_name"]);
+		unset($_SESSION["customer_id"],$_SESSION["customer_name"]);
 	}
 
 	if($invalid_admin)
@@ -84,13 +84,13 @@ if($connect)
 	}
 
 	//redirect only when the current page needs the account that became invalid
-	//this keeps a valid member session and a valid admin session independent in the same browser
+	//this keeps a valid customer session and a valid admin session independent in the same browser
 	if($invalid_admin && $admin_page && $current_page != "admin_login.php")
 	{
 		header("location:admin_login.php");
 		exit();
 	}
-	else if($invalid_member && in_array($current_page,$member_pages,true))
+	else if($invalid_customer && in_array($current_page,$customer_pages,true))
 	{
 		header("location:login.php");
 		exit();

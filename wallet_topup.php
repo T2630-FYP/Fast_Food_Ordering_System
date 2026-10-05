@@ -1,7 +1,7 @@
 <?php
 // Simulated card top-up. Full card number, expiry and CVV remain request-only.
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
@@ -10,7 +10,7 @@ if(!isset($_SESSION["member_id"]))
 include("dataconnection.php");
 require_once("wallet_helpers.php");
 
-$mid = (int)$_SESSION["member_id"];
+$mid = (int)$_SESSION["customer_id"];
 $wallet = easyorder_wallet_load($connect,$mid);
 if(!$wallet || !easyorder_wallet_is_unlocked($mid))
 {
@@ -121,7 +121,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["topup_wallet"]))
 				{
 					throw new Exception("This top-up would exceed the wallet balance limit.");
 				}
-				$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_balance=wallet_balance+? WHERE wallet_id=? AND wallet_member=?");
+				$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_balance=wallet_balance+? WHERE wallet_id=? AND wallet_customer=?");
 				mysqli_stmt_bind_param($stmt,"dii",$amount,$wallet_id,$mid);
 				if(!mysqli_stmt_execute($stmt) || mysqli_stmt_affected_rows($stmt)!==1)
 				{

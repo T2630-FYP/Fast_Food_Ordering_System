@@ -1,7 +1,7 @@
 <?php
 
 // Wallet PINs protect wallet access and are deliberately separate from the
-// demonstration member password used to sign in to the website.
+// demonstration customer password used to sign in to the website.
 function easyorder_wallet_pin_valid($pin)
 {
 	return preg_match("/^\d{6}$/",(string)$pin)===1;
@@ -27,12 +27,12 @@ function easyorder_wallet_verify_pin($connect,$wallet,$pin)
 		return false;
 	}
 
-	$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_pin_hash=? WHERE wallet_id=? AND wallet_member=? AND BINARY wallet_pin_hash=?");
+	$stmt = mysqli_prepare($connect,"UPDATE wallets SET wallet_pin_hash=? WHERE wallet_id=? AND wallet_customer=? AND BINARY wallet_pin_hash=?");
 	if(!$stmt)
 	{
 		throw new Exception("The wallet service is temporarily unavailable.");
 	}
-	mysqli_stmt_bind_param($stmt,"siis",$pin,$wallet["wallet_id"],$wallet["wallet_member"],$stored_pin);
+	mysqli_stmt_bind_param($stmt,"siis",$pin,$wallet["wallet_id"],$wallet["wallet_customer"],$stored_pin);
 	if(!mysqli_stmt_execute($stmt))
 	{
 		mysqli_stmt_close($stmt);
@@ -50,11 +50,11 @@ function easyorder_wallet_html($value)
 	return htmlspecialchars((string)$value,ENT_QUOTES,"ISO-8859-1");
 }
 
-// Load only the wallet owned by the requested member. A row lock is used by
+// Load only the wallet owned by the requested customer. A row lock is used by
 // balance-changing operations so two requests cannot spend the same balance.
-function easyorder_wallet_load($connect,$member_id,$lock=false)
+function easyorder_wallet_load($connect,$customer_id,$lock=false)
 {
-	$sql = "SELECT wallet_id,wallet_member,wallet_pin_hash,wallet_balance,wallet_created_at,wallet_updated_at FROM wallets WHERE wallet_member=? LIMIT 1";
+	$sql = "SELECT wallet_id,wallet_customer,wallet_pin_hash,wallet_balance,wallet_created_at,wallet_updated_at FROM wallets WHERE wallet_customer=? LIMIT 1";
 	if($lock)
 	{
 		$sql .= " FOR UPDATE";
@@ -65,7 +65,7 @@ function easyorder_wallet_load($connect,$member_id,$lock=false)
 	{
 		throw new Exception("The wallet service is temporarily unavailable.");
 	}
-	mysqli_stmt_bind_param($stmt,"i",$member_id);
+	mysqli_stmt_bind_param($stmt,"i",$customer_id);
 	if(!mysqli_stmt_execute($stmt))
 	{
 		mysqli_stmt_close($stmt);
@@ -78,24 +78,24 @@ function easyorder_wallet_load($connect,$member_id,$lock=false)
 	return $wallet ?: null;
 }
 
-// Wallet access is time-limited and bound to the current member. The raw PIN
+// Wallet access is time-limited and bound to the current customer. The raw PIN
 // is never placed in the session.
-function easyorder_wallet_is_unlocked($member_id)
+function easyorder_wallet_is_unlocked($customer_id)
 {
-	return isset($_SESSION["wallet_unlocked_member"],$_SESSION["wallet_unlocked_until"])
-		&& (int)$_SESSION["wallet_unlocked_member"]===(int)$member_id
+	return isset($_SESSION["wallet_unlocked_customer"],$_SESSION["wallet_unlocked_until"])
+		&& (int)$_SESSION["wallet_unlocked_customer"]===(int)$customer_id
 		&& (int)$_SESSION["wallet_unlocked_until"]>=time();
 }
 
-function easyorder_wallet_unlock($member_id)
+function easyorder_wallet_unlock($customer_id)
 {
-	$_SESSION["wallet_unlocked_member"] = (int)$member_id;
+	$_SESSION["wallet_unlocked_customer"] = (int)$customer_id;
 	$_SESSION["wallet_unlocked_until"] = time()+900;
 }
 
 function easyorder_wallet_lock()
 {
-	unset($_SESSION["wallet_unlocked_member"],$_SESSION["wallet_unlocked_until"]);
+	unset($_SESSION["wallet_unlocked_customer"],$_SESSION["wallet_unlocked_until"]);
 }
 
 // Transaction references contain no customer or card data.

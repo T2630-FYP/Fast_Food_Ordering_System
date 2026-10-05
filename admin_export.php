@@ -67,7 +67,7 @@ if(!$connect)
 mysqli_set_charset($connect,"utf8mb4");
 
 $dataset = strtolower(trim((string)($_GET["type"] ?? "")));
-if(!in_array($dataset,array("members","products","orders","staff"),true))
+if(!in_array($dataset,array("customers","products","orders","staff"),true))
 {
 	admin_export_fail(400,"Select a supported export type.");
 }
@@ -90,48 +90,48 @@ $pdf_weights = array();
 $pdf_row_limit = 5000;
 $pdf_limit_sql = $format==="pdf" ? " LIMIT ".($pdf_row_limit+1) : "";
 
-if($dataset==="members")
+if($dataset==="customers")
 {
-	$member_states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
+	$customer_states = array("Johor","Kedah","Kelantan","Melaka","Negeri Sembilan","Pahang","Perak","Perlis","Pulau Pinang","Sabah","Sarawak","Selangor","Terengganu","Kuala Lumpur","Labuan","Putrajaya");
 	$search = trim((string)($_GET["search"] ?? ""));
 	$state_filter = trim((string)($_GET["state"] ?? ""));
-	if($state_filter!=="" && !in_array($state_filter,$member_states,true))
+	if($state_filter!=="" && !in_array($state_filter,$customer_states,true))
 	{
 		$state_filter = "";
 	}
 	$like_search = "%".$search."%";
 
-	// Match the Member page search and state filter without exporting passwords.
+	// Match the Customer page search and state filter without exporting passwords.
 	$stmt = mysqli_prepare($connect,
-		"SELECT member_id,member_name,member_email,member_phone,member_state,member_joindate
-		 FROM member
-		 WHERE member_isDelete=0
-		 AND (?='' OR CAST(member_id AS CHAR) LIKE ? OR member_name LIKE ? OR member_email LIKE ? OR member_phone LIKE ?)
-		 AND (?='' OR member_state=?)
-		 ORDER BY member_id DESC".$pdf_limit_sql);
+		"SELECT customer_id,customer_name,customer_email,customer_phone,customer_state,customer_joindate
+		 FROM customer
+		 WHERE customer_isDelete=0
+		 AND (?='' OR CAST(customer_id AS CHAR) LIKE ? OR customer_name LIKE ? OR customer_email LIKE ? OR customer_phone LIKE ?)
+		 AND (?='' OR customer_state=?)
+		 ORDER BY customer_id DESC".$pdf_limit_sql);
 	if(!$stmt)
 	{
-		admin_export_fail(500,"The member export could not be prepared.");
+		admin_export_fail(500,"The customer export could not be prepared.");
 	}
 	mysqli_stmt_bind_param($stmt,"sssssss",$search,$like_search,$like_search,$like_search,$like_search,$state_filter,$state_filter);
 	if(!mysqli_stmt_execute($stmt))
 	{
 		mysqli_stmt_close($stmt);
-		admin_export_fail(500,"The member export could not be loaded.");
+		admin_export_fail(500,"The customer export could not be loaded.");
 	}
 	$result = mysqli_stmt_get_result($stmt);
 	while($row = mysqli_fetch_assoc($result))
 	{
-		$rows[] = array($row["member_id"],$row["member_name"],$row["member_email"],$row["member_phone"],$row["member_state"],$row["member_joindate"]);
+		$rows[] = array($row["customer_id"],$row["customer_name"],$row["customer_email"],$row["customer_phone"],$row["customer_state"],$row["customer_joindate"]);
 	}
 	if($format==="pdf" && count($rows)>$pdf_row_limit)
 	{
-		admin_export_fail(413,"Refine the Member filters before downloading a PDF.");
+		admin_export_fail(413,"Refine the Customer filters before downloading a PDF.");
 	}
 	mysqli_stmt_close($stmt);
-	$headers = array("Member ID","Name","Email","Phone","State","Join Date");
-	$filename = "easyorder-members-".date("Ymd-His").".csv";
-	$pdf_title = "Member List";
+	$headers = array("Customer ID","Name","Email","Phone","State","Join Date");
+	$filename = "easyorder-customers-".date("Ymd-His").".csv";
+	$pdf_title = "Customer List";
 	$pdf_subtitle = "Filters: Search ".($search!=="" ? $search : "All")." | State ".($state_filter!=="" ? $state_filter : "All states");
 	$pdf_weights = array(0.8,1.4,1.8,1.2,1.1,1.0);
 }
@@ -202,15 +202,15 @@ else if($dataset==="orders")
 
 	// Export the same active order rows and effective payment status as the list page.
 	$stmt = mysqli_prepare($connect,
-		"SELECT o.order_id,m.member_name,m.member_email,o.order_date,o.order_delivery,o.order_payment,
+		"SELECT o.order_id,m.customer_name,m.customer_email,o.order_date,o.order_delivery,o.order_payment,
 		        (SELECT ROUND(COALESCE(SUM(oi.item_subtotal),0)*".$sst_rate_sql.",2) FROM order_items oi WHERE oi.item_order=o.order_id) AS order_sst,
 		        o.order_total,
 		        COALESCE(p.payment_status,o.order_payment_status) AS display_payment_status,o.order_status
 		 FROM orders o
-		 INNER JOIN member m ON m.member_id=o.order_member
+		 INNER JOIN customer m ON m.customer_id=o.order_customer
 		 LEFT JOIN payments p ON p.payment_order=o.order_id
 		 WHERE o.order_isDelete=0
-		 AND (?='' OR CAST(o.order_id AS CHAR) LIKE ? OR m.member_name LIKE ? OR m.member_email LIKE ?)
+		 AND (?='' OR CAST(o.order_id AS CHAR) LIKE ? OR m.customer_name LIKE ? OR m.customer_email LIKE ?)
 		 AND (?='' OR LOWER(COALESCE(p.payment_status,o.order_payment_status))=LOWER(?))
 		 AND (?='' OR LOWER(o.order_status)=LOWER(?))
 		 AND (?='' OR o.order_delivery=?)
@@ -228,7 +228,7 @@ else if($dataset==="orders")
 	$result = mysqli_stmt_get_result($stmt);
 	while($row = mysqli_fetch_assoc($result))
 	{
-		$rows[] = array($row["order_id"],$row["member_name"],$row["member_email"],$row["order_date"],$row["order_delivery"]==="Yes" ? "Delivery" : "Pickup",$row["order_payment"],number_format((float)$row["order_sst"],2,".",""),number_format((float)$row["order_total"],2,".",""),$row["display_payment_status"],$row["order_status"]);
+		$rows[] = array($row["order_id"],$row["customer_name"],$row["customer_email"],$row["order_date"],$row["order_delivery"]==="Yes" ? "Delivery" : "Pickup",$row["order_payment"],number_format((float)$row["order_sst"],2,".",""),number_format((float)$row["order_total"],2,".",""),$row["display_payment_status"],$row["order_status"]);
 	}
 	if($format==="pdf" && count($rows)>$pdf_row_limit)
 	{

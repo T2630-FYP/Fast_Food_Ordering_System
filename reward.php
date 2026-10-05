@@ -1,14 +1,14 @@
 <?php
-//only logged in members can view and redeem rewards
+//only logged in customers can view and redeem rewards
 session_start();
-if(!isset($_SESSION["member_id"]))
+if(!isset($_SESSION["customer_id"]))
 {
 	header("location:login.php");
 	exit();
 }
 include("dataconnection.php");
 
-$mid = $_SESSION["member_id"];
+$mid = $_SESSION["customer_id"];
 
 //check the redemption table exists (it is created by importing the latest easyorder.sql)
 $redemption_ready = false;
@@ -50,16 +50,16 @@ if(isset($_POST["redeembtn"]))
 		mysqli_begin_transaction($connect);
 		$transaction_started = true;
 
-		//lock the member and use the latest point balance, not the number shown on an older page
-		$stmt = mysqli_prepare($connect,"SELECT member_points,member_isDelete FROM member WHERE member_id=? FOR UPDATE");
+		//lock the customer and use the latest point balance, not the number shown on an older page
+		$stmt = mysqli_prepare($connect,"SELECT customer_points,customer_isDelete FROM customer WHERE customer_id=? FOR UPDATE");
 		mysqli_stmt_bind_param($stmt,"i",$mid);
 		mysqli_stmt_execute($stmt);
-		$member_result = mysqli_stmt_get_result($stmt);
-		$member_row = mysqli_fetch_assoc($member_result);
+		$customer_result = mysqli_stmt_get_result($stmt);
+		$customer_row = mysqli_fetch_assoc($customer_result);
 		mysqli_stmt_close($stmt);
-		if(!$member_row || $member_row["member_isDelete"]==1)
+		if(!$customer_row || $customer_row["customer_isDelete"]==1)
 		{
-			throw new Exception("This member account is no longer active.");
+			throw new Exception("This customer account is no longer active.");
 		}
 
 		//lock the reward first, then its linked product stock
@@ -81,7 +81,7 @@ if(isset($_POST["redeembtn"]))
 		{
 			throw new Exception("This reward has an invalid point value. Please contact the admin.");
 		}
-		if((int)$member_row["member_points"] < $reward_cost)
+		if((int)$customer_row["customer_points"] < $reward_cost)
 		{
 			throw new Exception("You do not have enough points to redeem this reward.");
 		}
@@ -98,7 +98,7 @@ if(isset($_POST["redeembtn"]))
 		}
 
 		$date = date("Y-m-d");
-		$stmt = mysqli_prepare($connect,"INSERT INTO redemption(redeem_member,redeem_reward,redeem_product,redeem_points,redeem_status,redeem_date) VALUES(?,?,?,?,'Cart',?)");
+		$stmt = mysqli_prepare($connect,"INSERT INTO redemption(redeem_customer,redeem_reward,redeem_product,redeem_points,redeem_status,redeem_date) VALUES(?,?,?,?,'Cart',?)");
 		mysqli_stmt_bind_param($stmt,"issis",$mid,$reward_name,$linked_pid,$reward_cost,$date);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
@@ -113,7 +113,7 @@ if(isset($_POST["redeembtn"]))
 		}
 		mysqli_stmt_close($stmt);
 
-		$stmt = mysqli_prepare($connect,"UPDATE member SET member_points=member_points-? WHERE member_id=? AND member_points>=?");
+		$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_points=customer_points-? WHERE customer_id=? AND customer_points>=?");
 		mysqli_stmt_bind_param($stmt,"iii",$reward_cost,$mid,$reward_cost);
 		mysqli_stmt_execute($stmt);
 		if(mysqli_stmt_affected_rows($stmt)!=1)
@@ -153,18 +153,18 @@ if(isset($_SESSION["reward_error"]))
 	unset($_SESSION["reward_error"]);
 }
 
-//----- the member's available loyalty points -----
-//read straight from the member table; it is kept up to date (points are added when an order
+//----- the customer's available loyalty points -----
+//read straight from the customer table; it is kept up to date (points are added when an order
 //is placed and subtracted when a reward is redeemed), so no recalculation is needed here
 $available_points = 0;
-$stmt = mysqli_prepare($connect,"SELECT member_points FROM member WHERE member_id=? AND member_isDelete=0");
+$stmt = mysqli_prepare($connect,"SELECT customer_points FROM customer WHERE customer_id=? AND customer_isDelete=0");
 mysqli_stmt_bind_param($stmt,"i",$mid);
 mysqli_stmt_execute($stmt);
 $result = mysqli_stmt_get_result($stmt);
 if(mysqli_num_rows($result)>0)
 {
 	$row = mysqli_fetch_assoc($result);
-	$available_points = $row["member_points"];
+	$available_points = $row["customer_points"];
 }
 mysqli_stmt_close($stmt);
 ?>
@@ -277,7 +277,7 @@ box-sizing:border-box;}
 </style>
 
 <script>
-function confirm_redeem(name,points)//ask the member to confirm before spending their points
+function confirm_redeem(name,points)//ask the customer to confirm before spending their points
 {
 	return confirm("Redeem "+name+" for "+points+" points? It will be added to your cart.");
 }
@@ -319,7 +319,7 @@ if(isset($reward_error))
 }
 ?>
 
-<div id="points-banner"><!--Shows the member's available loyalty points-->
+<div id="points-banner"><!--Shows the customer's available loyalty points-->
 <p class="points-caption">Your Available Loyalty Points</p>
 <p class="points-number"><?php echo $available_points; ?></p>
 </div>

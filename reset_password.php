@@ -4,16 +4,16 @@ include_once("password_reset_helpers.php");
 
 $reset_errors = array();
 $reset_request_id = (int)($_SESSION["password_reset_id"] ?? 0);
-$reset_member_id = (int)($_SESSION["password_reset_member_id"] ?? 0);
+$reset_customer_id = (int)($_SESSION["password_reset_customer_id"] ?? 0);
 $reset_available = false;
-$member_password = "";
+$customer_password = "";
 
-if($reset_request_id>0 && $reset_member_id>0)
+if($reset_request_id>0 && $reset_customer_id>0)
 {
-	$stmt = mysqli_prepare($connect,"SELECT m.member_password FROM password_reset pr INNER JOIN member m ON m.member_id=pr.member_id WHERE pr.reset_id=? AND pr.member_id=? AND pr.verified_at IS NOT NULL AND pr.used_at IS NULL AND pr.expires_at>NOW() AND m.member_isDelete=0 LIMIT 1");
+	$stmt = mysqli_prepare($connect,"SELECT m.customer_password FROM password_reset pr INNER JOIN customer m ON m.customer_id=pr.customer_id WHERE pr.reset_id=? AND pr.customer_id=? AND pr.verified_at IS NOT NULL AND pr.used_at IS NULL AND pr.expires_at>NOW() AND m.customer_isDelete=0 LIMIT 1");
 	if($stmt)
 	{
-		mysqli_stmt_bind_param($stmt,"ii",$reset_request_id,$reset_member_id);
+		mysqli_stmt_bind_param($stmt,"ii",$reset_request_id,$reset_customer_id);
 		mysqli_stmt_execute($stmt);
 		$result = mysqli_stmt_get_result($stmt);
 		$row = mysqli_fetch_assoc($result);
@@ -21,7 +21,7 @@ if($reset_request_id>0 && $reset_member_id>0)
 		if($row)
 		{
 			$reset_available = true;
-			$member_password = $row["member_password"];
+			$customer_password = $row["customer_password"];
 		}
 	}
 }
@@ -51,7 +51,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 	{
 		$reset_errors["confirm"] = "The new password and confirmation do not match.";
 	}
-	if($new_password!=="" && easyorder_password_verify($new_password,$member_password))
+	if($new_password!=="" && easyorder_password_verify($new_password,$customer_password))
 	{
 		$reset_errors["new"] = "Your new password must be different from your current password.";
 	}
@@ -62,14 +62,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 		$locked_password = "";
 		mysqli_begin_transaction($connect);
 
-		$stmt = mysqli_prepare($connect,"SELECT m.member_password FROM password_reset pr INNER JOIN member m ON m.member_id=pr.member_id WHERE pr.reset_id=? AND pr.member_id=? AND pr.verified_at IS NOT NULL AND pr.used_at IS NULL AND pr.expires_at>NOW() AND m.member_isDelete=0 LIMIT 1 FOR UPDATE");
+		$stmt = mysqli_prepare($connect,"SELECT m.customer_password FROM password_reset pr INNER JOIN customer m ON m.customer_id=pr.customer_id WHERE pr.reset_id=? AND pr.customer_id=? AND pr.verified_at IS NOT NULL AND pr.used_at IS NULL AND pr.expires_at>NOW() AND m.customer_isDelete=0 LIMIT 1 FOR UPDATE");
 		if(!$stmt)
 		{
 			$transaction_ok = false;
 		}
 		else
 		{
-			mysqli_stmt_bind_param($stmt,"ii",$reset_request_id,$reset_member_id);
+			mysqli_stmt_bind_param($stmt,"ii",$reset_request_id,$reset_customer_id);
 			mysqli_stmt_execute($stmt);
 			$result = mysqli_stmt_get_result($stmt);
 			$locked_row = mysqli_fetch_assoc($result);
@@ -80,7 +80,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 			}
 			else
 			{
-				$locked_password = $locked_row["member_password"];
+				$locked_password = $locked_row["customer_password"];
 			}
 		}
 
@@ -92,14 +92,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 
 		if($transaction_ok)
 		{
-			$stmt = mysqli_prepare($connect,"UPDATE member SET member_password=? WHERE member_id=? AND member_isDelete=0");
+			$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_password=? WHERE customer_id=? AND customer_isDelete=0");
 			if(!$stmt)
 			{
 				$transaction_ok = false;
 			}
 			else
 			{
-				mysqli_stmt_bind_param($stmt,"si",$new_password,$reset_member_id);
+				mysqli_stmt_bind_param($stmt,"si",$new_password,$reset_customer_id);
 				$transaction_ok = mysqli_stmt_execute($stmt) && mysqli_stmt_affected_rows($stmt)===1;
 				mysqli_stmt_close($stmt);
 			}
@@ -107,14 +107,14 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["reset_password_btn"]) &&
 
 		if($transaction_ok)
 		{
-			$stmt = mysqli_prepare($connect,"UPDATE password_reset SET used_at=NOW() WHERE reset_id=? AND member_id=? AND used_at IS NULL AND expires_at>NOW()");
+			$stmt = mysqli_prepare($connect,"UPDATE password_reset SET used_at=NOW() WHERE reset_id=? AND customer_id=? AND used_at IS NULL AND expires_at>NOW()");
 			if(!$stmt)
 			{
 				$transaction_ok = false;
 			}
 			else
 			{
-				mysqli_stmt_bind_param($stmt,"ii",$reset_request_id,$reset_member_id);
+				mysqli_stmt_bind_param($stmt,"ii",$reset_request_id,$reset_customer_id);
 				$transaction_ok = mysqli_stmt_execute($stmt) && mysqli_stmt_affected_rows($stmt)===1;
 				mysqli_stmt_close($stmt);
 			}
