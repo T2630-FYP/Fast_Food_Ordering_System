@@ -4,23 +4,29 @@
 session_start();
 include("dataconnection.php");
 
-$login_id = trim((string)($_POST["admin_id"] ?? ""));
+$login_email = isset($_POST["admin_email"]) && is_string($_POST["admin_email"])
+	? strtolower(trim($_POST["admin_email"])) : "";
 $login_error = "";
 
-// Look up one active account by Staff ID, then compare its stored password safely.
+// Look up one active account by email; retain Staff ID as its session identity.
 if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["adminloginbtn"]))
 {
-	$submitted_password = (string)($_POST["admin_password"] ?? "");
-	if($login_id==="" || $submitted_password==="")
+	$submitted_password = isset($_POST["admin_password"]) && is_string($_POST["admin_password"])
+		? $_POST["admin_password"] : "";
+	if($login_email==="" || $submitted_password==="")
 	{
-		$login_error = "Enter your Staff ID and password.";
+		$login_error = "Enter your email address and password.";
+	}
+	else if(!filter_var($login_email,FILTER_VALIDATE_EMAIL) || strlen($login_email)>100)
+	{
+		$login_error = "Enter a valid email address.";
 	}
 	else
 	{
-		$login_stmt = mysqli_prepare($connect,"SELECT staff_id,staff_name,staff_role,staff_password FROM staff WHERE staff_id=? AND staff_isDelete=0 LIMIT 1");
+		$login_stmt = mysqli_prepare($connect,"SELECT staff_id,staff_name,staff_role,staff_password FROM staff WHERE staff_email=? AND staff_isDelete=0 LIMIT 1");
 		if($login_stmt)
 		{
-			mysqli_stmt_bind_param($login_stmt,"s",$login_id);
+			mysqli_stmt_bind_param($login_stmt,"s",$login_email);
 			mysqli_stmt_execute($login_stmt);
 			$login_result = mysqli_stmt_get_result($login_stmt);
 			$staff_account = mysqli_fetch_assoc($login_result) ?: null;
@@ -41,7 +47,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["adminloginbtn"]))
 			header("Location: admin_dashboard.php");
 			exit();
 		}
-		$login_error = "Invalid Staff ID or password. Please try again.";
+		$login_error = "Invalid email or password. Please try again.";
 	}
 }
 ?>
@@ -81,7 +87,7 @@ font-size:0.9em;
 margin-top:12px;
 margin-bottom:5px;}
 
-#login-box input[type="text"],
+#login-box input[type="email"],
 #login-box input[type="password"]
 {width:95%;
 border:1px solid #CCCCCC;
@@ -97,20 +103,20 @@ font-size:0.75em;}
 <script>
 function admin_login_check()//Validate admin login form
 {
-	let id,password;
-	let id_status=false,password_status=false;
+	let email,password;
+	let email_status=false,password_status=false;
 
-	id=document.adminloginfrm.admin_id.value;
+	email=document.adminloginfrm.admin_email.value.trim();
 	password=document.adminloginfrm.admin_password.value;
 
-	if(id=="")
+	if(email=="")
 	{
-		document.getElementById("err_id").innerHTML="Please enter your admin ID";
+		document.getElementById("err_email").innerHTML="Please enter your email address";
 	}
 	else
 	{
-		document.getElementById("err_id").innerHTML="";
-		id_status=true;
+		document.getElementById("err_email").innerHTML="";
+		email_status=true;
 	}
 
 	if(password=="")
@@ -123,7 +129,7 @@ function admin_login_check()//Validate admin login form
 		password_status=true;
 	}
 
-	if(id_status==true&&password_status==true)
+	if(email_status==true&&password_status==true)
 	{
 		return true;
 	}
@@ -152,19 +158,19 @@ function admin_login_check()//Validate admin login form
 <div id="main"><!--Main content section-->
 
 <h2 class="section-title">Administrator Login</h2>
-<p class="intro">This page is for EasyOrder staff only. Please login with your staff ID and password to manage the system.</p>
+<p class="intro">This page is for EasyOrder staff only. Please login with your email address and password to manage the system.</p>
 
 <div id="login-box"><!--Form section for user input-->
 <form name="adminloginfrm" method="post" action="" onsubmit="return admin_login_check()">
 <fieldset>
 <legend>Admin Login</legend>
 
-<label>Admin ID</label>
-<input type="text" name="admin_id" value="<?php echo htmlspecialchars($login_id,ENT_QUOTES,'UTF-8'); ?>" placeholder="e.g. S001">
-<span class="error" id="err_id"></span>
+<label for="admin_email">Email</label>
+<input type="email" id="admin_email" name="admin_email" value="<?php echo htmlspecialchars($login_email,ENT_QUOTES,'UTF-8'); ?>" placeholder="Your registered email address" maxlength="100" autocomplete="username" required>
+<span class="error" id="err_email"></span>
 
-<label>Password</label>
-<input type="password" name="admin_password" placeholder="Your password">
+<label for="admin_password">Password</label>
+<input type="password" id="admin_password" name="admin_password" placeholder="Your password" autocomplete="current-password" required>
 <span class="error" id="err_password"></span>
 
 <?php if($login_error!==""): ?>
