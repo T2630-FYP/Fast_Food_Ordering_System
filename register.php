@@ -222,7 +222,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 
 <div class="entry-field">
 <label for="cust_email">Email *</label>
-<input type="email" id="cust_email" name="cust_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["email"]); ?>" placeholder="e.g. customer@email.com"<?php if(isset($register_errors["email"])) { ?> aria-invalid="true" aria-describedby="cust_email-error"<?php } ?> required>
+<input type="email" id="cust_email" name="cust_email" maxlength="100" autocomplete="email" value="<?php echo register_h($register_values["email"]); ?>" placeholder="e.g. customer@example.com"<?php if(isset($register_errors["email"])) { ?> aria-invalid="true" aria-describedby="cust_email-error"<?php } ?> required>
 <?php if(isset($register_errors["email"])) { ?><span class="field-error" id="cust_email-error"><?php echo register_h($register_errors["email"]); ?></span><?php } ?>
 </div>
 
