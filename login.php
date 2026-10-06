@@ -123,7 +123,7 @@ function login_h($value)
 
 <div class="entry-field">
 <label for="user_email">Email *</label>
-<input type="email" id="user_email" name="user_email" maxlength="100" autocomplete="email" value="<?php echo login_h($login_email); ?>" placeholder="e.g. customer@email.com" required>
+<input type="email" id="user_email" name="user_email" maxlength="100" autocomplete="email" value="<?php echo login_h($login_email); ?>" placeholder="e.g. customer@example.com" required>
 <?php if(isset($login_errors["email"])) { ?><span class="field-error"><?php echo login_h($login_errors["email"]); ?></span><?php } ?>
 </div>
 
