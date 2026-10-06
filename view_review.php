@@ -29,7 +29,7 @@ include("dataconnection.php");
 <div id="navbar"><!--Customer navigation bar-->
 <a href="category.php">Menu</a>
 <a href="cart.php">Cart</a>
-<a href="dashboard.php">My Dashboard</a>
+<a href="profile.php">My Profile</a>
 <a href="order_history.php">Order History</a>
 <a href="wallet.php">Wallet</a>
 <a href="reward.php">Rewards</a>
@@ -74,7 +74,7 @@ while($row = mysqli_fetch_assoc($result))
 
 </table>
 
-<p style="text-align:center; margin-top:20px;"><a class="btn" href="dashboard.php">Back to Dashboard</a></p>
+<p style="text-align:center; margin-top:20px;"><a class="btn" href="profile.php">Back to Profile</a></p>
 
 </div>
 

@@ -76,7 +76,7 @@ function submit_review()//Validate customer rating and comment form
 <div id="navbar"><!--Customer navigation bar-->
 <a href="category.php">Menu</a>
 <a href="cart.php">Cart</a>
-<a href="dashboard.php">My Dashboard</a>
+<a href="profile.php">My Profile</a>
 <a href="order_history.php">Order History</a>
 <a href="wallet.php">Wallet</a>
 <a href="reward.php">Rewards</a>
@@ -137,7 +137,7 @@ if($placed_order_id>0)
 </div>
 </form>
 
-<p style="text-align:center; margin-top:20px;"><a class="btn" href="dashboard.php">Back to Dashboard</a> &nbsp; <a class="btn" href="view_review.php">View Customer Reviews</a></p>
+<p style="text-align:center; margin-top:20px;"><a class="btn" href="profile.php">Back to Profile</a> &nbsp; <a class="btn" href="view_review.php">View Customer Reviews</a></p>
 
 </div>
 
@@ -172,7 +172,7 @@ if(isset($_POST["submitbtn"]))
 		?>
 		<script>
 		alert("No valid order was found for this review.");
-		window.location="dashboard.php";
+		window.location="profile.php";
 		</script>
 		<?php
 		exit();
@@ -180,7 +180,7 @@ if(isset($_POST["submitbtn"]))
 	?>
 	<script>
 	alert("Thank you for your review!");
-	window.location="dashboard.php";
+	window.location="profile.php";
 	</script>
 	<?php
 }
