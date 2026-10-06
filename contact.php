@@ -64,10 +64,6 @@ margin:10px 0px 0px 0px;}
 {color:#9E0B22;
 font-weight:bold;}
 
-.map-box .map-attribution
-{color:#666666;
-font-size:9pt;}
-
 #contact-area
 {text-align:center;}
 
@@ -214,7 +210,7 @@ function contact_check()//Validate customer contact form
 <div class="contact-card">
 <h4>Visit Us</h4>
 <p class="label">Our Store</p>
-<p>Level 5, EasyOrder Tower,<br>Jalan Tun Abdul Razak,<br>80000 Johor Bahru, Johor, Malaysia</p>
+<p>AEON MALL Bukit Indah,<br>No. 8, Jalan Indah 15/2,<br>Taman Bukit Indah,<br>81200 Johor Bahru, Johor, Malaysia</p>
 </div>
 
 <div class="contact-card">
@@ -236,13 +232,12 @@ function contact_check()//Validate customer contact form
 <h2 class="section-title">Find Us Here</h2>
 <p class="intro">Drop by our store or use the map below to locate us.</p>
 <p class="intro">Open Monday - Sunday, 10am - 10pm.</p>
-<p class="intro">The map marker shows our approximate location near Jalan Tun Abdul Razak in Johor Bahru.</p>
+<p class="intro">Find us at AEON MALL Bukit Indah on Jalan Indah 15/2.</p>
 
 <div class="map-box"><!--Location map section-->
-<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=103.7505%2C1.4600%2C103.7665%2C1.4728&amp;layer=mapnik&amp;marker=1.4664%2C103.7585" title="EasyOrder approximate location in Johor Bahru" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.484169686179!2d103.65576250000001!3d1.4817523!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da734bc26d4cb7%3A0x9d7e99d02a832d45!2s%C3%86ON%20Mall%20Bukit%20Indah!5e0!3m2!1sen!2smy!4v1791214821850!5m2!1sen!2smy" title="AEON MALL Bukit Indah location on Google Maps" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 <p class="map-actions">
-	<a href="https://www.openstreetmap.org/?mlat=1.4664&amp;mlon=103.7585#map=16/1.4664/103.7585" target="_blank" rel="noopener noreferrer">Open larger map</a>
-	<span class="map-attribution">Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a></span>
+	<a href="https://www.google.com/maps/search/?api=1&amp;query=AEON+MALL+Bukit+Indah%2C+No.+8%2C+Jalan+Indah+15%2F2%2C+Bukit+Indah" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
 </p>
 </div>
 
