@@ -115,7 +115,18 @@ $wallet_recovery_token = $_SESSION["wallet_recovery_token"];
 </head>
 <body>
 <div id="header"><img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo"><h1>EasyOrder</h1><p>Your Favourite Fast Food, Just A Few Clicks Away</p></div>
-<div id="navbar"><a href="category.php">Menu</a><a href="cart.php">Cart</a><a href="profile.php">My Profile</a><a href="order_history.php">Order History</a><a href="wallet.php">Wallet</a><a href="reward.php">Rewards</a><a href="view_review.php">View Reviews</a><a href="about.html">About Us</a><a href="contact.php">Contact Us</a><a href="logout.php">Logout</a></div>
+<div id="navbar">
+<a href="category.php">Menu</a>
+<a href="cart.php">Cart</a>
+<a href="order_history.php">Order History</a>
+<a href="profile.php">My Profile</a>
+<a href="wallet.php">Wallet</a>
+<a href="reward.php">Rewards</a>
+<a href="view_review.php">View Reviews</a>
+<a href="about.html">About Us</a>
+<a href="contact.php">Contact Us</a>
+<a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
+</div>
 
 <main id="main" class="wallet-page">
 <div class="wallet-page-heading"><div><p class="checkout-step-label">WALLET SECURITY</p><h2 class="section-title">Change Wallet PIN</h2><p class="intro">Verify your customer identity before replacing the Wallet PIN.</p></div><a class="checkout-return-link" href="wallet.php">&larr; Back to Wallet</a></div>
