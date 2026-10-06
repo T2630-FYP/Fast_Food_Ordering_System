@@ -4,7 +4,7 @@ require_once("email_helpers.php");
 
 if(isset($_SESSION["customer_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
-	header("location:dashboard.php");
+	header("location:profile.php");
 	exit();
 }
 

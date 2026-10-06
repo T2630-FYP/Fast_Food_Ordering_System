@@ -3,7 +3,7 @@ include("dataconnection.php");
 
 if(isset($_SESSION["customer_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
-	header("location:dashboard.php");
+	header("location:profile.php");
 	exit();
 }
 
@@ -69,7 +69,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["loginbtn"]))
 			$_SESSION["customer_name"] = $row["customer_name"];
 			unset($_SESSION["login_csrf"]);
 			session_regenerate_id(true);
-			header("location:dashboard.php");
+			header("location:profile.php");
 			exit();
 		}
 

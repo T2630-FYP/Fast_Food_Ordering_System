@@ -296,7 +296,7 @@ function confirm_redeem(name,points)//ask the customer to confirm before spendin
 <div id="navbar"><!--Customer navigation bar-->
 <a href="category.php">Menu</a>
 <a href="cart.php">Cart</a>
-<a href="dashboard.php">My Dashboard</a>
+<a href="profile.php">My Profile</a>
 <a href="order_history.php">Order History</a>
 <a href="wallet.php">Wallet</a>
 <a href="view_review.php">View Reviews</a>
@@ -384,7 +384,7 @@ else
 <li>Click "Redeem" to add the free item to your cart, then check out from your cart to enjoy it.</li>
 </ol>
 
-<p style="text-align:center; margin-top:20px;"><a class="btn" href="cart.php">Go to Cart</a> &nbsp; <a class="btn" href="dashboard.php">Back to Dashboard</a></p>
+<p style="text-align:center; margin-top:20px;"><a class="btn" href="cart.php">Go to Cart</a> &nbsp; <a class="btn" href="profile.php">Back to Profile</a></p>
 
 </div>
 

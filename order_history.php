@@ -95,7 +95,7 @@ else
 <div id="navbar"><!-- Customer navigation bar -->
 <a href="category.php">Menu</a>
 <a href="cart.php">Cart</a>
-<a href="dashboard.php">My Dashboard</a>
+<a href="profile.php">My Profile</a>
 <a href="order_history.php">Order History</a>
 <a href="wallet.php">Wallet</a>
 <a href="reward.php">Rewards</a>

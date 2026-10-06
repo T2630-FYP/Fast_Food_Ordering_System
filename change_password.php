@@ -168,7 +168,7 @@ margin-top:20px;}
 <div id="navbar">
 <a href="category.php">Menu</a>
 <a href="cart.php">Cart</a>
-<a href="dashboard.php">My Dashboard</a>
+<a href="profile.php">My Profile</a>
 <a href="order_history.php">Order History</a>
 <a href="wallet.php">Wallet</a>
 <a href="reward.php">Rewards</a>
@@ -216,7 +216,7 @@ margin-top:20px;}
 
 <div class="password-actions">
 <input type="submit" name="change_password_btn" value="Change Password">
-<a class="btn" href="dashboard.php#profile">Back to Profile</a>
+<a class="btn" href="profile.php#profile">Back to Profile</a>
 </div>
 </form>
 </div>
