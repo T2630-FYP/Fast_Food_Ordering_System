@@ -161,9 +161,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 </div>
 
 <div id="navbar">
+<a href="./">Home</a>
 <a href="login.php">Login</a>
 <a href="register.php">Sign Up</a>
-<a href="./">Home</a>
 </div>
 
 <div id="main" role="main">
