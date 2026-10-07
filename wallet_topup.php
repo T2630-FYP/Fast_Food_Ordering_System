@@ -225,7 +225,7 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <aside class="wallet-topup-summary"><p class="checkout-step-label">CURRENT BALANCE</p><h3>RM <?php echo number_format((float)$wallet["wallet_balance"],2); ?></h3><p>A successful top-up is credited exactly once and appears in Wallet Transaction History.</p><ul><li>Minimum RM 1.00</li><li>Maximum RM 1,000.00 per top-up</li><li>No card number or CVV is saved</li></ul></aside>
 </div>
 </main>
-<footer><p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p><p><a href="admin_login.php">Admin Login</a></p></footer>
+<footer><p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p></footer>
 
 <script>
 (function(){

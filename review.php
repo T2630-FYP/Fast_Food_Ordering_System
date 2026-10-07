@@ -143,7 +143,6 @@ if($placed_order_id>0)
 
 <footer><!--Footer section-->
 <p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-<p><a href="admin_login.php">Admin Login</a></p>
 </footer>
 
 </body>
