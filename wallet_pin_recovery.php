@@ -147,6 +147,6 @@ $wallet_recovery_token = $_SESSION["wallet_recovery_token"];
 </form>
 </section>
 </main>
-<footer><p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p><p><a href="admin_login.php">Admin Login</a></p></footer>
+<footer><p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p></footer>
 </body>
 </html>
