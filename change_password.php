@@ -6,6 +6,7 @@ if(!isset($_SESSION["customer_id"]))
 	exit();
 }
 include("dataconnection.php");
+require_once(__DIR__."/customer_navigation.php");
 
 $mid = (int)$_SESSION["customer_id"];
 $password_errors = array();
@@ -166,16 +167,7 @@ margin-top:20px;}
 </div>
 
 <div id="navbar">
-<a href="category.php">Menu</a>
-<a href="cart.php">Cart</a>
-<a href="order_history.php">Order History</a>
-<a href="profile.php">My Profile</a>
-<a href="wallet.php">Wallet</a>
-<a href="reward.php">Rewards</a>
-<a href="view_review.php">View Reviews</a>
-<a href="about.html">About Us</a>
-<a href="contact.php">Contact Us</a>
-<a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
+<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
 <div id="main" role="main">
