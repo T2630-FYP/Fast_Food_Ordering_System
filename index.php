@@ -1,0 +1,291 @@
+<?php
+require_once(__DIR__."/dataconnection.php");
+require_once(__DIR__."/customer_navigation.php");
+header("Cache-Control: private, no-store, no-cache, must-revalidate, max-age=0");
+header("Pragma: no-cache");
+header("Expires: 0");
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head><!--Home page of EasyOrder website-->
+<link rel="icon" type="image/png" href="image/logo.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyOrder - Fast Food Ordering</title>
+<link rel="stylesheet" href="style.css?v=20260916-1">
+<script src="customer_navigation.js?v=20261015-2" defer></script>
+<style>
+footer.home-footer
+{--footer-background:#7D1025;
+--footer-text:#F2E5D7;
+--footer-heading:#F7F3EC;
+--footer-accent:#FFD36B;
+background-color:var(--footer-background);
+color:var(--footer-text);
+text-align:left;
+margin-top:56px;
+padding:0px;}
+
+.home-footer,
+.home-footer *
+{box-sizing:border-box;
+font-family:"Segoe UI",Arial,sans-serif;}
+
+.home-footer-container
+{width:calc(100% - 96px);
+max-width:1120px;
+margin:0px auto;}
+
+.home-footer-grid
+{display:grid;
+grid-template-columns:1.15fr 0.65fr 1fr 1.45fr;
+gap:48px;
+padding:40px 0px 32px;}
+
+.home-footer a
+{color:var(--footer-text);
+text-decoration:none;
+transition:color 150ms ease,background-color 150ms ease,border-color 150ms ease;}
+
+.home-footer a:hover
+{color:var(--footer-accent);
+text-decoration:none;}
+
+.home-footer a:focus-visible
+{outline:2px solid var(--footer-accent);
+outline-offset:5px;}
+
+.home-footer .home-footer-brand
+{display:inline-flex;
+align-items:center;
+gap:12px;
+color:var(--footer-heading);}
+
+.home-footer-brand img
+{display:block;
+width:52px;
+height:52px;
+border-radius:12px;}
+
+.home-footer-brand h2
+{font-size:24px;
+font-weight:700;
+line-height:1.2;
+letter-spacing:-0.3px;
+margin:0px;}
+
+.home-footer-description
+{max-width:240px;
+font-size:15px;
+line-height:1.75;
+margin:18px 0px 0px;}
+
+.home-footer h3
+{color:var(--footer-heading);
+font-size:18px;
+font-weight:600;
+line-height:1.3;
+margin:0px 0px 22px;}
+
+.home-footer-links ul
+{list-style:none;
+padding:0px;
+margin:0px;}
+
+.home-footer-links li
+{font-size:15px;
+line-height:1.5;
+margin:0px 0px 13px;}
+
+.home-footer-links a
+{text-underline-offset:4px;}
+
+.home-footer-links a:hover
+{text-decoration:underline;}
+
+.home-footer address,
+.home-footer-hours p
+{color:var(--footer-text);
+font-size:15px;
+font-style:normal;
+line-height:1.7;
+margin:0px;}
+
+.home-footer-contact
+{display:flex;
+flex-direction:column;
+align-items:flex-start;
+gap:6px;
+font-size:15px;
+line-height:1.5;
+margin:0px;}
+
+.home-footer-hours
+{margin-top:14px;}
+
+.home-footer-social
+{display:flex;
+gap:10px;
+margin-top:22px;}
+
+.home-footer .home-footer-social a
+{display:flex;
+align-items:center;
+justify-content:center;
+width:44px;
+height:44px;
+background-color:#922D41;
+border:1px solid #B05566;
+border-radius:50%;
+color:var(--footer-heading);}
+
+.home-footer .home-footer-social a:hover
+{background-color:#681020;
+border-color:var(--footer-accent);
+color:var(--footer-accent);}
+
+.home-footer-social svg
+{display:block;
+width:22px;
+height:22px;}
+
+.home-footer-bottom
+{border-top:1px solid #A34558;
+padding:18px 0px;}
+
+.home-footer-bottom p
+{color:#E8D9CA;
+font-size:13px;
+line-height:1.5;
+margin:0px;}
+
+</style>
+</head>
+
+<body>
+
+<div id="header"><!--Header section for logo, website name and slogan-->
+<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
+<h1>EasyOrder</h1>
+<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
+</div>
+
+<div id="navbar"><!--Customer navigation bar-->
+<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
+</div>
+
+<main id="main"><!--Main content section-->
+
+<section id="hero" class="home-hero">
+<img src="image/banner.jpg" alt="A selection of fast food available from EasyOrder" title="Welcome to EasyOrder">
+<h2>Order Your Favourite Fast Food Online</h2>
+<p>Fresh, hot and delivered fast. Browse our menu and place your order in just a few clicks.</p>
+<p><a class="btn home-cta" href="<?php echo isset($_SESSION["customer_id"]) ? "category.php" : "login.php"; ?>">Order Now</a></p>
+</section>
+
+<hr>
+
+<section aria-labelledby="why-easyorder">
+<h2 class="section-title" id="why-easyorder">Why Choose EasyOrder?</h2>
+<div class="home-card-grid">
+<article class="home-info-card">
+<h3>Easy Ordering</h3>
+<p>Choose your meal, update your cart and confirm your order in one connected flow.</p>
+</article>
+<article class="home-info-card">
+<h3>Fresh Meals</h3>
+<p>Browse freshly prepared fast-food favourites with clear prices and availability.</p>
+</article>
+<article class="home-info-card">
+<h3>Order Tracking</h3>
+<p>Use your customer dashboard to review order history, account details and rewards.</p>
+</article>
+</div>
+</section>
+
+<section aria-labelledby="how-it-works">
+<h2 class="section-title" id="how-it-works">How It Works</h2>
+<ol class="home-steps">
+<li><strong>Create an account</strong><span>Register your customer details once.</span></li>
+<li><strong>Choose your food</strong><span>Log in, browse the menu and add items to your cart.</span></li>
+<li><strong>Place your order</strong><span>Confirm checkout and view the order in your history.</span></li>
+</ol>
+</section>
+
+</main>
+
+<footer class="home-footer"><!--Home page footer-->
+<div class="home-footer-container">
+<div class="home-footer-grid">
+
+<section aria-label="About EasyOrder">
+<div class="home-footer-brand">
+<img src="image/logo.png" width="52" height="52" alt="">
+<h2>EasyOrder</h2>
+</div>
+<p class="home-footer-description">Freshly prepared favourites, friendly service and good food for your everyday cravings.</p>
+<div class="home-footer-social">
+<a href="https://www.instagram.com/" target="_blank" rel="noopener noreferrer" aria-label="Instagram official website (opens in a new tab)" title="Instagram">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true" focusable="false">
+<rect x="3" y="3" width="18" height="18" rx="5"/>
+<circle cx="12" cy="12" r="4"/>
+<circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+</svg>
+</a>
+<a href="https://www.facebook.com/" target="_blank" rel="noopener noreferrer" aria-label="Facebook official website (opens in a new tab)" title="Facebook">
+<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+<path d="M14 22v-9h3l.5-4H14V7c0-1.2.4-2 2-2h2V1.4C17.3 1.2 16.2 1 15 1c-3 0-5 1.8-5 5v3H7v4h3v9z"/>
+</svg>
+</a>
+<a href="https://www.linkedin.com/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn official website (opens in a new tab)" title="LinkedIn">
+<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+<circle cx="5.5" cy="5.5" r="2"/>
+<path d="M3.5 9h4v12h-4zM10 9h3.8v1.6c.8-1.2 2-1.9 3.6-1.9 3 0 4.1 1.8 4.1 5V21h-4v-6.4c0-1.6-.4-2.7-1.9-2.7-1.4 0-1.6 1.1-1.6 2.7V21h-4z"/>
+</svg>
+</a>
+</div>
+</section>
+
+<nav class="home-footer-links" aria-labelledby="home-footer-links-title">
+<h3 id="home-footer-links-title">Quick Links</h3>
+<ul>
+<li><a href="./">Home</a></li>
+<li><a href="category.php">Menu</a></li>
+<li><a href="about.php">About Us</a></li>
+<li><a href="contact.php">Contact Us</a></li>
+</ul>
+</nav>
+
+<section aria-labelledby="home-footer-contact-title">
+<h3 id="home-footer-contact-title">Contact Us</h3>
+<div class="home-footer-contact">
+<span>+60 7-684 9271</span>
+<span>support@easyorder.com</span>
+</div>
+</section>
+
+<section aria-labelledby="home-footer-visit-title">
+<h3 id="home-footer-visit-title">Visit Us</h3>
+<address>
+AEON MALL Bukit Indah,<br>
+No. 8, Jalan Indah 15/2,<br>
+Taman Bukit Indah,<br>
+81200 Johor Bahru, Johor, Malaysia
+</address>
+<div class="home-footer-hours">
+<p>Monday &ndash; Sunday, 10am &ndash; 10pm</p>
+</div>
+</section>
+
+</div>
+
+<div class="home-footer-bottom">
+<p>&copy; 2026 EasyOrder. All rights reserved.</p>
+</div>
+</div>
+</footer>
+
+</body>
+
+</html>

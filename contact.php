@@ -1,4 +1,4 @@
-<?php include("dataconnection.php"); ?>
+<?php include("dataconnection.php"); require_once("customer_navigation.php"); ?>
 
 <!DOCTYPE html>
 <html>
@@ -8,6 +8,7 @@
 <title>Contact Us</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
+<script src="customer_navigation.js?v=20261015-1" defer></script>
 
 <style>
 .contact-card
@@ -192,16 +193,7 @@ function contact_check()//Validate customer contact form
 </div>
 
 <div id="navbar"><!--Customer navigation bar-->
-<a href="category.php">Menu</a>
-<a href="cart.php">Cart</a>
-<a href="order_history.php">Order History</a>
-<a href="profile.php">My Profile</a>
-<a href="wallet.php">Wallet</a>
-<a href="reward.php">Rewards</a>
-<a href="view_review.php">View Reviews</a>
-<a href="about.html">About Us</a>
-<a href="contact.php">Contact Us</a>
-<a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
+<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
 <div id="main"><!--Main content section-->
