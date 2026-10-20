@@ -1,5 +1,6 @@
 <?php
 include("dataconnection.php");
+require_once("customer_navigation.php");
 require_once("email_helpers.php");
 
 if(isset($_SESSION["customer_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
@@ -186,6 +187,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create Your Account</title>
 <link rel="stylesheet" href="style.css?v=20260916-1">
+<script src="customer_navigation.js?v=20261015-1" defer></script>
 <script src="password_ux.js?v=20260926-1" defer></script>
 </head>
 <body>
@@ -197,9 +199,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["signupbtn"]))
 </div>
 
 <div id="navbar">
-<a href="./">Home</a>
-<a href="login.php">Login</a>
-<a href="register.php">Sign Up</a>
+<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
 <main id="main">

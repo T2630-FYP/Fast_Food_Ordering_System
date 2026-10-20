@@ -1,5 +1,6 @@
 <?php
 include("dataconnection.php");
+require_once("customer_navigation.php");
 include_once("password_reset_helpers.php");
 
 $forgot_errors = array();
@@ -47,6 +48,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forgot Password</title>
 <link rel="stylesheet" href="style.css?v=20260915-2">
+<script src="customer_navigation.js?v=20261015-1" defer></script>
 </head>
 <body>
 
@@ -57,9 +59,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 </div>
 
 <div id="navbar">
-<a href="./">Home</a>
-<a href="login.php">Login</a>
-<a href="register.php">Sign Up</a>
+<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
 <div id="main" role="main">

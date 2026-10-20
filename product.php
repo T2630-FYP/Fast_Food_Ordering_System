@@ -1,5 +1,6 @@
 <?php
 include("dataconnection.php");
+require_once(__DIR__."/customer_navigation.php");
 require_once("product_catalog_helpers.php");
 
 if(!isset($_SESSION["customer_id"]))
@@ -54,16 +55,7 @@ $product_state = $product ? catalog_product_state($product) : null;
 </div>
 
 <div id="navbar"><!--Customer navigation bar-->
-<a href="category.php">Menu</a>
-<a href="cart.php">Cart</a>
-<a href="order_history.php">Order History</a>
-<a href="profile.php">My Profile</a>
-<a href="wallet.php">Wallet</a>
-<a href="reward.php">Rewards</a>
-<a href="view_review.php">View Reviews</a>
-<a href="about.html">About Us</a>
-<a href="contact.php">Contact Us</a>
-<a href="logout.php" onclick="return confirm('Are you sure you want to logout?')">Logout</a>
+<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
 <main id="main">
