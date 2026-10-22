@@ -14,8 +14,40 @@ header("Expires: 0");
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyOrder - Fast Food Ordering</title>
 <link rel="stylesheet" href="style.css?v=20260916-1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 <script src="customer_navigation.js?v=20261015-2" defer></script>
 <style>
+#header
+{padding-bottom:10px;}
+
+#header h1
+{margin-top:-8px;}
+
+#header .brand-tagline
+{display:flex;
+align-items:center;
+justify-content:center;
+gap:18px;
+margin:10px 0px 0px 0px;
+font-family:'Poppins',sans-serif;
+font-size:14px;
+font-style:normal;
+font-weight:600;
+letter-spacing:2px;
+line-height:22px;
+white-space:nowrap;}
+
+#header .brand-tagline::before,
+#header .brand-tagline::after
+{content:"";
+flex:0 0 36px;
+height:1.5px;
+background-color:#FFC72C;}
+
+#navbar
+{padding-top:8px;
+padding-bottom:8px;}
+
 footer.home-footer
 {--footer-background:#7D1025;
 --footer-text:#F2E5D7;
@@ -168,7 +200,7 @@ margin:0px;}
 <div id="header"><!--Header section for logo, website name and slogan-->
 <img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
 <h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
+<p class="brand-tagline">MADE FOR YOUR CRAVINGS</p>
 </div>
 
 <div id="navbar"><!--Customer navigation bar-->
