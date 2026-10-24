@@ -1,0 +1,663 @@
+
+/* EASYORDER HOMEPAGE CONTENT */
+
+.eo-block {
+    --eo-red: #C8102E;
+    --eo-maroon: #9E0B22;
+    --eo-orange: #FF7A00;
+    --eo-gold: #FFC72C;
+    --eo-cream: #FFF8F0;
+    --eo-dark: #371C23;
+
+    width: 100%;
+    background: var(--eo-cream);
+    color: var(--eo-dark);
+    font-family: "Segoe UI", Arial, sans-serif;
+}
+
+.eo-block *,
+.eo-block *::before,
+.eo-block *::after {
+    box-sizing: border-box;
+}
+
+.eo-block a {
+    text-decoration: none;
+}
+
+/* HERO SECTION */
+
+.eo-block .eo-hero {
+    width: min(1080px, calc(100% - 80px));
+    min-height: 430px;
+    margin: 0 auto;
+    padding: 16px 0;
+
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    gap: 28px;
+}
+
+.eo-block .eo-eyebrow,
+.eo-block .eo-categories-label {
+    color: var(--eo-maroon);
+    font-size: 11px;
+    font-weight: 850;
+    letter-spacing: 2px;
+}
+
+.eo-block .eo-eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.eo-block .eo-eyebrow-icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 10px;
+    height: 10px;
+    color: #F4A000;
+}
+
+.eo-block .eo-eyebrow-icon svg,
+.eo-block .eo-note-icon svg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    display: block;
+    transform: translate(-50%, -50%);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.eo-block .eo-eyebrow-icon svg {
+    width: 20px;
+    height: 20px;
+}
+
+.eo-block .eo-hero h1 {
+    margin: 0 0 18px;
+    color: var(--eo-dark);
+    font-size: clamp(52px, 4vw, 62px);
+    font-weight: 900;
+    line-height: 1.02;
+    letter-spacing: -2.5px;
+}
+
+.eo-block .eo-hero h1 span,
+.eo-block .eo-categories h2 span {
+    color: var(--eo-red);
+}
+
+.eo-block .eo-lead {
+    max-width: 450px;
+    margin: 0;
+    color: #6B5555;
+    font-size: 16px;
+    line-height: 1.65;
+}
+
+/* HERO BUTTONS */
+
+.eo-block .eo-actions {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    margin: 22px 0 24px;
+}
+
+.eo-block .eo-order-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+
+    min-height: 50px;
+    padding: 12px 20px;
+    border-radius: 12px;
+
+    background: var(--eo-orange);
+    color: white;
+    font-size: 15px;
+    font-weight: 800;
+
+    transition: 0.2s;
+}
+
+.eo-block .eo-order-btn:hover {
+    background: var(--eo-red);
+    transform: translateY(-2px);
+}
+
+.eo-home .eo-actions {
+    gap: 12px;
+}
+
+.eo-home .eo-actions .eo-order-btn,
+.eo-home .eo-actions .eo-explore-btn {
+    justify-content: center;
+    gap: 16px;
+    min-height: 52px;
+    margin-top: 0;
+    padding: 12px 16px;
+    border-radius: 12px;
+    line-height: 22px;
+    white-space: nowrap;
+}
+
+/* Keep the approved outer widths while enlarging the button text. */
+.eo-home .eo-actions .eo-order-btn {
+    width: 155.125px;
+    font-size: 16px;
+}
+
+.eo-block .eo-order-btn span {
+    font-size: 20px;
+}
+
+.eo-block .eo-explore-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--eo-maroon);
+    font-size: 14px;
+    font-weight: 800;
+    border-bottom: 2px solid currentColor;
+    padding: 6px 0;
+}
+
+.eo-block .eo-explore-btn:hover {
+    color: var(--eo-orange);
+}
+
+.eo-home .eo-actions .eo-explore-btn {
+    width: 171.625px;
+    font-size: 15px;
+    border: 1px solid rgba(158, 11, 34, 0.22);
+    background: #FFFFFF;
+    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+}
+
+.eo-home .eo-actions .eo-explore-btn:hover,
+.eo-home .eo-actions .eo-explore-btn:focus-visible {
+    background: var(--eo-red);
+    border-color: var(--eo-red);
+    color: #FFFFFF;
+    transform: translateY(-2px);
+}
+
+.eo-home .eo-actions .eo-action-arrow {
+    display: block;
+    flex: 0 0 18px;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.eo-block .eo-note {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #8D6F6E;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.eo-block .eo-note-icon {
+    position: relative;
+    flex-shrink: 0;
+    width: 20px;
+    height: 30px;
+    color: var(--eo-orange);
+    font-size: 22px;
+}
+
+.eo-block .eo-note-icon svg {
+    width: 22px;
+    height: 22px;
+}
+
+/* HERO IMAGE */
+
+.eo-block .eo-hero-picture {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+}
+
+.eo-block .eo-hero-picture img {
+    display: block;
+    width: 100%;
+    max-width: 560px;
+    height: auto;
+    margin-right: 0;
+    /* Blend the JPEG's near-white background into the page cream. */
+    mix-blend-mode: darken;
+    filter: brightness(1.025);
+}
+
+/* THREE BENEFITS */
+
+.eo-block .eo-benefits {
+    position: relative;
+    overflow: hidden;
+
+    width: min(1080px, calc(100% - 80px));
+    min-height: 80px;
+    margin: 16px auto;
+    padding: 10px 14px;
+
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    align-items: center;
+
+    background: linear-gradient(
+        112deg,
+        #FFF2DC 0%,
+        #FFF6E8 52%,
+        #FFF0DC 100%
+    );
+
+    border: 1px solid #F3DDC2;
+    border-radius: 16px;
+}
+
+.eo-block .eo-benefits::after {
+    content: "";
+    position: absolute;
+    width: 175px;
+    height: 175px;
+    top: -115px;
+    right: -50px;
+    border: 29px solid rgba(255, 199, 44, 0.11);
+    border-radius: 50%;
+}
+
+.eo-block .eo-benefit {
+    position: relative;
+    z-index: 1;
+
+    min-height: 56px;
+    padding: 0 18px;
+
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.eo-block .eo-benefit + .eo-benefit {
+    border-left: 1px solid #EBD6C2;
+}
+
+.eo-block .eo-benefit-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 48px;
+    height: 48px;
+    background: #FFFCF6;
+    color: #A70F29;
+
+    border: 1px solid #F5D8AF;
+    border-radius: 14px;
+}
+
+.eo-block .eo-benefit-icon svg {
+    width: 23px;
+    height: 23px;
+}
+
+.eo-block .eo-benefit h3 {
+    margin: 0 0 5px;
+    color: #631E2B;
+    font-size: 15px;
+    font-weight: 750;
+}
+
+.eo-block .eo-benefit p {
+    margin: 0;
+    color: #927267;
+    font-size: 13px;
+}
+
+/* FOOD CATEGORY SECTION */
+
+.eo-block .eo-categories {
+    width: min(1080px, calc(100% - 80px));
+    margin: 0 auto;
+    padding: 44px 0 56px;
+}
+
+.eo-block .eo-categories-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 20px;
+    margin-bottom: 22px;
+}
+
+.eo-block .eo-categories-label {
+    margin: 0 0 8px;
+    font-size: 11px;
+}
+
+.eo-block .eo-categories h2 {
+    margin: 0;
+    color: var(--eo-dark);
+    font-size: clamp(32px, 2.8vw, 38px);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -1.4px;
+}
+
+/* SLIDER CONTROLS */
+
+.eo-block .eo-slider-controls {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding-bottom: 4px;
+}
+
+.eo-block .eo-counter {
+    min-width: 62px;
+    margin-right: 5px;
+    color: #947C75;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.eo-block .eo-slider-controls button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+    padding: 0;
+
+    border: 1px solid #DDA9AC;
+    border-radius: 50%;
+
+    background: white;
+    color: #B71535;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.eo-block .eo-slider-controls button svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.eo-block .eo-slider-controls button:hover:not(:disabled) {
+    background: var(--eo-red);
+    color: white;
+}
+
+.eo-block .eo-slider-controls button:disabled {
+    background: #F8F1EA;
+    color: #D6C7C0;
+    border-color: #EFE5DE;
+    cursor: default;
+}
+
+/* HORIZONTAL SLIDER */
+
+.eo-block .eo-slider {
+    width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+
+    padding: 10px 0 19px;
+    margin: -10px 0 -11px;
+    cursor: grab;
+}
+
+.eo-block .eo-slider::-webkit-scrollbar {
+    display: none;
+}
+
+.eo-block .eo-slider.is-dragging {
+    cursor: grabbing;
+    scroll-snap-type: none;
+    scroll-behavior: auto;
+    user-select: none;
+}
+
+.eo-block .eo-card-track {
+    display: grid;
+    grid-auto-flow: column;
+
+    /* SHOW EXACTLY THREE CARDS */
+    grid-auto-columns: calc((100% - 46px) / 3);
+    gap: 23px;
+}
+
+/* CATEGORY CARD */
+
+.eo-block .eo-food-card {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+
+    scroll-snap-align: start;
+    border-radius: 18px;
+    border: 1px solid #F1E5D8;
+
+    background: white;
+    color: var(--eo-dark);
+
+    box-shadow: 0 8px 26px rgba(73,40,29,0.045);
+    transition: 0.2s;
+}
+
+.eo-block .eo-food-card:hover {
+    transform: translateY(-7px);
+    box-shadow: 0 18px 35px rgba(73,40,29,0.11);
+}
+
+/* CATEGORY IMAGE */
+
+.eo-block .eo-food-photo {
+    height: 190px;
+    overflow: hidden;
+    background: #FFF0D8;
+}
+
+/* Fried Chicken */
+.eo-block .eo-food-card:nth-child(1) .eo-food-photo {
+    background: #FFF0D8;
+}
+
+/* Burger */
+.eo-block .eo-food-card:nth-child(2) .eo-food-photo {
+    background: #FFF3E6;
+}
+
+/* Side Dishes */
+.eo-block .eo-food-card:nth-child(3) .eo-food-photo {
+    background: #FFF0E4;
+}
+
+/* Dessert */
+.eo-block .eo-food-card:nth-child(4) .eo-food-photo {
+    background: #F9EBE6;
+}
+
+/* Beverage */
+.eo-block .eo-food-card:nth-child(5) .eo-food-photo {
+    background: #F7EEE7;
+}
+
+.eo-block .eo-food-photo img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    mix-blend-mode: multiply;
+    pointer-events: none;
+    transition: transform 0.35s;
+}
+
+.eo-block .eo-food-card:hover .eo-food-photo img {
+    transform: scale(1.06);
+}
+
+/* CATEGORY TEXT */
+
+.eo-block .eo-food-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 18px 20px;
+}
+
+.eo-block .eo-food-details h3 {
+    margin: 0 0 6px;
+    color: var(--eo-dark);
+    font-size: 19px;
+    font-weight: 900;
+    letter-spacing: -0.4px;
+}
+
+.eo-block .eo-food-details p {
+    margin: 0;
+    color: #8E7775;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.eo-block .eo-food-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+
+    background: var(--eo-red);
+    color: white;
+    font-size: 21px;
+}
+
+.eo-block .eo-food-arrow svg {
+    display: block;
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.eo-block .eo-food-card:hover .eo-food-arrow {
+    background: var(--eo-orange);
+}
+
+.eo-block .eo-slider-hint {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
+    margin: 8px 0 0;
+    color: #9C837D;
+    font-size: 12px;
+    line-height: 18px;
+}
+
+.eo-block .eo-slider-hint-icon {
+    display: block;
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--eo-red);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+/* Scope the reference typography against the existing global Arial rule. */
+.eo-block * { font-family: inherit; }
+.eo-block a:focus-visible, .eo-block button:focus-visible,
+.eo-block .eo-slider:focus-visible { outline: 3px solid #C8102E; outline-offset: 5px; }
+
+
+
+
+/* Guest menu: public food information only. */
+
+.eo-menu { width: min(1080px,calc(100% - 80px)); margin: auto; padding: 32px 0 48px; }
+.eo-menu-intro { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-bottom: 24px; }
+.eo-menu h1 { color: #371C23; font-size: 36px; font-weight: 900; margin: 0 0 8px; letter-spacing: -1px; }
+.eo-menu-intro p { color: #8E7775; font-size: 15px; line-height: 1.6; margin: 0; }
+.eo-menu .eo-order-btn { font-size: 14px; min-height: 46px; padding: 10px 18px; gap: 12px; flex-shrink: 0; }
+.eo-menu-search { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 20px; }
+.eo-menu-search label { flex: 1; color: #631E2B; font-size: 14px; font-weight: 700; }
+.eo-menu-search input { box-sizing: border-box; display: block; width: 100%; margin-top: 8px; height: 42px; padding: 9px 12px; border: 1px solid #E8D7C7; border-radius: 10px; font-size: 14px; background: white; }
+.eo-menu-search button { height: 42px; padding: 0 20px; border: 0; border-radius: 10px; color: white; background: #C8102E; font-size: 14px; font-weight: 700; cursor: pointer; }
+.eo-menu-search a { color: #9E0B22; padding-bottom: 12px; font-size: 14px; }
+.eo-menu-results { scroll-margin-top: 24px; }
+.eo-menu-results-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid #E5C7BC; }
+.eo-menu-results-heading h2 { margin: 0; font-size: 24px; font-weight: 850; color: #371C23; }
+.eo-menu-results-heading p { color: #8E7775; font-size: 13px; margin: 0; }
+.eo-menu-products { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 20px; }
+.eo-menu-food { display: flex; flex-direction: column; overflow: hidden; border-radius: 16px; border: 1px solid #EFE0D2; background: white; box-shadow: 0 7px 22px #49281D08; }
+.eo-menu-food > img,
+.eo-menu-food-image-link img { display: block; width: 100%; height: 165px; object-fit: contain; background: white; }
+.eo-menu-food-image-link { display: block; }
+.eo-menu-food-copy { display: flex; flex: 1; flex-direction: column; padding: 18px 20px; }
+.eo-menu-food-category { color: #9E0B22; font-size: 11px; font-weight: 750; letter-spacing: 1px; text-transform: uppercase; margin: 0 0 6px; }
+.eo-menu-food h3 { color: #371C23; font-size: 18px; font-weight: 850; margin: 0 0 8px; }
+.eo-menu-food h3 a { color: inherit; }
+.eo-menu-food h3 a:hover { text-decoration: underline; }
+.eo-menu-food-description { flex: 1; font-size: 14px; line-height: 1.6; color: #8E7775; margin: 0 0 14px; }
+.eo-menu-food-price { color: #C8102E; font-size: 20px; font-weight: 850; margin: 0; }
+.eo-menu-empty { padding: 36px; text-align: center; background: #FFF0D8; border-radius: 16px; }
+.eo-menu-empty a { color: #9E0B22; text-decoration: underline; }
+.eo-menu-notice { color: #8E7775; margin: 0 0 20px; font-size: 14px; }
+/* Authenticated Menu reuses Guest content styles and retains purchasing controls. */
+#main.eo-customer-menu { width: 100%; margin: 0; padding: 0; }
+.eo-customer-menu .eo-menu-food-stock { margin: 14px 0 0; }
+.eo-customer-menu .catalog-product-actions { margin-top: 14px; }
+.eo-customer-menu .catalog-product-actions > * {
+ display: flex; align-items: center; justify-content: center; min-height: 42px;
+ padding: 10px 12px; border-radius: 10px; font-size: 14px; font-weight: 700;
+}
+
+
+@media (prefers-reduced-motion: reduce) {
+ .eo-block *, .eo-block *::before, .eo-block *::after { transition: none !important; scroll-behavior: auto !important; }
+}
