@@ -34,7 +34,8 @@ if(mysqli_num_rows($order_result)>0)
 <head><!--Customer comments and rating page-->
 <link rel="icon" type="image/png" href="image/logo.png">
 <title>Review</title>
-<link rel="stylesheet" href="style.css?v=20260922-2">
+<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 
 <script>
 function submit_review()//Validate customer rating and comment form
@@ -68,13 +69,9 @@ function submit_review()//Validate customer rating and comment form
 
 <body>
 
-<div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
+<?php easyorder_render_customer_header(); ?>
 
-<div id="navbar"><!--Customer navigation bar-->
+<div id="navbar" class="customer-site-navbar"><!--Customer navigation bar-->
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
@@ -133,9 +130,7 @@ if($placed_order_id>0)
 
 </div>
 
-<footer><!--Footer section-->
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-</footer>
+<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
 </body>
 
