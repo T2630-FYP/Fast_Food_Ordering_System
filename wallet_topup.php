@@ -183,11 +183,12 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Top Up Wallet</title>
-<link rel="stylesheet" href="style.css?v=20260927-1">
+<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 <body>
-<div id="header"><img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo"><h1>EasyOrder</h1><p>Your Favourite Fast Food, Just A Few Clicks Away</p></div>
-<div id="navbar">
+<?php easyorder_render_customer_header(); ?>
+<div id="navbar" class="customer-site-navbar">
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
@@ -217,7 +218,7 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <aside class="wallet-topup-summary"><p class="checkout-step-label">CURRENT BALANCE</p><h3>RM <?php echo number_format((float)$wallet["wallet_balance"],2); ?></h3><p>A successful top-up is credited exactly once and appears in Wallet Transaction History.</p><ul><li>Minimum RM 1.00</li><li>Maximum RM 1,000.00 per top-up</li><li>No card number or CVV is saved</li></ul></aside>
 </div>
 </main>
-<footer><p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p></footer>
+<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
 <script>
 (function(){
