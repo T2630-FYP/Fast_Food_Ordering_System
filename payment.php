@@ -270,18 +270,15 @@ if($payment_available)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Card Payment</title>
-<link rel="stylesheet" href="style.css?v=20260922-2">
+<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 
 <body>
 
-<div id="header"><!-- EasyOrder site header -->
-<img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
+<?php easyorder_render_customer_header(); ?>
 
-<div id="navbar"><!-- Customer navigation links -->
+<div id="navbar" class="customer-site-navbar"><!-- Customer navigation links -->
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
@@ -405,9 +402,7 @@ if($payment_available)
 
 </main>
 
-<footer><!-- Website footer -->
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-</footer>
+<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
 <?php if($payment_available) { ?>
 <script>
