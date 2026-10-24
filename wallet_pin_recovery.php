@@ -112,11 +112,12 @@ $wallet_recovery_token = $_SESSION["wallet_recovery_token"];
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Wallet PIN Recovery</title>
-<link rel="stylesheet" href="style.css?v=20260927-1">
+<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 <body>
-<div id="header"><img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo"><h1>EasyOrder</h1><p>Your Favourite Fast Food, Just A Few Clicks Away</p></div>
-<div id="navbar">
+<?php easyorder_render_customer_header(); ?>
+<div id="navbar" class="customer-site-navbar">
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
@@ -139,6 +140,6 @@ $wallet_recovery_token = $_SESSION["wallet_recovery_token"];
 </form>
 </section>
 </main>
-<footer><p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p></footer>
+<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 </body>
 </html>
