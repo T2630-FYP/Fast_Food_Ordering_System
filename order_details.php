@@ -195,18 +195,15 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 <link rel="icon" type="image/png" href="image/logo.png">
 <meta charset="UTF-8">
 <title>Order Details</title>
-<link rel="stylesheet" href="style.css?v=20260922-2">
+<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 
 <body>
 
-<div id="header"><!-- Header section for logo, website name and slogan -->
-<img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
+<?php easyorder_render_customer_header(); ?>
 
-<div id="navbar"><!-- Customer navigation bar -->
+<div id="navbar" class="customer-site-navbar"><!-- Customer navigation bar -->
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
@@ -327,9 +324,7 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 
 </main>
 
-<footer><!-- Footer section -->
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-</footer>
+<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
 </body>
 
