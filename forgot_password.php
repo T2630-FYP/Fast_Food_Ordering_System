@@ -47,18 +47,15 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Forgot Password</title>
-<link rel="stylesheet" href="style.css?v=20260915-2">
-<script src="customer_navigation.js?v=20261015-1" defer></script>
+<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
+<script src="customer_navigation.js?v=20261024-shell1" defer></script>
 </head>
 <body>
 
-<div id="header">
-<img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
+<?php easyorder_render_customer_header(); ?>
 
-<div id="navbar">
+<div id="navbar" class="customer-site-navbar">
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
@@ -90,9 +87,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["forgot_password_btn"]))
 </div>
 </div>
 
-<footer>
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-</footer>
+<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
 <script>
 (function()
