@@ -143,7 +143,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verify Reset Code</title>
@@ -186,7 +186,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 </div>
 </form>
 
-<p class="recovery-note">Code requested for <strong><?php echo easyorder_reset_h($submitted_email); ?></strong>. <a href="forgot_password.php">Use a different email</a>.</p>
+<p class="recovery-note">Code requested for <strong><?php echo easyorder_reset_h($submitted_email); ?></strong>.</p>
 </div>
 </div>
 
