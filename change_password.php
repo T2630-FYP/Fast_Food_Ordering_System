@@ -101,7 +101,7 @@ if(isset($_SESSION["change_password_success"]))
 <html lang="en">
 
 <head>
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Change Password</title>
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
@@ -124,6 +124,54 @@ margin-bottom:6px;}
 .password-field input
 {width:100%;
 box-sizing:border-box;}
+
+#password-box .password-input-wrap
+{position:relative;
+display:inline-grid;
+width:100%;}
+
+#password-box input.has-visibility-toggle
+{padding-right:44px;}
+
+#password-box .password-visibility-toggle
+{position:absolute;
+right:4px;
+top:50%;
+transform:translateY(-50%);
+display:grid;
+place-items:center;
+width:30px;
+height:28px;
+padding:0;
+border:0;
+border-radius:4px;
+background:transparent;
+color:#94827E;
+cursor:pointer;}
+
+#password-box .password-visibility-toggle[hidden]
+{display:none;}
+
+#password-box .password-visibility-toggle:hover
+{background:#FFF0EE;
+color:#A6102D;}
+
+#password-box .password-visibility-toggle:focus-visible
+{outline:2px solid #E9AD70;
+outline-offset:2px;}
+
+#password-box .password-visibility-toggle svg
+{width:21px;
+height:21px;
+stroke-linecap:round;
+stroke-linejoin:round;}
+
+#password-box .password-eye-closed,
+#password-box .is-visible .password-eye-open
+{display:none;}
+
+#password-box .is-visible .password-eye-closed
+{display:block;}
 
 .password-error
 {display:block;
@@ -185,20 +233,47 @@ margin-top:20px;}
 
 <div class="password-field">
 <label for="old_password">Current Password *</label>
+<div class="password-input-wrap">
 <input type="password" id="old_password" name="old_password" autocomplete="current-password"<?php if(isset($password_errors["old"])) { ?> aria-invalid="true" aria-describedby="old_password-error"<?php } ?> required>
+<button type="button" class="password-visibility-toggle" data-password-field="old_password" data-password-label="current password" aria-controls="old_password" aria-label="Show current password" aria-pressed="false" hidden>
+<svg class="password-eye-open" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="password-eye-closed" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+<defs><mask id="change-eye-gap-old_password" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="white" stroke="none"/><path d="M3 3l18 18" stroke="black" stroke-width="4.6"/></mask></defs>
+<g mask="url(#change-eye-gap-old_password)"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></g><path d="M3 3l18 18"/>
+</svg>
+</button>
+</div>
 <?php if(isset($password_errors["old"])) { ?><span class="password-error" id="old_password-error"><?php echo change_password_h($password_errors["old"]); ?></span><?php } ?>
 </div>
 
 <div class="password-field">
 <label for="new_password">New Password *</label>
+<div class="password-input-wrap">
 <input type="password" id="new_password" name="new_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-strength="change-password-strength" aria-describedby="change-password-strength<?php if(isset($password_errors["new"])) echo " new_password-error"; ?>"<?php if(isset($password_errors["new"])) { ?> aria-invalid="true"<?php } ?> required>
+<button type="button" class="password-visibility-toggle" data-password-field="new_password" data-password-label="new password" aria-controls="new_password" aria-label="Show new password" aria-pressed="false" hidden>
+<svg class="password-eye-open" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="password-eye-closed" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+<defs><mask id="change-eye-gap-new_password" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="white" stroke="none"/><path d="M3 3l18 18" stroke="black" stroke-width="4.6"/></mask></defs>
+<g mask="url(#change-eye-gap-new_password)"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></g><path d="M3 3l18 18"/>
+</svg>
+</button>
+</div>
 <small id="change-password-strength" class="password-feedback" data-state="empty" aria-live="polite">Use 8 or more characters.</small>
 <?php if(isset($password_errors["new"])) { ?><span class="password-error" id="new_password-error"><?php echo change_password_h($password_errors["new"]); ?></span><?php } ?>
 </div>
 
 <div class="password-field">
 <label for="confirm_password">Confirm New Password *</label>
+<div class="password-input-wrap">
 <input type="password" id="confirm_password" name="confirm_password" autocomplete="new-password" minlength="8" maxlength="72" data-password-confirm="new_password" data-password-match="change-password-match" aria-describedby="change-password-match<?php if(isset($password_errors["confirm"])) echo " confirm_password-error"; ?>"<?php if(isset($password_errors["confirm"])) { ?> aria-invalid="true"<?php } ?> required>
+<button type="button" class="password-visibility-toggle" data-password-field="confirm_password" data-password-label="password confirmation" aria-controls="confirm_password" aria-label="Show password confirmation" aria-pressed="false" hidden>
+<svg class="password-eye-open" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="password-eye-closed" aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+<defs><mask id="change-eye-gap-confirm_password" maskUnits="userSpaceOnUse" x="0" y="0" width="24" height="24"><rect width="24" height="24" fill="white" stroke="none"/><path d="M3 3l18 18" stroke="black" stroke-width="4.6"/></mask></defs>
+<g mask="url(#change-eye-gap-confirm_password)"><path d="M2 12s3.7-7 10-7 10 7 10 7-3.7 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></g><path d="M3 3l18 18"/>
+</svg>
+</button>
+</div>
 <small id="change-password-match" class="password-feedback" data-state="empty" aria-live="polite">Enter the same password again.</small>
 <?php if(isset($password_errors["confirm"])) { ?><span class="password-error" id="confirm_password-error"><?php echo change_password_h($password_errors["confirm"]); ?></span><?php } ?>
 </div>
@@ -216,6 +291,23 @@ margin-top:20px;}
 <script>
 (function()
 {
+	document.querySelectorAll('#password-box .password-visibility-toggle').forEach(function(button)
+	{
+		const input=document.getElementById(button.dataset.passwordField);
+		if(!input) return;
+		button.hidden=false;
+		input.classList.add('has-visibility-toggle');
+		button.addEventListener('click',function()
+		{
+			const visible=input.type==='password';
+			input.type=visible ? 'text' : 'password';
+			button.classList.toggle('is-visible',visible);
+			button.setAttribute('aria-label',(visible ? 'Hide ' : 'Show ')+button.dataset.passwordLabel);
+			button.setAttribute('aria-pressed',String(visible));
+			input.focus({preventScroll:true});
+		});
+	});
+
 	const firstError=document.querySelector('form [aria-invalid="true"]');
 	if(firstError) firstError.focus();
 })();
