@@ -56,7 +56,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["adminloginbtn"]))
 <html>
 
 <head><!--Administrator login page-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Admin Login</title>
 <link rel="stylesheet" href="style.css">
 
@@ -145,7 +145,7 @@ function admin_login_check()//Validate admin login form
 <body>
 
 <div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.png" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
+<img src="image/logo.jpg" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
 <h1>EasyOrder</h1>
 <p>Your Favourite Fast Food, Just A Few Clicks Away</p>
 </div>

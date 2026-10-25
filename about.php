@@ -9,7 +9,7 @@ header("Expires: 0");
 <html>
 
 <head><!--About EasyOrder and group member information page-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>About Us</title>
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
@@ -116,7 +116,7 @@ height:184px;}
 <div class="team-members">
 
 <div class="member"><!--Group member profile card section-->
-<img src="image/member2.png" width="150px" height="150px" alt="Member 2 Photo" title="Member 2">
+<img src="image/member2.jpg" width="150px" height="150px" alt="Member 2 Photo" title="Member 2">
 <h4>Ho Kwun Yan</h4>
 <p class="role">Co-Founder</p>
 </div>
@@ -128,7 +128,7 @@ height:184px;}
 </div>
 
 <div class="member">
-<img src="image/member3.png" width="150px" height="150px" alt="Member 3 Photo" title="Member 3">
+<img src="image/member3.jpg" width="150px" height="150px" alt="Member 3 Photo" title="Member 3">
 <h4>Ng Kai Jie</h4>
 <p class="role">Co-Founder</p>
 </div>

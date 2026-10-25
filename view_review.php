@@ -14,7 +14,7 @@ require_once(__DIR__."/customer_navigation.php");
 <html>
 
 <head><!--Customer reviews viewing page (view only, no form)-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Customer Reviews</title>
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">

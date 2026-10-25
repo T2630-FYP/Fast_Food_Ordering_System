@@ -59,7 +59,7 @@ if(!function_exists("easyorder_admin_shell_start"))
 		<div class="admin-app-shell">
 			<aside class="admin-sidebar" aria-label="Administrator navigation">
 				<a class="admin-brand" href="admin_dashboard.php" aria-label="EasyOrder administrator dashboard">
-					<img src="image/logo.png" width="52" height="52" alt="EasyOrder logo">
+					<img src="image/logo.jpg" width="52" height="52" alt="EasyOrder logo">
 					<span><strong>EasyOrder</strong><small>Admin Portal</small></span>
 				</a>
 

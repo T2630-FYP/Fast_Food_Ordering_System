@@ -258,7 +258,7 @@ CREATE TABLE `product` (
   `product_id` char(5) NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `product_desc` varchar(255) NOT NULL DEFAULT '',
-  `product_image` varchar(255) NOT NULL DEFAULT 'image/logo.png',
+  `product_image` varchar(255) NOT NULL DEFAULT 'image/logo.jpg',
   `product_category` varchar(50) NOT NULL,
   `product_price` decimal(5,2) NOT NULL,
   `product_stock` int(4) NOT NULL,

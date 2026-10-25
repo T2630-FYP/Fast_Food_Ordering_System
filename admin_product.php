@@ -398,7 +398,7 @@ $product_pdf_url = "admin_export.php?".http_build_query($product_pdf_params);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Manage Products - EasyOrder</title>
@@ -532,7 +532,7 @@ $product_pdf_url = "admin_export.php?".http_build_query($product_pdf_params);
 			<input type="hidden" name="mode" value="<?php echo $editing_product ? "update" : "add"; ?>">
 
 			<div class="admin-product-image-editor">
-				<img class="admin-product-preview" data-image-preview src="<?php echo admin_product_html($editing_product ? catalog_product_image($editing_product["product_image"]) : "image/logo.png"); ?>" alt="Product image preview">
+				<img class="admin-product-preview" data-image-preview src="<?php echo admin_product_html($editing_product ? catalog_product_image($editing_product["product_image"]) : "image/logo.jpg"); ?>" alt="Product image preview">
 				<label>
 					<span><?php echo $editing_product ? "Replace product image" : "Product image"; ?></span>
 					<input type="file" name="product_image" accept="image/jpeg,image/png,image/webp"<?php echo $editing_product ? "" : " required"; ?> data-image-input>
