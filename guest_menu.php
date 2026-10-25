@@ -59,10 +59,10 @@ $result_title = $selected_category!=="" ? $category_lookup[$selected_category]["
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo catalog_h($selected_category!=="" ? $result_title." | Guest Menu" : "Guest Menu"); ?> | EasyOrder</title>
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<link rel="stylesheet" href="home_section.css?v=20261024-shell1">
+<link rel="stylesheet" href="home_section.css?v=20261025-guest-espresso2">
 <script src="customer_navigation.js?v=20261024-shell1" defer></script>
 </head>
 <body class="eo-guest" data-session-aware>
@@ -77,7 +77,7 @@ $result_title = $selected_category!=="" ? $category_lookup[$selected_category]["
 <h1 id="guest-menu-title">Our Menu</h1>
 <p>Browse our food categories and find your favourites.</p>
 </div>
-<a class="eo-order-btn" href="login.php">Log in to order <span aria-hidden="true">↗</span></a>
+<a class="eo-order-btn" href="login.php">Log in to order <span class="eo-action-arrow" aria-hidden="true">↗</span></a>
 </section>
 <form class="eo-menu-search" action="guest_menu.php" method="get" role="search">
 <?php if($selected_category!=="") { ?><input type="hidden" name="category" value="<?php echo catalog_h($selected_category); ?>"><?php } ?>

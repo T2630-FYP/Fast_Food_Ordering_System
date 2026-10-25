@@ -14,13 +14,13 @@ header("Expires: 0");
 <html lang="en">
 
 <head><!--Home page of EasyOrder website-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyOrder - Fast Food Ordering</title>
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<link rel="stylesheet" href="home_section.css?v=20261024-shell1">
+<link rel="stylesheet" href="home_section.css?v=20261025-category-gold1">
 <script src="customer_navigation.js?v=20261024-shell1" defer></script>
 <script src="home_section.js?v=20261023-1" defer></script>
 </head>
@@ -236,13 +236,6 @@ header("Expires: 0");
 
             </div>
         </div>
-
-        <p class="eo-slider-hint">
-            <svg class="eo-slider-hint-icon" viewBox="0 0 20 20" aria-hidden="true" focusable="false">
-                <path d="M3 10h14M6 7l-3 3 3 3m8-6 3 3-3 3" />
-            </svg>
-            <span>Scroll sideways to explore all <?php echo count($eo_categories); ?> categories</span>
-        </p>
 
     </section>
 
