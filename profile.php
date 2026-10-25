@@ -73,9 +73,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["update_profile"]))
 	{
 		$profile_errors["name"] = "Enter a name between 2 and 100 characters.";
 	}
-	if(!preg_match("/^\d{9,15}$/",$profile_values["phone"]))
+	if(!preg_match("/^\d{7,15}$/",$profile_values["phone"]))
 	{
-		$profile_errors["phone"] = "Enter a phone number containing 9 to 15 digits.";
+		$profile_errors["phone"] = "Enter a phone number containing 7 to 15 digits.";
 	}
 	if(!in_array($profile_values["gender"],array("Male","Female"),true))
 	{
@@ -157,7 +157,7 @@ if($_SERVER["REQUEST_METHOD"]!=="POST")
 <html lang="en">
 
 <head><!--Customer profile page after login-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>My Profile</title>
@@ -322,7 +322,7 @@ margin-left:8px;}
 
 <div class="profile-field">
 <label for="customer_phone">Phone Number *</label>
-<input type="text" id="customer_phone" autocomplete="tel" name="customer_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15"<?php if(isset($profile_errors["phone"])) { ?> aria-invalid="true" aria-describedby="customer_phone-error"<?php } ?> required value="<?php echo profile_h($profile_values["phone"]); ?>">
+<input type="text" id="customer_phone" autocomplete="tel" name="customer_phone" inputmode="numeric" pattern="[0-9]{7,15}" minlength="7" maxlength="15"<?php if(isset($profile_errors["phone"])) { ?> aria-invalid="true" aria-describedby="customer_phone-error"<?php } ?> required value="<?php echo profile_h($profile_values["phone"]); ?>">
 <?php if(isset($profile_errors["phone"])) { ?><span class="profile-error" id="customer_phone-error"><?php echo profile_h($profile_errors["phone"]); ?></span><?php } ?>
 </div>
 
