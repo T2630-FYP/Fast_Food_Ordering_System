@@ -67,7 +67,7 @@
 	document.addEventListener("visibilitychange",refreshNavigation);
 })();
 
-// Enhance only Login / Sign Up links; form POSTs remain native PHP requests.
+// Enhance auth links and registration feedback, retaining the native PHP fallback.
 (function () {
     "use strict";
     const root = document.querySelector("#main.eo-auth-page");
@@ -77,6 +77,7 @@
     const heading = showcase.querySelector(".eo-auth-showcase-heading");
     let busy = false;
     let queued = null;
+    let submitting = false;
 
     function authView(url) {
         if (url.origin !== location.origin || url.search || url.hash) return null;
@@ -98,35 +99,50 @@
         return element.animate(frames, Object.assign({fill: "both"}, options));
     }
 
-    async function switchPage(url, historyMode) {
+    async function prepareAuthPage(incoming, url) {
+        const view = authView(url);
+        const nextRoot = incoming.querySelector("#main.eo-auth-page");
+        const nextPanel = nextRoot && nextRoot.querySelector(".eo-auth-form-panel");
+        const initializer = incoming.querySelector('script[data-eo-auth-init="' + view + '"]');
+        const stylesheet = incoming.querySelector('style[data-eo-auth-style="' + view + '"]');
+        if (!nextRoot || !nextPanel || !initializer || !stylesheet) throw new Error("Auth page unavailable");
+        if (!document.querySelector('style[data-eo-auth-style="' + view + '"]')) {
+            document.head.appendChild(document.importNode(stylesheet, true));
+        }
+        const feedbackScript = incoming.querySelector('script[src^="password_ux.js"]');
+        let feedbackSource = "";
+        if (feedbackScript) {
+            const feedbackResponse = await fetch(new URL(feedbackScript.getAttribute("src"), url), {credentials: "same-origin"});
+            if (!feedbackResponse.ok) throw new Error("Password feedback unavailable");
+            feedbackSource = await feedbackResponse.text();
+        }
+        return {nextRoot: nextRoot, nextPanel: nextPanel, initializer: initializer, feedbackSource: feedbackSource};
+    }
+
+    function initializePanel(data) {
+        if (data.nextRoot.dataset.startStep) root.dataset.startStep = data.nextRoot.dataset.startStep;
+        else delete root.dataset.startStep;
+        executeInitializer(data.initializer.textContent);
+        if (data.feedbackSource) executeInitializer(data.feedbackSource);
+    }
+
+    async function switchPage(url, historyMode, incoming) {
         const view = authView(url);
         if (!view) { location.assign(url.href); return; }
-        if (busy) { queued = {url: url, historyMode: historyMode}; return; }
+        if (busy || submitting) { queued = {url: url, historyMode: historyMode}; return; }
         if (root.dataset.authView === view) return;
         busy = true;
         root.dataset.authTransition = "loading";
         root.setAttribute("aria-busy", "true");
         try {
-            const response = await fetch(url.href, {credentials: "same-origin", cache: "no-store"});
-            if (!response.ok || response.url !== url.href) { location.assign(response.url || url.href); return; }
-            const incoming = new DOMParser().parseFromString(await response.text(), "text/html");
-            const nextRoot = incoming.querySelector("#main.eo-auth-page");
-            const nextPanel = nextRoot && nextRoot.querySelector(".eo-auth-form-panel");
-            const initializer = incoming.querySelector('script[data-eo-auth-init="' + view + '"]');
-            const stylesheet = incoming.querySelector('style[data-eo-auth-style="' + view + '"]');
-            if (!nextRoot || !nextPanel || !initializer || !stylesheet) throw new Error("Auth page unavailable");
-            if (!document.querySelector('style[data-eo-auth-style="' + view + '"]')) {
-                document.head.appendChild(document.importNode(stylesheet, true));
+            if (!incoming) {
+                const response = await fetch(url.href, {credentials: "same-origin", cache: "no-store"});
+                if (!response.ok || response.url !== url.href) { location.assign(response.url || url.href); return; }
+                incoming = new DOMParser().parseFromString(await response.text(), "text/html");
             }
-            // Fetch feedback code before hiding the outgoing form; no new script listeners
-            // are attached until the new controls are in the document.
-            const feedbackScript = incoming.querySelector('script[src^="password_ux.js"]');
-            let feedbackSource = "";
-            if (feedbackScript) {
-                const feedbackResponse = await fetch(new URL(feedbackScript.getAttribute("src"), url), {credentials: "same-origin"});
-                if (!feedbackResponse.ok) throw new Error("Password feedback unavailable");
-                feedbackSource = await feedbackResponse.text();
-            }
+            const data = await prepareAuthPage(incoming, url);
+            const nextRoot = data.nextRoot;
+            const nextPanel = data.nextPanel;
             const image = showcase.querySelector("img");
             if (image.decode) await image.decode();
             const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -146,12 +162,9 @@
             panel.style.opacity = "0";
             frame.appendChild(panel);
             nextRoot.classList.forEach(function (name) { root.classList.add(name); });
-            if (nextRoot.dataset.startStep) root.dataset.startStep = nextRoot.dataset.startStep;
-            else delete root.dataset.startStep;
             root.dataset.authView = view;
             frame.className = nextRoot.querySelector(".eo-auth-frame").className;
-            executeInitializer(initializer.textContent);
-            if (feedbackSource) executeInitializer(feedbackSource);
+            initializePanel(data);
             document.title = incoming.title;
             if (historyMode === "push") history.pushState(null, "", url.href);
             document.querySelectorAll("#navbar a").forEach(function (link) {
@@ -196,6 +209,79 @@
             if (next) switchPage(next.url, next.historyMode);
         }
     }
+
+    document.addEventListener("submit", async function (event) {
+        const form = event.target;
+        if (event.defaultPrevented || !form.matches("#signup-form") || !root.contains(form)
+            || !window.fetch || !window.FormData) return;
+        const url = new URL(form.action);
+        if (authView(url) !== "signup" || form.method.toLowerCase() !== "post") return;
+        event.preventDefault();
+        if (busy || submitting) return;
+
+        const payload = new FormData(form);
+        const position = {left: scrollX, top: scrollY};
+        submitting = true;
+        root.inert = true;
+        root.setAttribute("aria-busy", "true");
+        root.dataset.authTransition = "submitting";
+        const previousAnchor = root.style.overflowAnchor;
+        root.style.overflowAnchor = "none";
+        try {
+            const response = await fetch(url.href, {
+                method: "POST", body: payload, credentials: "same-origin", cache: "no-store"
+            });
+            if (!response.ok) throw new Error("Registration response unavailable");
+            const destination = new URL(response.url);
+            const incoming = new DOMParser().parseFromString(await response.text(), "text/html");
+            if (authView(destination) === "login") {
+                // Reuse this exact response so the PHP success notice is not consumed twice.
+                submitting = false;
+                await switchPage(destination, "push", incoming);
+            } else if (authView(destination) === "signup") {
+                const data = await prepareAuthPage(incoming, destination);
+                const panel = document.importNode(data.nextPanel, true);
+                // Retain typed passwords only in the live browser form, never in HTML or storage.
+                ["cust_password", "cust_confirm_password"].forEach(function (name) {
+                    const input = panel.querySelector('[name="' + name + '"]');
+                    const value = payload.get(name);
+                    if (input && typeof value === "string") input.value = value;
+                });
+                frame.querySelector(".eo-auth-form-panel").replaceWith(panel);
+                root.inert = false;
+                initializePanel(data);
+                document.title = incoming.title;
+            } else {
+                // Follow a completed server redirect with a GET; never replay the POST.
+                location.assign(destination.href);
+            }
+        } catch (error) {
+            const currentForm = root.querySelector("#signup-form");
+            if (currentForm) {
+                let notice = currentForm.parentElement.querySelector("[data-eo-registration-error]");
+                if (!notice) {
+                    notice = document.createElement("p");
+                    notice.className = "form-message form-message-error";
+                    notice.setAttribute("role", "alert");
+                    notice.setAttribute("data-eo-registration-error", "");
+                    currentForm.before(notice);
+                }
+                notice.textContent = "We couldn't confirm your registration. Please try signing in before submitting again.";
+            }
+        } finally {
+            submitting = false;
+            root.style.overflowAnchor = previousAnchor;
+            if (!busy) {
+                root.inert = false;
+                root.removeAttribute("aria-busy");
+                root.dataset.authTransition = "idle";
+            }
+            if (scrollX !== position.left || scrollY !== position.top) scrollTo(Object.assign({behavior: "instant"}, position));
+            const next = queued;
+            queued = null;
+            if (next) switchPage(next.url, next.historyMode);
+        }
+    });
 
     document.addEventListener("click", function (event) {
         const link = event.target.closest("a[href]");

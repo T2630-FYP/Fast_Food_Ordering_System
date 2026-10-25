@@ -68,7 +68,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 		{
 			admin_customer_redirect("error","Enter a valid customer email address.",$editor_location);
 		}
-		if(preg_match("/^\d{9,15}$/",$customer_phone)!==1 || !in_array($customer_state,$customer_states,true))
+		if(preg_match("/^\d{7,15}$/",$customer_phone)!==1 || !in_array($customer_state,$customer_states,true))
 		{
 			admin_customer_redirect("error","Enter a valid phone number and state.",$editor_location);
 		}
@@ -195,7 +195,7 @@ $customer_pdf_url = "admin_export.php?".http_build_query($customer_pdf_params);
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Manage Customers - EasyOrder</title>
@@ -316,7 +316,7 @@ $customer_pdf_url = "admin_export.php?".http_build_query($customer_pdf_params);
 				<?php endif; ?>
 				<label class="admin-form-field"><span>Full name</span><input type="text" name="customer_name" minlength="2" maxlength="100" value="<?php echo admin_customer_html($editing_customer["customer_name"] ?? ""); ?>" required></label>
 				<label class="admin-form-field"><span>Email address</span><input type="email" name="customer_email" maxlength="100" value="<?php echo admin_customer_html($editing_customer["customer_email"] ?? ""); ?>" required></label>
-				<label class="admin-form-field"><span>Phone number</span><input type="text" name="customer_phone" inputmode="numeric" pattern="[0-9]{9,15}" minlength="9" maxlength="15" value="<?php echo admin_customer_html($editing_customer["customer_phone"] ?? ""); ?>" required></label>
+				<label class="admin-form-field"><span>Phone number</span><input type="text" name="customer_phone" inputmode="numeric" pattern="[0-9]{7,15}" minlength="7" maxlength="15" value="<?php echo admin_customer_html($editing_customer["customer_phone"] ?? ""); ?>" required></label>
 				<label class="admin-form-field"><span>State</span><select name="customer_state" required><option value="">Select state</option><?php foreach($customer_states as $state_name): ?><option value="<?php echo admin_customer_html($state_name); ?>"<?php echo ($editing_customer["customer_state"] ?? "")===$state_name ? " selected" : ""; ?>><?php echo admin_customer_html($state_name); ?></option><?php endforeach; ?></select></label>
 				<label class="admin-form-field"><span>Join date</span><input type="date" name="customer_joindate" value="<?php echo admin_customer_html($editing_customer["customer_joindate"] ?? date("Y-m-d")); ?>" required></label>
 			</div>
