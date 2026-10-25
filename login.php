@@ -87,13 +87,13 @@ function login_h($value)
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Customer Login</title>
 <link rel="stylesheet" href="style.css?v=20261024-auth1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="customer_navigation.js?v=20261024-auth1" defer></script>
+<script src="customer_navigation.js?v=20261025-account-check1" defer></script>
 <style data-eo-auth-style="login">
 /* =========================================
    EASYORDER LOGIN V19
@@ -103,7 +103,7 @@ function login_h($value)
 /* MAIN COLOR PALETTE */
 #main.login-page {
     --login-brown: #39292B;
-    --login-ink: #302726;
+    --login-ink: #371C23;
     --login-red: #C8102E;
     --login-paper: #FFFCF9;
     --login-muted: #746D69;
@@ -348,7 +348,7 @@ function login_h($value)
 .login-form-content h2 {
     margin: 0 0 9px;
 
-    color: #302726;
+    color: var(--login-ink);
 
     font-size: clamp(30px, 2.5vw, 34px);
 
@@ -388,7 +388,7 @@ function login_h($value)
 .login-field label {
     display: block;
 
-    color: #302726;
+    color: var(--login-ink);
 
     font-size: 14px;
 
@@ -424,7 +424,7 @@ function login_h($value)
 
     font-size: 15px;
 
-    color: #302726;
+    color: var(--login-ink);
 
     outline: none;
 
