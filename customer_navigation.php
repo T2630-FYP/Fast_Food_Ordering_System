@@ -45,7 +45,7 @@ function easyorder_render_customer_header()
 {
 ?>
 <div id="header" class="customer-site-header">
-<img src="image/logo.png" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
+<img src="image/logo.jpg" width="80" height="80" alt="EasyOrder Logo" title="EasyOrder">
 <h1>EasyOrder</h1>
 <p class="brand-tagline">MADE FOR YOUR CRAVINGS</p>
 </div>
@@ -62,7 +62,7 @@ function easyorder_render_customer_footer($customer_logged_in)
 
 <section aria-label="About EasyOrder">
 <div class="home-footer-brand">
-<img src="image/logo.png" width="52" height="52" alt="">
+<img src="image/logo.jpg" width="52" height="52" alt="">
 <h2>EasyOrder</h2>
 </div>
 <p class="home-footer-description">Freshly prepared favourites, friendly service and good food for your everyday cravings.</p>
@@ -109,10 +109,10 @@ function easyorder_render_customer_footer($customer_logged_in)
 <section aria-labelledby="home-footer-visit-title">
 <h3 id="home-footer-visit-title">Visit Us</h3>
 <address>
-AEON MALL Bukit Indah,<br>
-No. 8, Jalan Indah 15/2,<br>
-Taman Bukit Indah,<br>
-81200 Johor Bahru, Johor, Malaysia
+EasyOrder &ndash; Mount Austin,<br>
+G-55, Jalan Mutiara Emas 10/19,<br>
+Taman Mount Austin,<br>
+81100 Johor Bahru, Johor, Malaysia
 </address>
 <div class="home-footer-hours">
 <p>Monday &ndash; Sunday, 10am &ndash; 10pm</p>

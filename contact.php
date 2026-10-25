@@ -1,306 +1,222 @@
-<?php include("dataconnection.php"); require_once("customer_navigation.php"); ?>
+<?php
+require_once 'dataconnection.php';
+require_once 'customer_navigation.php';
+require_once 'contact_icons.php';
 
+function contact_escape($value)
+{
+    return htmlspecialchars((string)$value, ENT_QUOTES, 'UTF-8');
+}
+
+function contact_field_attributes($field)
+{
+    global $errors;
+    return isset($errors[$field])
+        ? ' aria-invalid="true" aria-describedby="contact-error-'.contact_escape($field).'"'
+        : '';
+}
+
+function contact_field_error($field)
+{
+    global $errors;
+    if (isset($errors[$field])) {
+        echo '<span class="field-error" id="contact-error-'.contact_escape($field).'">'.contact_escape($errors[$field]).'</span>';
+    }
+}
+
+if (empty($_SESSION['contact_csrf'])) {
+    $_SESSION['contact_csrf'] = bin2hex(random_bytes(32));
+}
+
+$subjects = array('General Enquiry', 'Feedback', 'Complaint', 'Partnership', 'Others');
+$form = array('cust_name'=>'', 'cust_email'=>'', 'subject'=>'', 'cust_message'=>'');
+$errors = array();
+$success = false;
+if ($_SERVER['REQUEST_METHOD']==='GET' && !empty($_SESSION['contact_message_sent'])) {
+    $success = true;
+    unset($_SESSION['contact_message_sent']);
+}
+
+if ($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['sendbtn'])) {
+    foreach ($form as $key=>$value) {
+        $form[$key] = isset($_POST[$key]) && is_string($_POST[$key]) ? trim($_POST[$key]) : '';
+    }
+    $token = $_POST['contact_token'] ?? '';
+    if (!is_string($token) || !hash_equals($_SESSION['contact_csrf'], $token)) {
+        $errors['general'] = 'Your session has expired. Please refresh and try again.';
+    }
+    if ($form['cust_name']==='' || strlen($form['cust_name'])>100) {
+        $errors['cust_name'] = 'Please enter your full name using up to 100 characters.';
+    }
+    if (!filter_var($form['cust_email'], FILTER_VALIDATE_EMAIL) || strlen($form['cust_email'])>100) {
+        $errors['cust_email'] = 'Please enter a valid email address.';
+    }
+    if (!in_array($form['subject'], $subjects, true)) {
+        $errors['subject'] = 'Please select a subject.';
+    }
+    if ($form['cust_message']==='' || strlen($form['cust_message'])>5000) {
+        $errors['cust_message'] = 'Please enter your message using up to 5,000 characters.';
+    }
+    if (count($errors)===0) {
+        $stmt = null;
+        try {
+            $stmt = mysqli_prepare($connect, 'INSERT INTO contact_msg(msg_name,msg_email,msg_subject,msg_message,msg_date) VALUES(?,?,?,?,?)');
+            if (!$stmt) throw new RuntimeException('Contact message unavailable');
+            $today = date('Y-m-d');
+            mysqli_stmt_bind_param($stmt, 'sssss', $form['cust_name'], $form['cust_email'], $form['subject'], $form['cust_message'], $today);
+            if (!mysqli_stmt_execute($stmt)) throw new RuntimeException('Contact message unavailable');
+            $_SESSION['contact_csrf'] = bin2hex(random_bytes(32));
+            $_SESSION['contact_message_sent'] = true;
+        } catch (Throwable $error) {
+            $errors['general'] = 'Unable to send your message right now. Please try again.';
+        } finally {
+            if ($stmt) mysqli_stmt_close($stmt);
+        }
+        if (count($errors)===0) {
+            header('Location: contact.php?sent=1#contact-form-section');
+            exit();
+        }
+    }
+}
+
+// This fictional EasyOrder project uses the verified Marrybrown storefront as its map reference.
+$store_map_cid = '12743579893168012323';
+// Show the same business profile and storefront photos as Google's own Open in Maps link.
+$store_map_url = 'https://maps.google.com/?cid='.$store_map_cid;
+$map_embed_url = 'https://maps.google.com/maps?cid='.$store_map_cid.'&z=17&output=embed';
+?>
 <!DOCTYPE html>
-<html>
-
-<head><!--Contact information, map and message form page-->
-<link rel="icon" type="image/png" href="image/logo.png">
-<title>Contact Us</title>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Us | EasyOrder</title>
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="customer_navigation.js?v=20261024-shell1" defer></script>
-
-<style>
-.contact-card
-{width:250px;
-background-color:#FFFFFF;
-border:1px solid #EEEEEE;
-border-radius:8px;
-box-shadow:2px 2px 5px #CCCCCC;
-margin:10px;
-padding:15px;
-float:left;
-text-align:center;}
-
-.contact-card h4
-{color:#C8102E;
-margin:10px 0px 8px 0px;}
-
-.contact-card p
-{color:#666666;
-font-size:10pt;
-margin:5px 0px 5px 0px;}
-
-.contact-card p.label
-{color:#FF7A00;
-font-weight:bold;
-font-style:italic;
-font-size:11pt;
-margin:5px 0px 8px 0px;}
-
-.map-box
-{text-align:center;
-margin:20px 0px 10px 0px;}
-
-.map-box iframe
-{border:2px solid #C8102E;
-border-radius:8px;
-box-sizing:border-box;
-display:block;
-height:auto;
-margin:auto;
-max-width:100%;
-aspect-ratio:4/3;
-width:700px;}
-
-.map-box .map-actions
-{align-items:center;
-display:flex;
-flex-wrap:wrap;
-gap:8px 18px;
-justify-content:center;
-margin:10px 0px 0px 0px;}
-
-.map-box .map-actions a
-{color:#9E0B22;
-font-weight:bold;}
-
-#contact-area
-{text-align:center;}
-
-#contact-area p.field-label
-{color:#9E0B22;
-font-weight:bold;
-font-size:0.9em;
-margin:14px 0px 5px 0px;}
-
-#contact-area input[type="text"],#contact-area input[type="email"]
-{width:300px;}
-
-#contact-area select
-{border:1px solid #CCCCCC;
-border-radius:4px;
-padding:8px 10px 8px 10px;}
-
-#contact-area span.error
-{color:#C8102E;
-font-weight:bold;
-font-size:0.8em;}
-
-body.contact-page .form-box
-{box-sizing:border-box;
-max-width:100%;}
-
-@media(max-width:800px)
-{
-	body.contact-page #main
-	{box-sizing:border-box;}
-
-	body.contact-page .contact-card
-	{box-sizing:border-box;
-	float:none;
-	margin:10px 0px;
-	width:100%;}
-}
-
-@media(max-width:600px)
-{
-
-	body.contact-page .form-box
-	{padding:20px 16px;
-	width:100%;}
-
-	body.contact-page #contact-area input[type="text"],
-	body.contact-page #contact-area input[type="email"],
-	body.contact-page #contact-area select,
-	body.contact-page #contact-area textarea
-	{box-sizing:border-box;
-	max-width:100%;
-	width:100%;}
-}
-</style>
-
-<script>
-function contact_check()//Validate customer contact form
-{
-	let name,email,subject,message;
-	let name_status=false,email_status=false,subject_status=false,message_status=false;
-
-	name=document.contactfrm.cust_name.value;
-	email=document.contactfrm.cust_email.value;
-	subject=document.contactfrm.subject.value;
-	message=document.contactfrm.cust_message.value;
-
-	if(name=="")
-	{
-		document.getElementById("err_name").innerHTML="Please enter your name";
-	}
-	else
-	{
-		document.getElementById("err_name").innerHTML="";
-		name_status=true;
-	}
-
-	if(email=="")
-	{
-		document.getElementById("err_email").innerHTML="Please enter your email";
-	}
-	else
-	{
-		document.getElementById("err_email").innerHTML="";
-		email_status=true;
-	}
-
-	if(subject=="0")
-	{
-		document.getElementById("err_subject").innerHTML="Please select a subject";
-	}
-	else
-	{
-		document.getElementById("err_subject").innerHTML="";
-		subject_status=true;
-	}
-
-	if(message=="")
-	{
-		document.getElementById("err_message").innerHTML="Please enter your message";
-	}
-	else
-	{
-		document.getElementById("err_message").innerHTML="";
-		message_status=true;
-	}
-
-	if(name_status==true&&email_status==true&&subject_status==true&&message_status==true)
-	{
-		return true;
-	}
-	else
-	{
-		return false;
-	}
-}
-</script>
-
+<link rel="stylesheet" href="contact_redesign.css?v=20261026-contact8">
+<script src="customer_navigation.js?v=20261025-account-check1" defer></script>
+<script src="contact_redesign.js?v=20261025-contact3" defer></script>
 </head>
-
 <body class="contact-page">
-
 <?php easyorder_render_customer_header(); ?>
-
-<div id="navbar" class="customer-site-navbar"><!--Customer navigation bar-->
-<?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
+<div id="navbar" class="customer-site-navbar">
+<?php easyorder_render_customer_navigation_links(isset($_SESSION['customer_id'])); ?>
 </div>
 
-<div id="main"><!--Main content section-->
+<main id="main" class="eo-contact-page<?php echo count($errors)>0 ? ' expanded' : ''; ?>" data-start-open="<?php echo count($errors)>0 ? '1' : '0'; ?>">
+<div class="contact-container">
+    <h1 class="contact-title">Contact Us</h1>
 
-<h2 class="section-title">Contact Us</h2>
-<p class="intro">Have a question, feedback or just want to say hello? We would love to hear from you.</p>
+    <section class="location-card" aria-labelledby="contact-store-name">
+        <div class="location-visuals">
+            <div class="location-map">
+                <iframe src="<?php echo contact_escape($map_embed_url); ?>" title="Marrybrown Taman Mount Austin demonstration location on Google Maps" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+            </div>
+            <div class="location-photo">
+                <img src="image/store.jpg?v=20261025-landscape1" alt="EasyOrder restaurant exterior at dusk" width="1680" height="1020" fetchpriority="high">
+            </div>
+        </div>
+        <div class="location-info">
+            <div class="location-address">
+                <span class="location-icon"><?php echo eo_contact_icon('pin'); ?></span>
+                <div>
+                    <h2 id="contact-store-name">EasyOrder &ndash; Mount Austin</h2>
+                    <p>G-55, Jalan Mutiara Emas 10/19, Taman Mount Austin,<br>81100 Johor Bahru, Johor, Malaysia.</p>
+                </div>
+            </div>
+            <div class="location-detail">
+                <span class="location-icon"><?php echo eo_contact_icon('clock'); ?></span>
+                <div><strong>Open daily</strong><p>10:00 AM &ndash; 10:00 PM</p></div>
+            </div>
+            <div class="location-detail">
+                <span class="location-icon"><?php echo eo_contact_icon('phone'); ?></span>
+                <div><strong>Call us</strong><p><a href="tel:+6076849271">+60 7-684 9271</a></p></div>
+            </div>
+            <a class="directions-btn" href="<?php echo contact_escape($store_map_url); ?>" target="_blank" rel="noopener noreferrer">
+                <?php echo eo_contact_icon('directions'); ?><span>Get directions</span><?php echo eo_contact_icon('arrow'); ?>
+            </a>
+        </div>
+    </section>
 
-<div class="contact-card">
-<h4>Visit Us</h4>
-<p class="label">Our Store</p>
-<p>AEON MALL Bukit Indah,<br>No. 8, Jalan Indah 15/2,<br>Taman Bukit Indah,<br>81200 Johor Bahru, Johor, Malaysia</p>
+    <section class="contact-section" id="contact-form-section" aria-labelledby="contact-heading">
+        <h2 class="contact-heading" id="contact-heading">We're all ears.</h2>
+        <?php if ($success): ?>
+        <div class="contact-success" role="status">Thank you for contacting EasyOrder! Your message has been received.</div>
+        <?php endif; ?>
+        <div class="contact-panel">
+            <aside class="contact-left" aria-labelledby="contact-team-heading">
+                <span class="contact-eyebrow">REACH OUR TEAM</span>
+                <h3 id="contact-team-heading">Let's stay<br>connected.</h3>
+                <p class="contact-description">Whether it's an enquiry, feedback or a little help, we're just a message away.</p>
+                <div class="contact-info-item">
+                    <span class="contact-info-icon"><?php echo eo_contact_icon('mail'); ?></span>
+                    <div><small>EMAIL US</small><strong><a href="mailto:support@easyorder.com">support@easyorder.com</a></strong></div>
+                </div>
+                <div class="contact-info-item">
+                    <span class="contact-info-icon"><?php echo eo_contact_icon('phone'); ?></span>
+                    <div><small>CALL US</small><strong><a href="tel:+6076849271">+60 7-684 9271</a></strong></div>
+                </div>
+                <div class="contact-info-item">
+                    <span class="contact-info-icon"><?php echo eo_contact_icon('pin'); ?></span>
+                    <div><small>VISIT OUR STORE</small><strong>EasyOrder &ndash; Mount Austin</strong></div>
+                </div>
+                <div class="contact-motto">GOOD FOOD. GOOD PEOPLE. GOOD SERVICE.</div>
+            </aside>
+            <div class="contact-right">
+                <span class="contact-eyebrow-right">WRITE TO US</span>
+                <h3 id="contact-message-heading">Send us a message</h3>
+                <p class="contact-subtitle">A note from you means a lot to us.</p>
+                <div class="contact-divider"></div>
+
+                <div class="message-prompt" id="message-prompt" hidden>
+                    <span class="message-icon"><?php echo eo_contact_icon('message'); ?></span>
+                    <h4>We'd love to hear from you.</h4>
+                    <p>Have a question or suggestion? Send a message and our team will get back to you.</p>
+                    <button type="button" id="open-message-btn" class="primary-contact-btn" aria-expanded="false" aria-controls="contact-message-form">Leave us a message <span aria-hidden="true">&rarr;</span></button>
+                </div>
+
+                <form id="contact-message-form" name="contactfrm" class="contact-message-form" method="post" action="contact.php#contact-form-section" aria-labelledby="contact-message-heading" aria-hidden="false">
+                    <?php if (isset($errors['general'])): ?>
+                    <p class="form-error" role="alert"><?php echo contact_escape($errors['general']); ?></p>
+                    <?php endif; ?>
+                    <input type="hidden" name="contact_token" value="<?php echo contact_escape($_SESSION['contact_csrf']); ?>">
+                    <div class="form-grid">
+                        <div class="form-field">
+                            <label for="cust_name">Full name <em>*</em></label>
+                            <input type="text" id="cust_name" name="cust_name" maxlength="100" autocomplete="name" placeholder="Your full name" value="<?php echo contact_escape($form['cust_name']); ?>"<?php echo contact_field_attributes('cust_name'); ?> required>
+                            <?php contact_field_error('cust_name'); ?>
+                        </div>
+                        <div class="form-field">
+                            <label for="cust_email">Email address <em>*</em></label>
+                            <input type="email" id="cust_email" name="cust_email" maxlength="100" autocomplete="email" placeholder="e.g. customer@email.com" value="<?php echo contact_escape($form['cust_email']); ?>"<?php echo contact_field_attributes('cust_email'); ?> required>
+                            <?php contact_field_error('cust_email'); ?>
+                        </div>
+                        <div class="form-field full-width">
+                            <label for="subject">What is this regarding? <em>*</em></label>
+                            <select id="subject" name="subject"<?php echo contact_field_attributes('subject'); ?> required>
+                                <option value="">Select a subject</option>
+                                <?php foreach ($subjects as $option): ?>
+                                <option value="<?php echo contact_escape($option); ?>"<?php echo $form['subject']===$option ? ' selected' : ''; ?>><?php echo contact_escape($option); ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                            <?php contact_field_error('subject'); ?>
+                        </div>
+                        <div class="form-field full-width">
+                            <label for="cust_message">Your message <em>*</em></label>
+                            <textarea id="cust_message" name="cust_message" rows="5" maxlength="5000" placeholder="Tell us a little more about how we can help..."<?php echo contact_field_attributes('cust_message'); ?> required><?php echo contact_escape($form['cust_message']); ?></textarea>
+                            <?php contact_field_error('cust_message'); ?>
+                        </div>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" name="sendbtn" value="1" class="primary-contact-btn">Send message <span aria-hidden="true">&rarr;</span></button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </section>
 </div>
-
-<div class="contact-card">
-<h4>Call Us</h4>
-<p class="label">Customer Hotline</p>
-<p>Phone: +60 7-1234 5678<br>Fax: +60 7-1234 5679<br>Monday - Sunday: 10am - 10pm</p>
-</div>
-
-<div class="contact-card">
-<h4>Email Us</h4>
-<p class="label">Drop Us A Line</p>
-<p>Enquiries: support@easyorder.com<br>Feedback: feedback@easyorder.com<br>Reply within 24 hours, Mon - Sun</p>
-</div>
-
-<div style="clear:both"></div>
-
-<hr>
-
-<h2 class="section-title">Find Us Here</h2>
-<p class="intro">Drop by our store or use the map below to locate us.</p>
-<p class="intro">Open Monday - Sunday, 10am - 10pm.</p>
-<p class="intro">Find us at AEON MALL Bukit Indah on Jalan Indah 15/2.</p>
-
-<div class="map-box"><!--Location map section-->
-<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3988.484169686179!2d103.65576250000001!3d1.4817523!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31da734bc26d4cb7%3A0x9d7e99d02a832d45!2s%C3%86ON%20Mall%20Bukit%20Indah!5e0!3m2!1sen!2smy!4v1791214821850!5m2!1sen!2smy" title="AEON MALL Bukit Indah location on Google Maps" loading="lazy" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-<p class="map-actions">
-	<a href="https://www.google.com/maps/search/?api=1&amp;query=AEON+MALL+Bukit+Indah%2C+No.+8%2C+Jalan+Indah+15%2F2%2C+Bukit+Indah" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
-</p>
-</div>
-
-<hr>
-
-<h2 class="section-title">Send Us A Message</h2>
-<p class="intro">Fill in the form below and our team will get back to you as soon as possible.</p>
-
-<form name="contactfrm" method="post" action="" onsubmit="return contact_check()"><!--Form section for user input-->
-<div class="form-box" id="contact-area">
-
-<h3>Contact Form</h3>
-
-<p class="field-label">Full Name</p>
-<input type="text" name="cust_name" size="40" placeholder="Enter your name">
-<br><span class="error" id="err_name"></span>
-
-<p class="field-label">Email Address</p>
-<input type="email" name="cust_email" size="40" placeholder="Enter your email">
-<br><span class="error" id="err_email"></span>
-
-<p class="field-label">Subject</p>
-<select name="subject">
-<option value="0">Select a subject</option>
-<option value="General Enquiry">General Enquiry</option>
-<option value="Feedback">Feedback</option>
-<option value="Complaint">Complaint</option>
-<option value="Partnership">Partnership</option>
-<option value="Others">Others</option>
-</select>
-<br><span class="error" id="err_subject"></span>
-
-<p class="field-label">Message</p>
-<textarea name="cust_message" rows="5" cols="45"></textarea>
-<br><span class="error" id="err_message"></span>
-
-<p>
-<input type="submit" name="sendbtn" value="Send Message">
-<input type="reset" name="clearbtn" value="Clear">
-</p>
-
-<p class="msg"><span id="msg"></span></p>
-
-</div>
-</form>
-
-</div>
-
-<?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
-
+</main>
+<?php easyorder_render_customer_footer(isset($_SESSION['customer_id'])); ?>
 </body>
-
 </html>
-
-<?php
-
-//save the contact message when the form is submitted
-if(isset($_POST["sendbtn"]))
-{
-	$name = mysqli_real_escape_string($connect,$_POST["cust_name"]);
-	$email = mysqli_real_escape_string($connect,$_POST["cust_email"]);
-	$subject = mysqli_real_escape_string($connect,$_POST["subject"]);
-	$message = mysqli_real_escape_string($connect,$_POST["cust_message"]);
-	$date = date("Y-m-d");
-
-	mysqli_query($connect,"INSERT INTO contact_msg(msg_name,msg_email,msg_subject,msg_message,msg_date)VALUES('$name','$email','$subject','$message','$date')");
-	?>
-	<script>
-	alert("Thank you for contacting EasyOrder. We have received your message and will reply shortly.");
-	window.location="contact.php";
-	</script>
-	<?php
-}
-
-?>
