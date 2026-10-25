@@ -141,7 +141,7 @@
 
 .eo-home .eo-actions .eo-order-btn,
 .eo-home .eo-actions .eo-explore-btn {
-    justify-content: center;
+    justify-content: space-between;
     gap: 16px;
     min-height: 52px;
     margin-top: 0;
@@ -149,12 +149,32 @@
     border-radius: 12px;
     line-height: 22px;
     white-space: nowrap;
+    box-shadow: none;
+    text-decoration: none;
+    transition: background 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.25s ease;
 }
 
-/* Keep the approved outer widths while enlarging the button text. */
+/* Premium espresso palette; preserve the approved button dimensions. */
 .eo-home .eo-actions .eo-order-btn {
     width: 155.125px;
     font-size: 16px;
+    background: #5A3D32;
+    color: #FFF9F1;
+    border: 1px solid #4A3027;
+}
+
+.eo-home .eo-actions .eo-order-btn .eo-action-arrow {
+    color: #E8C79C;
+}
+
+.eo-home .eo-actions .eo-order-btn:hover,
+.eo-home .eo-actions .eo-order-btn:focus-visible {
+    background: #38241F;
+    border-color: #38241F;
+    box-shadow: none;
+    transform: translateY(-2px);
 }
 
 .eo-block .eo-order-btn span {
@@ -179,16 +199,21 @@
 .eo-home .eo-actions .eo-explore-btn {
     width: 171.625px;
     font-size: 15px;
-    border: 1px solid rgba(158, 11, 34, 0.22);
-    background: #FFFFFF;
-    transition: background-color 0.2s, color 0.2s, border-color 0.2s, transform 0.2s;
+    border: 1.5px solid #A48672;
+    background: #F1E4D5;
+    color: #5A3D32;
+}
+
+.eo-home .eo-actions .eo-explore-btn .eo-action-arrow {
+    color: #8B6049;
 }
 
 .eo-home .eo-actions .eo-explore-btn:hover,
 .eo-home .eo-actions .eo-explore-btn:focus-visible {
-    background: var(--eo-red);
-    border-color: var(--eo-red);
-    color: #FFFFFF;
+    background: #EAD8C6;
+    border-color: #8B6049;
+    color: #38241F;
+    box-shadow: none;
     transform: translateY(-2px);
 }
 
@@ -202,6 +227,12 @@
     stroke-width: 2;
     stroke-linecap: round;
     stroke-linejoin: round;
+    transition: transform 0.25s ease;
+}
+
+.eo-home .eo-actions a:hover .eo-action-arrow,
+.eo-home .eo-actions a:focus-visible .eo-action-arrow {
+    transform: translateX(3px);
 }
 
 .eo-block .eo-note {
@@ -582,7 +613,7 @@
 }
 
 .eo-block .eo-food-card:hover .eo-food-arrow {
-    background: var(--eo-orange);
+    background: var(--eo-gold);
 }
 
 .eo-block .eo-slider-hint {
@@ -624,6 +655,34 @@
 .eo-menu h1 { color: #371C23; font-size: 36px; font-weight: 900; margin: 0 0 8px; letter-spacing: -1px; }
 .eo-menu-intro p { color: #8E7775; font-size: 15px; line-height: 1.6; margin: 0; }
 .eo-menu .eo-order-btn { font-size: 14px; min-height: 46px; padding: 10px 18px; gap: 12px; flex-shrink: 0; }
+
+/* Match the Home primary action without changing the Guest CTA dimensions. */
+.eo-guest .eo-menu-intro .eo-order-btn {
+    background: #5A3D32;
+    color: #FFF9F1;
+    box-shadow: none;
+    transition: background 0.25s ease,
+                border-color 0.25s ease,
+                transform 0.25s ease;
+}
+
+.eo-guest .eo-menu-intro .eo-order-btn:hover,
+.eo-guest .eo-menu-intro .eo-order-btn:focus-visible {
+    background: #38241F;
+    box-shadow: none;
+    transform: translateY(-2px);
+}
+
+.eo-guest .eo-menu-intro .eo-action-arrow {
+    color: #E8C79C;
+    transition: transform 0.25s ease;
+}
+
+.eo-guest .eo-menu-intro .eo-order-btn:hover .eo-action-arrow,
+.eo-guest .eo-menu-intro .eo-order-btn:focus-visible .eo-action-arrow {
+    transform: translateX(3px);
+}
+
 .eo-menu-search { display: flex; align-items: flex-end; gap: 12px; margin-bottom: 20px; }
 .eo-menu-search label { flex: 1; color: #631E2B; font-size: 14px; font-weight: 700; }
 .eo-menu-search input { box-sizing: border-box; display: block; width: 100%; margin-top: 8px; height: 42px; padding: 9px 12px; border: 1px solid #E8D7C7; border-radius: 10px; font-size: 14px; background: white; }
