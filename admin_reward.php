@@ -14,7 +14,7 @@ require_once("admin_shell.php");
 <html>
 
 <head><!--Manage reward page-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Manage Rewards</title>
 <link rel="stylesheet" href="style.css">
 <link rel="stylesheet" href="admin_style.css">
@@ -308,7 +308,7 @@ if(isset($_POST["savebtn"]))
 	//if no image was given, fall back to the logo
 	if($rimage == "")
 	{
-		$rimage = "logo.png";
+		$rimage = "logo.jpg";
 	}
 
 	if(isset($_GET["edit"]))

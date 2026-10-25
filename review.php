@@ -32,7 +32,7 @@ if(mysqli_num_rows($order_result)>0)
 <html>
 
 <head><!--Customer comments and rating page-->
-<link rel="icon" type="image/png" href="image/logo.png">
+<link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Review</title>
 <link rel="stylesheet" href="style.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">

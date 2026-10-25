@@ -15,7 +15,7 @@ function catalog_category_image($category_name)
 		"Beverage" => "cat-beverage.jpg"
 	);
 
-	return "image/".($images[$category_name] ?? "logo.png");
+	return "image/".($images[$category_name] ?? "logo.jpg");
 }
 
 function catalog_product_image($stored_path)
@@ -27,7 +27,7 @@ function catalog_product_image($stored_path)
 		return $path;
 	}
 
-	return "image/logo.png";
+	return "image/logo.jpg";
 }
 
 function catalog_product_state($product)
