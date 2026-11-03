@@ -3,8 +3,8 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 
 include("dataconnection.php");
@@ -164,8 +164,12 @@ if($wallet_unlocked)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyOrder Wallet</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261102-wallet-dashboard1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
+<link rel="stylesheet" href="customer.css?v=20261102-wallet-manual-lock1">
+<?php if(!$wallet || !$wallet_unlocked) { ?>
+<script src="customer.js?v=20261030-wallet-unlock1" defer></script>
+<?php } ?>
 </head>
 <body>
 
@@ -175,17 +179,19 @@ if($wallet_unlocked)
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
-<main id="main" class="wallet-page"><!-- Customer wallet content -->
-<div class="wallet-page-heading">
-<div>
-<p class="checkout-step-label">CUSTOMER WALLET</p>
-<h2 class="section-title">EasyOrder Wallet</h2>
-<p class="intro">Top up securely, review your wallet activity and pay for orders using your available balance.</p>
-</div>
-<?php if($wallet_unlocked) { ?>
-<form method="post" action="wallet.php">
+<main id="main" class="wallet-page<?php echo !$wallet ? ' wallet-activation-page' : (!$wallet_unlocked ? ' eo-wallet-locked' : ' eow-dashboard'); ?>"><!-- Customer wallet content -->
+<div class="wallet-page-heading<?php if($wallet_unlocked) echo ' eow-heading'; ?>">
+<?php if(!$wallet) { ?>
+<h1 class="wallet-activation-page-title">Wallet</h1>
+<?php } else if(!$wallet_unlocked) { ?>
+<h1 class="eo-wallet-unlock-page-title">Wallet</h1>
+<?php } else { ?>
+<h1>Wallet</h1>
+<form class="eow-lock-form" method="post" action="wallet.php">
 <input type="hidden" name="wallet_access_token" value="<?php echo easyorder_wallet_html($wallet_access_token); ?>">
-<button class="wallet-secondary-button" type="submit" name="lock_wallet" value="1">Lock Wallet</button>
+<button class="eow-lock-button" type="submit" name="lock_wallet" value="1">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+Lock Wallet</button>
 </form>
 <?php } ?>
 </div>
@@ -194,85 +200,145 @@ if($wallet_unlocked)
 <?php if($wallet_success!=="") { ?><div class="wallet-message-success" role="status"><?php echo easyorder_wallet_html($wallet_success); ?></div><?php } ?>
 
 <?php if(!$wallet) { ?>
-<section class="wallet-access-card" aria-labelledby="create-wallet-title">
-<div class="wallet-card-icon" aria-hidden="true">W</div>
-<p class="checkout-step-label">FIRST-TIME SETUP</p>
-<h3 id="create-wallet-title">Create Your Wallet</h3>
-<p>Verify your existing customer account, then create a separate 6-digit Wallet PIN. This does not create another customer account.</p>
-<form class="wallet-form" method="post" action="wallet.php" autocomplete="off">
+<section class="wallet-activation-card" aria-labelledby="create-wallet-title">
+<div class="wallet-activation-heading">
+<span class="wallet-activation-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+<path d="M20 8V6a2 2 0 0 0-2-2H6a4 4 0 0 0-4 4v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2H6a2 2 0 0 1 0-4"/>
+<path d="M22 13h-6a3 3 0 0 0 0 6h6"/>
+</svg>
+</span>
+<h2 id="create-wallet-title">Activate Your Wallet</h2>
+</div>
+<form class="wallet-activation-form" method="post" action="wallet.php" autocomplete="off">
 <input type="hidden" name="wallet_access_token" value="<?php echo easyorder_wallet_html($wallet_access_token); ?>">
-<div class="wallet-field">
-<label for="account-password">Customer Account Password</label>
-<input id="account-password" type="password" name="account_password" required autocomplete="current-password">
+<div class="wallet-activation-field">
+<label for="account-password">Account Password</label>
+<div class="wallet-activation-input-wrap">
+<input id="account-password" type="password" name="account_password" placeholder="Enter your account password" required autocomplete="current-password">
+<button type="button" class="wallet-activation-visibility" data-target="account-password" aria-label="Show account password" aria-pressed="false" hidden>
+<svg class="wallet-visibility-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<g class="wallet-visibility-eye"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.75"/></g>
+<g class="wallet-visibility-eye-off"><path d="m3 3 18 18M10.7 6.1A11 11 0 0 1 12 6c6.4 0 10 6 10 6a16.5 16.5 0 0 1-3.4 3.8M6.1 6.9C3.5 8.6 2 12 2 12s3.6 6 10 6a10.8 10.8 0 0 0 4.5-.9M10 10a3 3 0 0 0 4 4"/></g>
+</svg>
+</button>
 </div>
-<div class="wallet-field-row">
-<div class="wallet-field">
+</div>
+<div class="wallet-activation-pin-row">
+<div class="wallet-activation-field">
 <label for="wallet-pin">Create Wallet PIN</label>
-<input id="wallet-pin" type="password" name="wallet_pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password">
+<div class="wallet-activation-input-wrap">
+<input id="wallet-pin" class="wallet-activation-pin-input" type="password" name="wallet_pin" placeholder="Enter 6-digit PIN" required inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="new-password">
+<button type="button" class="wallet-activation-visibility" data-target="wallet-pin" aria-label="Show Wallet PIN" aria-pressed="false" hidden>
+<svg class="wallet-visibility-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<g class="wallet-visibility-eye"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.75"/></g>
+<g class="wallet-visibility-eye-off"><path d="m3 3 18 18M10.7 6.1A11 11 0 0 1 12 6c6.4 0 10 6 10 6a16.5 16.5 0 0 1-3.4 3.8M6.1 6.9C3.5 8.6 2 12 2 12s3.6 6 10 6a10.8 10.8 0 0 0 4.5-.9M10 10a3 3 0 0 0 4 4"/></g>
+</svg>
+</button>
 </div>
-<div class="wallet-field">
+</div>
+<div class="wallet-activation-field">
 <label for="confirm-pin">Confirm Wallet PIN</label>
-<input id="confirm-pin" type="password" name="confirm_pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="new-password">
+<div class="wallet-activation-input-wrap">
+<input id="confirm-pin" class="wallet-activation-pin-input" type="password" name="confirm_pin" placeholder="Re-enter 6-digit PIN" required inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="new-password">
+<button type="button" class="wallet-activation-visibility" data-target="confirm-pin" aria-label="Show PIN confirmation" aria-pressed="false" hidden>
+<svg class="wallet-visibility-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+<g class="wallet-visibility-eye"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="2.75"/></g>
+<g class="wallet-visibility-eye-off"><path d="m3 3 18 18M10.7 6.1A11 11 0 0 1 12 6c6.4 0 10 6 10 6a16.5 16.5 0 0 1-3.4 3.8M6.1 6.9C3.5 8.6 2 12 2 12s3.6 6 10 6a10.8 10.8 0 0 0 4.5-.9M10 10a3 3 0 0 0 4 4"/></g>
+</svg>
+</button>
 </div>
 </div>
-<p class="wallet-security-note">Use your 6-digit Wallet PIN to open your wallet and confirm wallet payments.</p>
-<button class="wallet-primary-button" type="submit" name="create_wallet" value="1">Create Wallet</button>
+</div>
+<div class="wallet-activation-note" role="note">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="5" y="10" width="14" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+<span>You will use this PIN to unlock your wallet and confirm wallet payments.</span>
+</div>
+<button class="wallet-activation-submit" type="submit" name="create_wallet" value="1">Activate Wallet</button>
 </form>
 </section>
 
 <?php } else if(!$wallet_unlocked) { ?>
-<section class="wallet-access-card" aria-labelledby="unlock-wallet-title">
-<div class="wallet-card-icon" aria-hidden="true">W</div>
-<p class="checkout-step-label">WELCOME BACK</p>
-<h3 id="unlock-wallet-title">Open Your Wallet</h3>
-<p>Enter your 6-digit Wallet PIN. Your customer login password and Wallet PIN are separate.</p>
-<form class="wallet-form" method="post" action="wallet.php" autocomplete="off">
+<section class="eo-wallet-unlock-card" aria-labelledby="unlock-wallet-title">
+<div class="eo-wallet-unlock-head">
+<span class="eo-wallet-unlock-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+<path d="M20 8V6a2 2 0 0 0-2-2H6a4 4 0 0 0-4 4v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2H6a2 2 0 0 1 0-4"/>
+<path d="M22 13h-6a3 3 0 0 0 0 6h6"/>
+</svg>
+</span>
+<div class="eo-wallet-unlock-heading-text">
+<h2 id="unlock-wallet-title">Open Your Wallet</h2>
+<p>Enter your 6-digit Wallet PIN to access your wallet.</p>
+</div>
+</div>
+<form class="eo-wallet-unlock-form" method="post" action="wallet.php" autocomplete="off">
 <input type="hidden" name="wallet_access_token" value="<?php echo easyorder_wallet_html($wallet_access_token); ?>">
-<div class="wallet-field">
-<label for="wallet-pin">Wallet PIN</label>
-<input id="wallet-pin" type="password" name="wallet_pin" required inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="current-password" autofocus>
+<div class="eo-wallet-unlock-field">
+<label for="eo-wallet-unlock-pin">Wallet PIN</label>
+<div class="eo-wallet-unlock-input-wrap">
+<input id="eo-wallet-unlock-pin" type="password" name="wallet_pin" placeholder="Enter 6-digit Wallet PIN" required inputmode="numeric" pattern="[0-9]{6}" minlength="6" maxlength="6" autocomplete="off" autofocus>
+<button type="button" class="eo-wallet-unlock-eye" aria-controls="eo-wallet-unlock-pin" aria-label="Show Wallet PIN" aria-pressed="false" hidden>
+<svg class="eo-wallet-eye-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>
+<svg class="eo-wallet-eye-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3 3l18 18M10.6 6.1A12 12 0 0 1 12 6c6.5 0 10 6 10 6a13 13 0 0 1-3.3 3.8M6.1 6.8C3.4 8.6 2 12 2 12s3.5 6 10 6a11 11 0 0 0 4.5-.9M10 10a3 3 0 0 0 4 4"/></svg>
+</button>
 </div>
-<div class="wallet-form-actions">
-<button class="wallet-primary-button" type="submit" name="unlock_wallet" value="1">Open Wallet</button>
-<a class="wallet-text-link" href="wallet_pin_recovery.php">Forgot Wallet PIN?</a>
 </div>
+<button class="eo-wallet-unlock-submit" type="submit" name="unlock_wallet" value="1">Open Wallet</button>
+<a class="eo-wallet-unlock-forgot" href="wallet_pin_recovery.php">Forgot Wallet PIN?</a>
 </form>
 </section>
 
 <?php } else { ?>
-<section class="wallet-balance-card" aria-labelledby="wallet-balance-title">
-<div>
-<p class="checkout-step-label">AVAILABLE BALANCE</p>
-<h3 id="wallet-balance-title">RM <?php echo number_format((float)$wallet["wallet_balance"],2); ?></h3>
-<p>Wallet #<?php echo str_pad((string)$wallet["wallet_id"],6,"0",STR_PAD_LEFT); ?> &middot; Open for 15 minutes after PIN verification</p>
+<section class="eow-balance" aria-labelledby="eow-balance-title">
+<div class="eow-balance-left">
+<span class="eow-wallet-icon" aria-hidden="true">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+<path d="M20 8V6a2 2 0 0 0-2-2H6a4 4 0 0 0-4 4v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2H6a2 2 0 0 1 0-4"/><path d="M22 13h-6a3 3 0 0 0 0 6h6"/>
+</svg>
+</span>
+<div class="eow-balance-copy">
+<p class="eow-balance-label" id="eow-balance-title">AVAILABLE BALANCE</p>
+<p class="eow-balance-amount">RM <?php echo number_format((float)$wallet["wallet_balance"],2); ?></p>
 </div>
-<a class="wallet-primary-link" href="wallet_topup.php">Top Up Wallet</a>
+</div>
+<a class="eow-topup" href="wallet_topup.php">Top Up Wallet</a>
 </section>
 
-<div class="wallet-dashboard-links">
-<a href="checkout.php"><strong>Pay at Checkout</strong><span>Choose EasyOrder Wallet when placing an order.</span></a>
-<a href="wallet_pin_recovery.php"><strong>Change Wallet PIN</strong><span>Verify your customer password and set a new PIN.</span></a>
+<div class="eow-pin-row">
+<a class="eow-change-pin" href="wallet_pin_recovery.php">
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="3"/><path d="m9.5 3-.6 2a8 8 0 0 0-1.7 1l-2-.5-2 3.5 1.4 1.5a8 8 0 0 0 0 2l-1.4 1.5 2 3.5 2-.5a8 8 0 0 0 1.7 1l.6 2h4l.6-2a8 8 0 0 0 1.7-1l2 .5 2-3.5-1.4-1.5a8 8 0 0 0 0-2l1.4-1.5-2-3.5-2 .5a8 8 0 0 0-1.7-1l-.6-2Z"/></svg>
+Change Wallet PIN</a>
 </div>
 
-<section class="wallet-history-card" aria-labelledby="wallet-history-title">
-<div class="wallet-history-heading">
-<div><p class="checkout-step-label">ACCOUNT ACTIVITY</p><h3 id="wallet-history-title">Transaction History</h3></div>
+<section class="eow-history" aria-labelledby="eow-history-title">
+<div class="eow-history-heading">
+<h2 id="eow-history-title">Transaction History</h2>
 <span><?php echo count($wallet_transactions); ?> transaction<?php if(count($wallet_transactions)!==1) echo "s"; ?></span>
 </div>
 <?php if(count($wallet_transactions)===0) { ?>
-<div class="wallet-empty-history"><p>No wallet transactions yet.</p><a href="wallet_topup.php">Make your first top-up</a></div>
+<div class="eow-history-empty">
+<span class="eow-receipt-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9Z"/><path d="M14 3v6h6M8 13h8M8 17h6M8 9h1"/></svg></span>
+<strong>No wallet transactions yet.</strong>
+<p>Your top-ups and wallet payments will appear here.</p>
+</div>
 <?php } else { ?>
-<div class="wallet-table-wrap">
-<table class="wallet-history-table">
-<thead><tr><th>Date &amp; Time</th><th>Type</th><th>Reference</th><th>Status</th><th>Amount</th></tr></thead>
+<div class="eow-table-wrap" role="region" aria-labelledby="eow-history-title" tabindex="0">
+<table class="eow-history-table">
+<thead><tr><th scope="col">Date &amp; Time</th><th scope="col">Description</th><th scope="col">Amount</th><th scope="col">Status</th></tr></thead>
 <tbody>
-<?php foreach($wallet_transactions as $transaction) { $is_payment=$transaction["wallet_transaction_type"]==="Payment"; $is_paid=$transaction["wallet_transaction_status"]==="Paid"; ?>
+<?php foreach($wallet_transactions as $transaction) {
+$is_payment = $transaction["wallet_transaction_type"]==="Payment";
+$is_paid = $transaction["wallet_transaction_status"]==="Paid";
+$status_class = $is_paid ? "eow-status-paid" : ($transaction["wallet_transaction_status"]==="Failed" ? "eow-status-failed" : "eow-status-pending");
+$description = $is_payment ? "Payment".(!empty($transaction["wallet_order"]) ? " Order #".(int)$transaction["wallet_order"] : "") : (string)$transaction["wallet_transaction_type"];
+$timestamp = strtotime((string)$transaction["wallet_transaction_created_at"]);
+?>
 <tr>
-<td><?php echo easyorder_wallet_html(date("d M Y, g:i A",strtotime($transaction["wallet_transaction_created_at"]))); ?></td>
-<td><?php echo easyorder_wallet_html($transaction["wallet_transaction_type"]); ?><?php if($transaction["wallet_order"]) { ?><small>Order #<?php echo (int)$transaction["wallet_order"]; ?></small><?php } ?></td>
-<td class="wallet-reference"><?php echo easyorder_wallet_html($transaction["wallet_transaction_reference"]); ?></td>
-<td><span class="wallet-status wallet-status-<?php echo strtolower(easyorder_wallet_html($transaction["wallet_transaction_status"])); ?>"><?php echo easyorder_wallet_html($transaction["wallet_transaction_status"]); ?></span></td>
-<td class="<?php echo $is_payment ? "wallet-amount-out" : ($is_paid ? "wallet-amount-in" : ""); ?>"><?php echo $is_payment ? "- " : ($is_paid ? "+ " : ""); ?>RM <?php echo number_format((float)$transaction["wallet_transaction_amount"],2); ?></td>
+<td><?php echo $timestamp ? easyorder_wallet_html(date("d M Y, g:i A",$timestamp)) : "—"; ?></td>
+<td><?php echo easyorder_wallet_html($description); ?></td>
+<td class="<?php echo $is_payment ? "eow-amount-out" : ($is_paid ? "eow-amount-in" : ""); ?>"><?php echo $is_payment ? "− " : ($is_paid ? "+ " : ""); ?>RM <?php echo number_format((float)$transaction["wallet_transaction_amount"],2); ?></td>
+<td><span class="eow-status <?php echo $status_class; ?>"><?php echo easyorder_wallet_html($transaction["wallet_transaction_status"]); ?></span></td>
 </tr>
 <?php } ?>
 </tbody>
