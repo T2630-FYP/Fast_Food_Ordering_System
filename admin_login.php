@@ -3,6 +3,7 @@
 // Start the administrator login flow before any HTML is sent to the browser.
 session_start();
 include("dataconnection.php");
+require_once(__DIR__."/customer_navigation.php");
 
 $login_email = isset($_POST["admin_email"]) && is_string($_POST["admin_email"])
 	? strtolower(trim($_POST["admin_email"])) : "";
@@ -53,12 +54,15 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["adminloginbtn"]))
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head><!--Administrator login page-->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Admin Login</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="public.css?v=20261103-admin-login-shell1">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 
 <style>
 #login-box
@@ -144,15 +148,10 @@ function admin_login_check()//Validate admin login form
 
 <body>
 
-<div id="header"><!--Header section for logo, website name and slogan-->
-<img src="image/logo.jpg" width="80px" height="80px" alt="EasyOrder Logo" title="EasyOrder">
-<h1>EasyOrder</h1>
-<p>Your Favourite Fast Food, Just A Few Clicks Away</p>
-</div>
+<?php easyorder_render_customer_header(); ?>
 
-<div id="navbar"><!--Customer navigation bar-->
-<a href="./">Home</a>
-<a href="login.php">Customer Login</a>
+<div id="navbar" class="customer-site-navbar"><!--Shared public navigation bar-->
+<?php easyorder_render_customer_navigation_links(false); ?>
 </div>
 
 <div id="main"><!--Main content section-->
@@ -187,10 +186,7 @@ function admin_login_check()//Validate admin login form
 
 </div>
 
-<footer><!--Footer section-->
-<p>Copyright &copy; 2026 EasyOrder Website. All Rights Reserved.</p>
-<p><a href="login.php">User Login</a></p>
-</footer>
+<?php easyorder_render_customer_footer(false); ?>
 
 </body>
 
