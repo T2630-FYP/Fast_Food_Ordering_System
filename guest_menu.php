@@ -26,12 +26,10 @@ if(isset($_SESSION["customer_id"]))
 // Public queries contain no stock counts; customer actions remain on protected pages.
 $stmt = mysqli_prepare($connect,"SELECT p.product_name,p.product_desc,p.product_image,p.product_category,p.product_price
 	FROM product p INNER JOIN category c ON c.category_name=p.product_category
-	WHERE p.product_isDelete=0 AND p.product_status IN ('Active','Out of Stock')
-	AND c.category_isDelete=0 AND c.category_status='Active'
-	AND c.category_name IN ('Fried Chicken','Burger','Side Dishes','Dessert','Beverage')
+	WHERE p.product_status IN ('Active','Out of Stock') AND c.category_status='Active'
 	AND (?='' OR c.category_id=?)
 	AND (?='' OR p.product_name LIKE CONCAT('%',?,'%') OR p.product_desc LIKE CONCAT('%',?,'%'))
-	ORDER BY FIELD(c.category_name,'Fried Chicken','Burger','Side Dishes','Dessert','Beverage'),
+	ORDER BY c.category_id,
 	CASE p.product_name
 		WHEN 'Hot & Spicy (1 pc)' THEN 1
 		WHEN 'Original Recipe (1 pc)' THEN 2
@@ -60,17 +58,17 @@ $result_title = $selected_category!=="" ? $category_lookup[$selected_category]["
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?php echo catalog_h($selected_category!=="" ? $result_title." | Guest Menu" : "Guest Menu"); ?> | EasyOrder</title>
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<link rel="stylesheet" href="home_section.css?v=20261025-guest-espresso2">
-<script src="customer_navigation.js?v=20261024-shell1" defer></script>
+<link rel="stylesheet" href="customer.css?v=20261029-menu-label1">
+<script src="customer.js?v=20261028-consolidated1" defer></script>
 </head>
 <body class="eo-guest" data-session-aware>
 <?php easyorder_render_customer_header(); ?>
 <div id="navbar" class="customer-site-navbar">
 <?php easyorder_render_customer_navigation_links(false); ?>
 </div>
-<main class="eo-block">
+<main id="main" class="eo-block eo-guest-menu">
 <div class="eo-menu">
 <section class="eo-menu-intro" aria-labelledby="guest-menu-title">
 <div>
@@ -81,19 +79,26 @@ $result_title = $selected_category!=="" ? $category_lookup[$selected_category]["
 </section>
 <form class="eo-menu-search" action="guest_menu.php" method="get" role="search">
 <?php if($selected_category!=="") { ?><input type="hidden" name="category" value="<?php echo catalog_h($selected_category); ?>"><?php } ?>
-<label for="guest-menu-search">Search food
+<label for="guest-menu-search">Search food</label>
+<div class="search-row">
+<div class="search-input-wrap">
+<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7.5"/><path d="m16.5 16.5 5 5"/></svg>
 <input type="search" id="guest-menu-search" name="search" maxlength="100" placeholder="What are you craving?" value="<?php echo catalog_h($search_input); ?>">
-</label>
+</div>
 <button type="submit">Search</button>
+</div>
 </form>
 <?php if($search_error!=="") { ?><p class="eo-menu-notice" role="alert"><?php echo catalog_h($search_error); ?></p><?php } ?>
 <?php if($requested_category!=="" && $selected_category==="") { ?><p class="eo-menu-notice">That category is no longer available. Browse the menu below.</p><?php } ?>
-<nav class="eo-menu-filters catalog-category-grid" aria-label="Food categories">
-<a class="eo-menu-filter catalog-filter-card<?php echo $selected_category==="" ? " catalog-filter-active" : ""; ?>" href="guest_menu.php<?php echo $search_term!=="" ? "?search=".rawurlencode($search_term) : ""; ?>#guest-menu-products"<?php echo $selected_category==="" ? ' aria-current="page"' : ""; ?>><img src="image/all-items.jpg" alt=""><span><strong>All Items</strong><small>Browse the complete menu</small></span></a>
+<div class="menu-section-kicker">
+<h2>Browse by category</h2>
+</div>
+<nav class="catalog-category-grid" aria-label="Food categories">
+<a class="catalog-filter-card<?php echo $selected_category==="" ? " catalog-filter-active" : ""; ?>" href="guest_menu.php<?php echo $search_term!=="" ? "?search=".rawurlencode($search_term) : ""; ?>#guest-menu-products"<?php echo $selected_category==="" ? ' aria-current="page"' : ""; ?>><img src="image/all-items.jpg" alt=""><span><strong>All Items</strong></span></a>
 <?php foreach($categories as $category) { $filter_query = array("category"=>$category["category_id"]); if($search_term!=="") $filter_query["search"] = $search_term; ?>
-<a class="eo-menu-filter catalog-filter-card<?php echo $selected_category===$category["category_id"] ? " catalog-filter-active" : ""; ?>" href="guest_menu.php?<?php echo catalog_h(http_build_query($filter_query)); ?>#guest-menu-products"<?php echo $selected_category===$category["category_id"] ? ' aria-current="page"' : ""; ?>>
+<a class="catalog-filter-card<?php echo $selected_category===$category["category_id"] ? " catalog-filter-active" : ""; ?>" href="guest_menu.php?<?php echo catalog_h(http_build_query($filter_query)); ?>#guest-menu-products"<?php echo $selected_category===$category["category_id"] ? ' aria-current="page"' : ""; ?>>
 <img src="<?php echo catalog_h($category["image"]); ?>" alt="">
-<span><strong><?php echo catalog_h($category["category_name"]); ?></strong><small><?php echo catalog_h($category["description"]); ?></small></span>
+<span><strong><?php echo catalog_h($category["category_name"]); ?></strong></span>
 </a>
 <?php } ?>
 </nav>
@@ -106,12 +111,16 @@ $result_title = $selected_category!=="" ? $category_lookup[$selected_category]["
 <div class="eo-menu-products">
 <?php foreach($products as $product) { ?>
 <article class="eo-menu-food">
+<div class="eo-food-image-wrap">
 <img src="<?php echo catalog_h(catalog_product_image($product["product_image"])); ?>" alt="<?php echo catalog_h($product["product_name"]); ?>">
+</div>
 <div class="eo-menu-food-copy">
 <p class="eo-menu-food-category"><?php echo catalog_h($product["product_category"]); ?></p>
 <h3><?php echo catalog_h($product["product_name"]); ?></h3>
 <p class="eo-menu-food-description"><?php echo catalog_h($product["product_desc"]); ?></p>
+<div class="food-card-bottom">
 <p class="eo-menu-food-price">RM <?php echo number_format((float)$product["product_price"],2); ?></p>
+</div>
 </div>
 </article>
 <?php } ?>

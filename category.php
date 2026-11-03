@@ -5,13 +5,18 @@ require_once("product_catalog_helpers.php");
 
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
+
+if(empty($_SESSION["cart_add_csrf"])) $_SESSION["cart_add_csrf"] = bin2hex(random_bytes(32));
+$cart_add_csrf = $_SESSION["cart_add_csrf"];
+$menu_cart_feedback = $_SESSION["menu_cart_feedback"] ?? null;
+unset($_SESSION["menu_cart_feedback"]);
 
 $categories = array();
 $category_lookup = array();
-$category_result = mysqli_query($connect,"SELECT category_id,category_name,category_desc FROM category WHERE category_isDelete=0 AND category_status='Active' ORDER BY category_id");
+$category_result = mysqli_query($connect,"SELECT category_id,category_name,category_image FROM category WHERE category_status='Active' ORDER BY category_id");
 while($category = mysqli_fetch_assoc($category_result))
 {
 	$categories[] = $category;
@@ -36,9 +41,8 @@ if(strlen($search_term)>100)
 $product_sql = "SELECT p.product_id,p.product_name,p.product_desc,p.product_image,p.product_category,p.product_price,p.product_stock,p.product_status,c.category_id
 	FROM product p
 	INNER JOIN category c ON c.category_name=p.product_category
-	WHERE p.product_isDelete=0
-	AND c.category_isDelete=0
-	AND c.category_status='Active'
+	WHERE c.category_status='Active'
+	AND p.product_status IN ('Active','Out of Stock')
 	AND (?='' OR c.category_id=?)
 	AND (?='' OR p.product_name LIKE CONCAT('%',?,'%') OR p.product_desc LIKE CONCAT('%',?,'%'))
 	ORDER BY c.category_id,
@@ -82,9 +86,10 @@ if($selected_category!=="")
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Menu</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<link rel="stylesheet" href="home_section.css?v=20261024-shell1">
+<link rel="stylesheet" href="customer.css?v=20261029-menu-label1">
+<script src="customer.js?v=20261028-menu-cart2" defer></script>
 </head>
 
 <body>
@@ -109,19 +114,26 @@ if($selected_category!=="")
 <?php if($selected_category!=="") { ?>
 <input type="hidden" name="category" value="<?php echo catalog_h($selected_category); ?>">
 <?php } ?>
-<label for="menu-search">Search food
+<label for="menu-search">Search food</label>
+<div class="search-row">
+<div class="search-input-wrap">
+<svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="11" cy="11" r="7.5"/><path d="m16.5 16.5 5 5"/></svg>
 <input type="search" id="menu-search" name="search" value="<?php echo catalog_h($search_input); ?>" maxlength="100" placeholder="What are you craving?"<?php if($search_error!=="") { ?> aria-invalid="true" aria-describedby="menu-search-error"<?php } ?>>
-</label>
+</div>
 <button type="submit">Search</button>
+</div>
 </form>
 <?php if($search_error!=="") { ?>
 <p class="eo-menu-notice" id="menu-search-error" role="alert"><?php echo catalog_h($search_error); ?></p>
 <?php } ?>
 
+<div class="menu-section-kicker">
+<h2>Browse by category</h2>
+</div>
 <nav class="catalog-category-grid" aria-label="Menu categories">
 <a class="catalog-filter-card<?php echo $selected_category==="" ? " catalog-filter-active" : ""; ?>" href="category.php<?php echo $search_term!=="" ? "?search=".rawurlencode($search_term) : ""; ?>#customer-menu-products"<?php echo $selected_category==="" ? ' aria-current="page"' : ""; ?>>
 <img src="image/all-items.jpg" alt="All menu items">
-<span><strong>All Items</strong><small>Browse the complete menu</small></span>
+<span><strong>All Items</strong></span>
 </a>
 <?php foreach($categories as $category) { ?>
 <?php
@@ -132,13 +144,18 @@ if($search_term!=="")
 }
 ?>
 <a class="catalog-filter-card<?php echo $selected_category===$category["category_id"] ? " catalog-filter-active" : ""; ?>" href="category.php<?php echo $category_query; ?>#customer-menu-products"<?php echo $selected_category===$category["category_id"] ? ' aria-current="page"' : ""; ?>>
-<img src="<?php echo catalog_h(catalog_category_image($category["category_name"])); ?>" alt="<?php echo catalog_h($category["category_name"]); ?>">
-<span><strong><?php echo catalog_h($category["category_name"]); ?></strong><small><?php echo catalog_h($category["category_desc"]); ?></small></span>
+<img src="<?php echo catalog_h(catalog_category_image($category["category_image"])); ?>" alt="<?php echo catalog_h($category["category_name"]); ?>">
+<span><strong><?php echo catalog_h($category["category_name"]); ?></strong></span>
 </a>
 <?php } ?>
 </nav>
 
 <section class="eo-menu-results" id="customer-menu-products" aria-labelledby="customer-menu-results-title">
+<?php if(is_array($menu_cart_feedback) && isset($menu_cart_feedback["kind"],$menu_cart_feedback["message"])) { ?>
+<div class="eo-menu-feedback" data-kind="<?php echo $menu_cart_feedback["kind"]==="success" ? "success" : "error"; ?>" role="<?php echo $menu_cart_feedback["kind"]==="success" ? "status" : "alert"; ?>">
+<p><?php echo catalog_h($menu_cart_feedback["message"]); ?></p><a href="cart.php">View cart</a>
+</div>
+<?php } ?>
 <div class="eo-menu-results-heading">
 <h2 id="customer-menu-results-title"><?php echo catalog_h($result_label); ?></h2>
 <p><?php echo count($products); ?> item<?php echo count($products)===1 ? "" : "s"; ?> found<?php echo $search_term!=="" ? " for “".catalog_h($search_term)."”" : ""; ?>.</p>
@@ -149,22 +166,29 @@ if($search_term!=="")
 <?php foreach($products as $product) { ?>
 <?php $state = catalog_product_state($product); ?>
 <article class="eo-menu-food">
-<a class="eo-menu-food-image-link" href="product.php?id=<?php echo rawurlencode($product["product_id"]); ?>">
+<div class="eo-food-image-wrap">
 <img src="<?php echo catalog_h(catalog_product_image($product["product_image"])); ?>" alt="<?php echo catalog_h($product["product_name"]); ?>">
-</a>
+</div>
 <div class="eo-menu-food-copy">
 <p class="eo-menu-food-category"><?php echo catalog_h($product["product_category"]); ?></p>
-<h3><a href="product.php?id=<?php echo rawurlencode($product["product_id"]); ?>"><?php echo catalog_h($product["product_name"]); ?></a></h3>
+<h3><?php echo catalog_h($product["product_name"]); ?></h3>
 <p class="eo-menu-food-description"><?php echo catalog_h($product["product_desc"]); ?></p>
+<div class="food-card-bottom">
 <p class="eo-menu-food-price">RM <?php echo number_format((float)$product["product_price"],2); ?></p>
-<p class="eo-menu-food-stock"><span class="catalog-status <?php echo catalog_h($state["class"]); ?>"><?php echo catalog_h($state["label"]); ?></span></p>
 <div class="catalog-product-actions">
-<a class="btn-secondary" href="product.php?id=<?php echo rawurlencode($product["product_id"]); ?>">View Details</a>
 <?php if($state["orderable"]) { ?>
-<a class="btn-small" href="cart.php?add=<?php echo rawurlencode($product["product_id"]); ?>">Add to Cart</a>
+<form class="catalog-add-form" action="cart.php" method="post" data-menu-add-to-cart>
+<input type="hidden" name="menu_add_to_cart" value="1">
+<input type="hidden" name="csrf_token" value="<?php echo catalog_h($cart_add_csrf); ?>">
+<input type="hidden" name="product_id" value="<?php echo catalog_h($product["product_id"]); ?>">
+<input type="hidden" name="return_category" value="<?php echo catalog_h($selected_category); ?>">
+<input type="hidden" name="return_search" value="<?php echo catalog_h($search_input); ?>">
+<button class="btn-small" type="submit">Add to Cart</button>
+</form>
 <?php } else { ?>
-<span class="catalog-order-disabled">Cannot Add</span>
+<span class="catalog-order-disabled"><?php echo catalog_h($state["label"]); ?></span>
 <?php } ?>
+</div>
 </div>
 </div>
 </article>
@@ -181,6 +205,16 @@ if($search_term!=="")
 
 </div>
 </main>
+
+<div class="eo-cart-announcement" data-cart-announcement role="status" aria-live="polite" aria-atomic="true"></div>
+<aside class="eo-cart-toast" data-cart-toast data-kind="success" aria-label="Cart notification" hidden>
+<span class="eo-cart-toast-icon" aria-hidden="true">
+<svg class="eo-cart-success-icon" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
+<svg class="eo-cart-error-icon" viewBox="0 0 24 24"><path d="M12 7v6m0 4h.01"/><circle cx="12" cy="12" r="9"/></svg>
+</span>
+<div class="eo-cart-toast-copy"><p class="eo-cart-toast-title" data-cart-toast-title></p><p class="eo-cart-toast-message" data-cart-toast-message></p><a class="eo-cart-toast-action" data-cart-toast-action href="cart.php">View cart</a></div>
+<button class="eo-cart-toast-close" data-cart-toast-close type="button" aria-label="Dismiss cart notification">×</button>
+</aside>
 
 <?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
