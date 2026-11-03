@@ -12,6 +12,7 @@ $connect = mysqli_connect("localhost","root","","easyorder");
 date_default_timezone_set("Asia/Kuala_Lumpur");
 if($connect)
 {
+	mysqli_set_charset($connect,"utf8mb4");
 	mysqli_query($connect,"SET time_zone = '+08:00'");
 }
 
@@ -70,7 +71,7 @@ if($connect)
 
 	$current_page = basename($_SERVER["PHP_SELF"] ?? "");
 	$admin_page = substr($current_page,0,6) == "admin_";
-	$customer_pages = array("profile.php","change_password.php","cart.php","checkout.php","payment.php","order_history.php","order_details.php","review.php","reward.php","view_review.php","wallet.php","wallet_topup.php","wallet_pin_recovery.php");
+	$customer_pages = array("profile.php","change_password.php","cart.php","checkout.php","payment.php","order_history.php","order_details.php","review.php","reward.php","wallet.php","wallet_topup.php","wallet_pin_recovery.php");
 
 	if($invalid_customer)
 	{
@@ -92,7 +93,7 @@ if($connect)
 	}
 	else if($invalid_customer && in_array($current_page,$customer_pages,true))
 	{
-		header("location:login.php");
-		exit();
+		require_once(__DIR__."/customer_auth_helpers.php");
+		easyorder_redirect_customer_to_login();
 	}
 }

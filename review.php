@@ -3,8 +3,8 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 include("dataconnection.php");
 require_once(__DIR__."/customer_navigation.php");
@@ -34,7 +34,7 @@ if(mysqli_num_rows($order_result)>0)
 <head><!--Customer comments and rating page-->
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Review</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 
 <script>
@@ -126,7 +126,7 @@ if($placed_order_id>0)
 </div>
 </form>
 
-<p style="text-align:center; margin-top:20px;"><a class="btn" href="profile.php">Back to Profile</a> &nbsp; <a class="btn" href="view_review.php">View Customer Reviews</a></p>
+<p style="text-align:center; margin-top:20px;"><a class="btn" href="profile.php">Back to Profile</a></p>
 
 </div>
 

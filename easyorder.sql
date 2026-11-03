@@ -31,7 +31,8 @@ CREATE TABLE `cart` (
   `cart_id` int(11) NOT NULL,
   `cart_customer` int(11) NOT NULL,
   `cart_product` char(5) NOT NULL,
-  `cart_qty` int(4) NOT NULL
+  `cart_qty` int(4) NOT NULL,
+  `cart_position` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
@@ -43,21 +44,31 @@ CREATE TABLE `cart` (
 CREATE TABLE `category` (
   `category_id` char(5) NOT NULL,
   `category_name` varchar(50) NOT NULL,
-  `category_desc` varchar(100) NOT NULL,
-  `category_status` varchar(10) NOT NULL,
-  `category_isDelete` int(1) NOT NULL DEFAULT 0
+  `category_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT '',
+  `category_status` varchar(10) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Dumping data for table `category`
 --
 
-INSERT INTO `category` (`category_id`, `category_name`, `category_desc`, `category_status`, `category_isDelete`) VALUES
-('C001', 'Fried Chicken', 'Crispy, juicy and golden fried chicken.', 'Active', 0),
-('C002', 'Burger', 'Juicy burgers stacked with fresh ingredients.', 'Active', 0),
-('C003', 'Side Dishes', 'The perfect sides to complete your meal.', 'Active', 0),
-('C004', 'Dessert', 'Sweet treats to end your meal on a high note.', 'Active', 0),
-('C005', 'Beverage', 'Cold drinks to keep you refreshed.', 'Active', 0);
+INSERT INTO `category` (`category_id`, `category_name`, `category_image`, `category_status`) VALUES
+('C001', 'Fried Chicken', 'image/cat-chicken.jpg', 'Active'),
+('C002', 'Burger', 'image/cat-burger.jpg', 'Active'),
+('C003', 'Side Dishes', 'image/cat-sides.jpg', 'Active'),
+('C004', 'Dessert', 'image/cat-dessert.jpg', 'Active'),
+('C005', 'Beverage', 'image/cat-beverage.jpg', 'Active');
+
+-- --------------------------------------------------------
+
+--
+-- Ownership of uploaded catalog images, used to preserve shared and bundled files.
+--
+
+CREATE TABLE `catalog_image_upload` (
+  `image_path` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL,
+  PRIMARY KEY (`image_path`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 -- --------------------------------------------------------
 
@@ -147,19 +158,20 @@ CREATE TABLE `orders` (
   `order_delivery` varchar(5) NOT NULL,
   `order_address` varchar(255) NOT NULL,
   `order_status` varchar(20) NOT NULL,
-  `order_isDelete` int(1) NOT NULL DEFAULT 0
+  `order_isDelete` int(1) NOT NULL DEFAULT 0,
+  `order_points_earned` int(10) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Dumping data for table `orders`
 --
 
-INSERT INTO `orders` (`order_id`, `order_customer`, `order_date`, `order_total`, `order_payment`, `order_payment_status`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`) VALUES
-(1, 1, '2026-05-20 00:00:00', 27.77, 'Cash', 'Unpaid', 'No', '', 'Delivered', 0),
-(2, 2, '2026-05-21 00:00:00', 24.70, 'Credit Card', 'Pending', 'No', '', 'Preparing', 0),
-(3, 3, '2026-05-22 00:00:00', 41.25, 'Cash on Delivery', 'Unpaid', 'Yes', 'No. 12, Jalan Mawar, Taman Pelangi, Johor Bahru', 'Preparing', 0),
-(4, 4, '2026-05-22 00:00:00', 19.93, 'E-Wallet', 'Pending', 'No', '', 'Out for Delivery', 0),
-(5, 1, '2026-05-23 00:00:00', 34.24, 'Credit Card', 'Pending', 'No', '', 'Picked Up', 0);
+INSERT INTO `orders` (`order_id`, `order_customer`, `order_date`, `order_total`, `order_payment`, `order_payment_status`, `order_delivery`, `order_address`, `order_status`, `order_isDelete`, `order_points_earned`) VALUES
+(1, 1, '2026-05-20 00:00:00', 27.77, 'Cash', 'Unpaid', 'No', '', 'Delivered', 0, 277),
+(2, 2, '2026-05-21 00:00:00', 24.70, 'Credit Card', 'Pending', 'No', '', 'Preparing', 0, 247),
+(3, 3, '2026-05-22 00:00:00', 41.25, 'Cash on Delivery', 'Unpaid', 'Yes', 'No. 12, Jalan Mawar, Taman Pelangi, Johor Bahru', 'Preparing', 0, 412),
+(4, 4, '2026-05-22 00:00:00', 19.93, 'E-Wallet', 'Pending', 'No', '', 'Out for Delivery', 0, 199),
+(5, 1, '2026-05-23 00:00:00', 34.24, 'Credit Card', 'Pending', 'No', '', 'Picked Up', 0, 342);
 
 -- --------------------------------------------------------
 
@@ -223,6 +235,7 @@ CREATE TABLE `order_items` (
   `item_order` int(11) NOT NULL,
   `item_product` char(5) NOT NULL,
   `item_name` varchar(100) NOT NULL,
+  `item_category` varchar(50) NOT NULL DEFAULT '',
   `item_price` decimal(5,2) NOT NULL,
   `item_qty` int(4) NOT NULL,
   `item_subtotal` decimal(7,2) NOT NULL
@@ -258,40 +271,39 @@ CREATE TABLE `product` (
   `product_id` char(5) NOT NULL,
   `product_name` varchar(100) NOT NULL,
   `product_desc` varchar(255) NOT NULL DEFAULT '',
-  `product_image` varchar(255) NOT NULL DEFAULT 'image/logo.jpg',
+  `product_image` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL DEFAULT 'image/logo.jpg',
   `product_category` varchar(50) NOT NULL,
   `product_price` decimal(5,2) NOT NULL,
   `product_stock` int(4) NOT NULL,
-  `product_status` varchar(20) NOT NULL,
-  `product_isDelete` int(1) NOT NULL DEFAULT 0
+  `product_status` varchar(20) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 --
 -- Dumping data for table `product`
 --
 
-INSERT INTO `product` (`product_id`, `product_name`, `product_desc`, `product_image`, `product_category`, `product_price`, `product_stock`, `product_status`, `product_isDelete`) VALUES
-('P001', 'Original Recipe (1 pc)', 'Our signature crispy fried chicken with the secret blend of 11 herbs and spices.', 'image/chicken-original.jpg', 'Fried Chicken', 7.90, 120, 'Active', 0),
-('P002', 'Hot & Spicy (1 pc)', 'Fiery and flavourful chicken coated in a bold, spicy crust for those who love the heat.', 'image/chicken-hotspicy.jpg', 'Fried Chicken', 8.50, 100, 'Active', 0),
-('P003', 'Crispy Tenders (3 pcs)', 'Tender strips of juicy chicken breast, lightly breaded and fried until perfectly crunchy.', 'image/chicken-tenders.jpg', 'Fried Chicken', 11.90, 80, 'Active', 0),
-('P004', 'Nuggets (6 pcs)', 'Bite-sized golden nuggets that are great for sharing or as a tasty snack on the go.', 'image/chicken-nuggets.jpg', 'Fried Chicken', 9.90, 90, 'Active', 0),
-('P005', 'Classic Burger', 'A timeless favourite with a soft bun, fresh lettuce, tomato and our special sauce.', 'image/burger-classic.jpg', 'Burger', 10.90, 75, 'Active', 0),
-('P006', 'Beef Burger', 'A thick, char-grilled beef patty topped with melted cheese and crisp onions.', 'image/burger-beef.jpg', 'Burger', 12.90, 70, 'Active', 0),
-('P007', 'Filet-O-Fish', 'A golden, crispy fish fillet with tartar sauce and cheese in a steamed bun.', 'image/burger-fish.jpg', 'Burger', 11.50, 60, 'Active', 0),
-('P008', 'Zinger Burger', 'A spicy, crunchy chicken fillet layered with lettuce and creamy mayo.', 'image/burger-zinger.jpg', 'Burger', 13.90, 85, 'Active', 0),
-('P009', 'Zinger Double Down', 'Our boldest burger with two spicy chicken fillets, bacon and cheese, no bun needed.', 'image/burger-zingerdouble.jpg', 'Burger', 15.90, 50, 'Active', 0),
-('P010', 'French Fries', 'Golden, crispy fries lightly salted and served piping hot.', 'image/side-fries.jpg', 'Side Dishes', 5.90, 200, 'Active', 0),
-('P011', 'Cheezy Wedges', 'Thick-cut potato wedges drizzled with warm, melty cheese sauce.', 'image/side-wedges.jpg', 'Side Dishes', 6.90, 150, 'Active', 0),
-('P012', 'Onion Rings', 'Sweet onion rings in a crunchy, golden batter. Great for sharing.', 'image/side-onionrings.jpg', 'Side Dishes', 6.50, 120, 'Active', 0),
-('P013', 'Corn Cup', 'Sweet buttered corn kernels served warm in a convenient cup.', 'image/side-corncup.jpg', 'Side Dishes', 4.50, 130, 'Active', 0),
-('P014', 'Ice Cream Cone', 'Smooth, creamy vanilla soft-serve swirled in a crispy cone.', 'image/dessert-icecream.jpg', 'Dessert', 3.90, 110, 'Active', 0),
-('P015', 'Chocolate Sundae', 'Creamy soft-serve topped with rich chocolate sauce in a cup.', 'image/dessert-sundae.jpg', 'Dessert', 5.50, 95, 'Active', 0),
-('P016', 'Apple Pie', 'A warm, flaky pastry filled with sweet cinnamon apple goodness.', 'image/dessert-applepie.jpg', 'Dessert', 4.90, 0, 'Out of Stock', 0),
-('P017', 'Coca-Cola', 'An ice-cold classic cola to go perfectly with any meal.', 'image/bev-coke.jpg', 'Beverage', 3.50, 300, 'Active', 0),
-('P018', 'Sprite', 'A crisp, lemon-lime soda that is light and refreshing.', 'image/bev-sprite.jpg', 'Beverage', 3.50, 280, 'Active', 0),
-('P019', 'Orange Juice', 'Freshly squeezed orange juice, full of natural sweetness.', 'image/bev-orangejuice.jpg', 'Beverage', 5.90, 90, 'Active', 0),
-('P020', 'Iced Latte', 'Smooth espresso with chilled milk over ice for a cool pick-me-up.', 'image/bev-icedlatte.jpg', 'Beverage', 6.50, 85, 'Active', 0),
-('P021', 'Mineral Water', 'Pure, refreshing bottled mineral water.', 'image/bev-water.jpg', 'Beverage', 2.00, 250, 'Active', 0);
+INSERT INTO `product` (`product_id`, `product_name`, `product_desc`, `product_image`, `product_category`, `product_price`, `product_stock`, `product_status`) VALUES
+('P001', 'Original Recipe (1 pc)', 'Our signature crispy fried chicken with the secret blend of 11 herbs and spices.', 'image/chicken-original.jpg', 'Fried Chicken', 7.90, 120, 'Active'),
+('P002', 'Hot & Spicy (1 pc)', 'Fiery and flavourful chicken coated in a bold, spicy crust for those who love the heat.', 'image/chicken-hotspicy.jpg', 'Fried Chicken', 8.50, 100, 'Active'),
+('P003', 'Crispy Tenders (3 pcs)', 'Tender strips of juicy chicken breast, lightly breaded and fried until perfectly crunchy.', 'image/chicken-tenders.jpg', 'Fried Chicken', 11.90, 80, 'Active'),
+('P004', 'Nuggets (6 pcs)', 'Bite-sized golden nuggets that are great for sharing or as a tasty snack on the go.', 'image/chicken-nuggets.jpg', 'Fried Chicken', 9.90, 90, 'Active'),
+('P005', 'Classic Burger', 'A timeless favourite with a soft bun, fresh lettuce, tomato and our special sauce.', 'image/burger-classic.jpg', 'Burger', 10.90, 75, 'Active'),
+('P006', 'Beef Burger', 'A thick, char-grilled beef patty topped with melted cheese and crisp onions.', 'image/burger-beef.jpg', 'Burger', 12.90, 70, 'Active'),
+('P007', 'Filet-O-Fish', 'A golden, crispy fish fillet with tartar sauce and cheese in a steamed bun.', 'image/burger-fish.jpg', 'Burger', 11.50, 60, 'Active'),
+('P008', 'Zinger Burger', 'A spicy, crunchy chicken fillet layered with lettuce and creamy mayo.', 'image/burger-zinger.jpg', 'Burger', 13.90, 85, 'Active'),
+('P009', 'Zinger Double Down', 'Our boldest burger with two spicy chicken fillets, bacon and cheese, no bun needed.', 'image/burger-zingerdouble.jpg', 'Burger', 15.90, 50, 'Active'),
+('P010', 'French Fries', 'Golden, crispy fries lightly salted and served piping hot.', 'image/side-fries.jpg', 'Side Dishes', 5.90, 200, 'Active'),
+('P011', 'Cheezy Wedges', 'Thick-cut potato wedges drizzled with warm, melty cheese sauce.', 'image/side-wedges.jpg', 'Side Dishes', 6.90, 150, 'Active'),
+('P012', 'Onion Rings', 'Sweet onion rings in a crunchy, golden batter. Great for sharing.', 'image/side-onionrings.jpg', 'Side Dishes', 6.50, 120, 'Active'),
+('P013', 'Corn Cup', 'Sweet buttered corn kernels served warm in a convenient cup.', 'image/side-corncup.jpg', 'Side Dishes', 4.50, 130, 'Active'),
+('P014', 'Ice Cream Cone', 'Smooth, creamy vanilla soft-serve swirled in a crispy cone.', 'image/dessert-icecream.jpg', 'Dessert', 3.90, 110, 'Active'),
+('P015', 'Chocolate Sundae', 'Creamy soft-serve topped with rich chocolate sauce in a cup.', 'image/dessert-sundae.jpg', 'Dessert', 5.50, 95, 'Active'),
+('P016', 'Apple Pie', 'A warm, flaky pastry filled with sweet cinnamon apple goodness.', 'image/dessert-applepie.jpg', 'Dessert', 4.90, 0, 'Out of Stock'),
+('P017', 'Coca-Cola', 'An ice-cold classic cola to go perfectly with any meal.', 'image/bev-coke.jpg', 'Beverage', 3.50, 300, 'Active'),
+('P018', 'Sprite', 'A crisp, lemon-lime soda that is light and refreshing.', 'image/bev-sprite.jpg', 'Beverage', 3.50, 280, 'Active'),
+('P019', 'Orange Juice', 'Freshly squeezed orange juice, full of natural sweetness.', 'image/bev-orangejuice.jpg', 'Beverage', 5.90, 90, 'Active'),
+('P020', 'Iced Latte', 'Smooth espresso with chilled milk over ice for a cool pick-me-up.', 'image/bev-icedlatte.jpg', 'Beverage', 6.50, 85, 'Active'),
+('P021', 'Mineral Water', 'Pure, refreshing bottled mineral water.', 'image/bev-water.jpg', 'Beverage', 2.00, 250, 'Active');
 
 -- --------------------------------------------------------
 
@@ -303,10 +315,11 @@ CREATE TABLE `redemption` (
   `redeem_id` int(11) NOT NULL,
   `redeem_customer` int(11) NOT NULL,
   `redeem_reward` varchar(100) NOT NULL,
-  `redeem_product` char(5) NOT NULL,
+  `redeem_product` char(5) DEFAULT NULL,
   `redeem_points` int(6) NOT NULL,
   `redeem_status` varchar(10) NOT NULL DEFAULT 'Cart',
-  `redeem_date` date NOT NULL
+  `redeem_date` date NOT NULL,
+  `redeem_cart_position` bigint(20) UNSIGNED NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
 
 -- --------------------------------------------------------
@@ -396,7 +409,9 @@ INSERT INTO `staff` (`staff_id`, `staff_name`, `staff_role`, `staff_email`, `sta
 -- Indexes for table `cart`
 --
 ALTER TABLE `cart`
-  ADD PRIMARY KEY (`cart_id`);
+  ADD PRIMARY KEY (`cart_id`),
+  ADD UNIQUE KEY `uq_cart_customer_product` (`cart_customer`,`cart_product`),
+  ADD KEY `idx_cart_customer_position` (`cart_customer`,`cart_position`,`cart_id`);
 
 --
 -- Indexes for table `category`
@@ -477,7 +492,8 @@ ALTER TABLE `product`
 ALTER TABLE `redemption`
   ADD PRIMARY KEY (`redeem_id`),
   ADD KEY `fk_redeem_customer` (`redeem_customer`),
-  ADD KEY `fk_redeem_product` (`redeem_product`);
+  ADD KEY `fk_redeem_product` (`redeem_product`),
+  ADD KEY `idx_redemption_cart_order` (`redeem_customer`,`redeem_status`,`redeem_cart_position`,`redeem_id`);
 
 --
 -- Indexes for table `review`
@@ -623,7 +639,7 @@ ALTER TABLE `product`
 --
 ALTER TABLE `redemption`
   ADD CONSTRAINT `fk_redeem_customer` FOREIGN KEY (`redeem_customer`) REFERENCES `customer` (`customer_id`) ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_redeem_product` FOREIGN KEY (`redeem_product`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_redeem_product_history` FOREIGN KEY (`redeem_product`) REFERENCES `product` (`product_id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Constraints for table `review`
@@ -637,6 +653,9 @@ ALTER TABLE `review`
 --
 ALTER TABLE `reward`
   ADD CONSTRAINT `fk_reward_product` FOREIGN KEY (`reward_product`) REFERENCES `product` (`product_id`) ON UPDATE CASCADE;
+-- Preserve the category recorded when these seeded orders were placed.
+UPDATE order_items oi INNER JOIN product p ON p.product_id=oi.item_product
+SET oi.item_category=p.product_category WHERE oi.item_category='';
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

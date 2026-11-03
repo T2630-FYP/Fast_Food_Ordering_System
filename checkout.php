@@ -3,8 +3,8 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 
 include("dataconnection.php");
@@ -177,14 +177,14 @@ if(isset($_POST["placeorderbtn"]))
 				throw new Exception("An item in your cart has an invalid quantity. Please review your cart.");
 			}
 
-			$stmt = mysqli_prepare($connect,"SELECT product_name,product_price,product_stock,product_status,product_isDelete FROM product WHERE product_id=? FOR UPDATE");
+			$stmt = mysqli_prepare($connect,"SELECT product_name,product_category,product_price,product_stock,product_status FROM product WHERE product_id=? FOR UPDATE");
 			mysqli_stmt_bind_param($stmt,"s",$pid);
 			mysqli_stmt_execute($stmt);
 			$product_result = mysqli_stmt_get_result($stmt);
 			$product_row = mysqli_fetch_assoc($product_result);
 			mysqli_stmt_close($stmt);
 
-			if(!$product_row || (int)$product_row["product_isDelete"]===1 || $product_row["product_status"]!=="Active" || (int)$product_row["product_stock"]<=0)
+			if(!$product_row || $product_row["product_status"]!=="Active" || (int)$product_row["product_stock"]<=0)
 			{
 				throw new Exception("An item in your cart is no longer available. Please review your cart.");
 			}
@@ -205,6 +205,7 @@ if(isset($_POST["placeorderbtn"]))
 		// Calculate SST from merchandise only; rewards remain free and delivery is not taxed.
 		$order_pricing = easyorder_order_pricing($order_subtotal,$delivery);
 		$total = $order_pricing["total"];
+		$earned_points = easyorder_food_reward_points($order_pricing["subtotal"]);
 		$locked_wallet = null;
 		if($payment==="EasyOrder Wallet")
 		{
@@ -225,8 +226,8 @@ if(isset($_POST["placeorderbtn"]))
 			}
 		}
 
-		$stmt = mysqli_prepare($connect,"INSERT INTO orders(order_customer,order_date,order_total,order_payment,order_payment_status,order_delivery,order_address,order_status) VALUES(?,?,?,?,?,?,?,'Preparing')");
-		mysqli_stmt_bind_param($stmt,"isdssss",$mid,$order_datetime,$total,$payment,$payment_status,$delivery,$address);
+		$stmt = mysqli_prepare($connect,"INSERT INTO orders(order_customer,order_date,order_total,order_payment,order_payment_status,order_delivery,order_address,order_points_earned,order_status) VALUES(?,?,?,?,?,?,?,?,'Preparing')");
+		mysqli_stmt_bind_param($stmt,"isdssssi",$mid,$order_datetime,$total,$payment,$payment_status,$delivery,$address,$earned_points);
 		mysqli_stmt_execute($stmt);
 		$orderid = mysqli_insert_id($connect);
 		mysqli_stmt_close($stmt);
@@ -284,7 +285,6 @@ if(isset($_POST["placeorderbtn"]))
 			mysqli_stmt_close($stmt);
 		}
 
-		$earned_points = max(0,(int)floor($total * 10));
 		$stmt = mysqli_prepare($connect,"UPDATE customer SET customer_points=customer_points+? WHERE customer_id=?");
 		mysqli_stmt_bind_param($stmt,"ii",$earned_points,$mid);
 		mysqli_stmt_execute($stmt);
@@ -293,12 +293,13 @@ if(isset($_POST["placeorderbtn"]))
 		foreach($order_products as $pid => $product_row)
 		{
 			$pname = $product_row["product_name"];
+			$pcategory = $product_row["product_category"];
 			$pprice = (float)$product_row["product_price"];
 			$qty = (int)$product_row["cart_qty"];
 			$sub = $pprice * $qty;
 
-			$stmt = mysqli_prepare($connect,"INSERT INTO order_items(item_order,item_product,item_name,item_price,item_qty,item_subtotal) VALUES(?,?,?,?,?,?)");
-			mysqli_stmt_bind_param($stmt,"issdid",$orderid,$pid,$pname,$pprice,$qty,$sub);
+			$stmt = mysqli_prepare($connect,"INSERT INTO order_items(item_order,item_product,item_name,item_category,item_price,item_qty,item_subtotal) VALUES(?,?,?,?,?,?,?)");
+			mysqli_stmt_bind_param($stmt,"isssdid",$orderid,$pid,$pname,$pcategory,$pprice,$qty,$sub);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 
@@ -319,10 +320,15 @@ if(isset($_POST["placeorderbtn"]))
 		{
 			$rpid = $reward_row["redeem_product"];
 			$rname = $reward_row["redeem_reward"];
+			$stmt = mysqli_prepare($connect,"SELECT product_category FROM product WHERE product_id=? FOR UPDATE");
+			mysqli_stmt_bind_param($stmt,"s",$rpid);mysqli_stmt_execute($stmt);
+			$reward_product = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt));mysqli_stmt_close($stmt);
+			if(!$reward_product) throw new Exception("A reward item is no longer available. Please review your cart.");
+			$rcategory = $reward_product["product_category"];
 			$free_price = 0.00;
 			$free_qty = 1;
-			$stmt = mysqli_prepare($connect,"INSERT INTO order_items(item_order,item_product,item_name,item_price,item_qty,item_subtotal) VALUES(?,?,?,?,?,?)");
-			mysqli_stmt_bind_param($stmt,"issdid",$orderid,$rpid,$rname,$free_price,$free_qty,$free_price);
+			$stmt = mysqli_prepare($connect,"INSERT INTO order_items(item_order,item_product,item_name,item_category,item_price,item_qty,item_subtotal) VALUES(?,?,?,?,?,?,?)");
+			mysqli_stmt_bind_param($stmt,"isssdid",$orderid,$rpid,$rname,$rcategory,$free_price,$free_qty,$free_price);
 			mysqli_stmt_execute($stmt);
 			mysqli_stmt_close($stmt);
 		}
@@ -432,14 +438,14 @@ try
 	ksort($cart);
 	foreach($cart as $pid => $qty)
 	{
-		$stmt = mysqli_prepare($connect,"SELECT product_name,product_price,product_stock,product_status,product_isDelete FROM product WHERE product_id=? FOR UPDATE");
+		$stmt = mysqli_prepare($connect,"SELECT product_name,product_category,product_price,product_stock,product_status FROM product WHERE product_id=? FOR UPDATE");
 		mysqli_stmt_bind_param($stmt,"s",$pid);
 		mysqli_stmt_execute($stmt);
 		$product_result = mysqli_stmt_get_result($stmt);
 		$product_row = mysqli_fetch_assoc($product_result);
 		mysqli_stmt_close($stmt);
 
-		if(!$product_row || (int)$product_row["product_isDelete"]===1 || $product_row["product_status"]!=="Active" || (int)$product_row["product_stock"]<=0 || $qty<=0)
+		if(!$product_row || $product_row["product_status"]!=="Active" || (int)$product_row["product_stock"]<=0 || $qty<=0)
 		{
 			$removed_items[] = $product_row ? $product_row["product_name"] : "an item that is no longer available";
 			$stmt = mysqli_prepare($connect,"DELETE FROM cart WHERE cart_customer=? AND cart_product=?");
@@ -523,11 +529,13 @@ catch(Throwable $error)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Checkout</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261028-checkout1">
+<link rel="stylesheet" href="customer.css?v=20261029-food-bg1">
+<script src="customer.js?v=20261028-checkout1" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 
-<body>
+<body class="customer-checkout-page">
 
 <?php easyorder_render_customer_header(); ?>
 
@@ -535,300 +543,224 @@ catch(Throwable $error)
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
-<main id="main"><!-- Main content section -->
+<main id="main" class="eo-checkout-main">
+<?php
+require_once __DIR__ . '/product_catalog_helpers.php';
 
-<div class="checkout-page-heading">
-<div>
-<p class="checkout-step-label">FINAL STEP</p>
-<h2 class="section-title">Checkout</h2>
-<p class="intro">Review your order, choose fulfilment and confirm how you will pay.</p>
+// Keep the design's Credit Card default, while preserving any selection restored
+// after a failed checkout. Unavailable Wallet falls back to Credit Card.
+$eo_checkout_method = in_array($selected_payment, array('Credit Card','Cash','EasyOrder Wallet'), true)
+    ? $selected_payment : 'Credit Card';
+if ($eo_checkout_method === 'EasyOrder Wallet' && !$checkout_wallet) {
+    $eo_checkout_method = 'Credit Card';
+}
+$eo_delivery_method = $selected_delivery_method === 'Delivery' ? 'Delivery' : 'Pickup';
+
+// Order summary thumbnails come from the existing product records.
+// Images are read only, and are restricted to the local image/ folder.
+$eo_checkout_images = array();
+$eo_image_ids = array_keys($cart);
+foreach ($reward_items as $eo_reward_ref) {
+    $eo_image_ids[] = $eo_reward_ref['redeem_product'];
+}
+$eo_image_ids = array_unique($eo_image_ids);
+if ($eo_image_ids) {
+    $eo_img_stmt = mysqli_prepare($connect, 'SELECT product_image FROM product WHERE product_id=? LIMIT 1');
+    if ($eo_img_stmt) {
+        foreach ($eo_image_ids as $eo_img_id) {
+            mysqli_stmt_bind_param($eo_img_stmt, 's', $eo_img_id);
+            mysqli_stmt_execute($eo_img_stmt);
+            $eo_img_result = mysqli_stmt_get_result($eo_img_stmt);
+            $eo_img_row = $eo_img_result ? mysqli_fetch_assoc($eo_img_result) : null;
+            $eo_checkout_images[(string)$eo_img_id] = catalog_product_image($eo_img_row['product_image'] ?? '');
+            if ($eo_img_result) mysqli_free_result($eo_img_result);
+        }
+        mysqli_stmt_close($eo_img_stmt);
+    }
+}
+?>
+<div class="eo-checkout-page" data-subtotal="<?php echo checkout_html(number_format((float)$subtotal, 2, '.', '')); ?>" data-sst="<?php echo checkout_html(number_format((float)$checkout_pricing['sst'], 2, '.', '')); ?>" data-delivery-fee="<?php echo checkout_html(number_format((float)EASYORDER_DELIVERY_FEE, 2, '.', '')); ?>">
+    <div class="eo-checkout-topbar">
+        <h1>Checkout</h1>
+        <a href="cart.php" class="eo-checkout-back">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5m7-7-7 7 7 7"/></svg>
+            Back to Cart
+        </a>
+    </div>
+
+    <?php if (isset($checkout_error)): ?>
+        <div class="eo-checkout-alert eo-checkout-alert-error" role="alert"><?php echo checkout_html($checkout_error); ?></div>
+    <?php endif; ?>
+    <?php if (!empty($removed_items)): ?>
+        <div class="eo-checkout-alert" role="status">Unavailable items removed: <?php echo checkout_html(implode(', ', $removed_items)); ?>.</div>
+    <?php endif; ?>
+    <?php if (!empty($adjusted_items)): ?>
+        <div class="eo-checkout-alert" role="status">Stock changed: <?php echo checkout_html(implode(', ', $adjusted_items)); ?>.</div>
+    <?php endif; ?>
+
+    <?php if ($has_checkout_items): ?>
+    <form id="eo-checkout-form" method="post" action="checkout.php" name="checkoutfrm" novalidate>
+        <input type="hidden" name="checkout_token" value="<?php echo checkout_html($checkout_token); ?>">
+        <div class="eo-checkout-grid">
+            <div class="eo-checkout-left">
+                <section class="eo-checkout-panel" aria-labelledby="eo-fulfil-heading">
+                    <div class="eo-checkout-panel-title"><h2 id="eo-fulfil-heading">Pickup or Delivery</h2></div>
+                    <div class="eo-checkout-panel-inner">
+                        <fieldset class="eo-checkout-fieldset">
+                            <legend class="eo-checkout-sr-only">Choose pickup or delivery</legend>
+                            <div class="eo-checkout-fulfil-options">
+                                <label class="eo-checkout-fulfil-choice">
+                                    <input type="radio" name="delivery_method" value="Pickup" <?php if ($eo_delivery_method === 'Pickup') echo 'checked'; ?>>
+                                    <span class="eo-checkout-fulfil-heading">
+                                        <span class="eo-checkout-choice-label">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9h14l-1 12H6L5 9Z"/><path d="M9 9V6a3 3 0 0 1 6 0v3"/></svg>
+                                            <strong>Pickup</strong>
+                                        </span>
+                                        <span class="eo-checkout-fee eo-checkout-fee-free">FREE</span>
+                                    </span>
+                                    <span class="eo-checkout-fulfil-bottom">
+                                        <span class="eo-checkout-fulfil-description">Collect your order at the restaurant.</span>
+                                        <span class="eo-checkout-selection" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
+                                    </span>
+                                </label>
+                                <label class="eo-checkout-fulfil-choice">
+                                    <input type="radio" name="delivery_method" value="Delivery" <?php if ($eo_delivery_method === 'Delivery') echo 'checked'; ?>>
+                                    <span class="eo-checkout-fulfil-heading">
+                                        <span class="eo-checkout-choice-label">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 5h12v12H2zM14 9h4l4 5v3h-8z"/><circle cx="6.5" cy="18" r="2"/><circle cx="18.5" cy="18" r="2"/></svg>
+                                            <strong>Delivery</strong>
+                                        </span>
+                                        <span class="eo-checkout-fee">RM <?php echo number_format(EASYORDER_DELIVERY_FEE, 2); ?></span>
+                                    </span>
+                                    <span class="eo-checkout-fulfil-bottom">
+                                        <span class="eo-checkout-fulfil-description">Delivered straight to your address.</span>
+                                        <span class="eo-checkout-selection" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
+                                    </span>
+                                </label>
+                            </div>
+                        </fieldset>
+                        <!-- Address appears ONLY when Delivery is selected; backend still validates it. -->
+                        <div id="eo-checkout-delivery-address" class="eo-checkout-address" <?php if ($eo_delivery_method !== 'Delivery') echo 'hidden'; ?>>
+                            <h3>Delivery Address</h3>
+                            <p class="eo-checkout-address-note"><?php echo $has_saved_address ? "Your saved address is filled in below. Changes apply only to this order." : "Enter an address for this order."; ?></p>
+                            <div class="eo-checkout-address-fields">
+                                <div class="eo-checkout-field eo-checkout-field-full">
+                                    <label for="eo-delivery-address">Address <span>*</span></label>
+                                    <input id="eo-delivery-address" name="delivery_address" type="text" autocomplete="street-address" maxlength="140" value="<?php echo checkout_html($form_address); ?>" placeholder="House number, building, street and unit number">
+                                </div>
+                                <div class="eo-checkout-field">
+                                    <label for="eo-delivery-city">City <span>*</span></label>
+                                    <input id="eo-delivery-city" name="delivery_city" type="text" autocomplete="address-level2" maxlength="50" value="<?php echo checkout_html($form_city); ?>" placeholder="City">
+                                </div>
+                                <div class="eo-checkout-field">
+                                    <label for="eo-delivery-state">State <span>*</span></label>
+                                    <select id="eo-delivery-state" name="delivery_state" autocomplete="address-level1">
+                                        <option value="">Select state</option>
+                                        <?php foreach ($states as $eo_state): ?>
+                                        <option value="<?php echo checkout_html($eo_state); ?>" <?php if ($form_state === $eo_state) echo 'selected'; ?>><?php echo checkout_html($eo_state); ?></option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
+                                <div class="eo-checkout-field">
+                                    <label for="eo-delivery-postcode">Postcode <span>*</span></label>
+                                    <input id="eo-delivery-postcode" name="delivery_postcode" type="text" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" autocomplete="postal-code" value="<?php echo checkout_html($form_postcode); ?>" placeholder="5-digit postcode">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="eo-checkout-panel" aria-labelledby="eo-payment-heading">
+                    <div class="eo-checkout-panel-title"><h2 id="eo-payment-heading">Payment Method</h2></div>
+                    <div class="eo-checkout-panel-inner">
+                        <fieldset class="eo-checkout-fieldset">
+                            <legend class="eo-checkout-sr-only">Select payment method</legend>
+                            <div class="eo-checkout-payment-options">
+                                <label class="eo-checkout-pay-choice">
+                                    <input type="radio" name="payment" value="Credit Card" <?php if ($eo_checkout_method === 'Credit Card') echo 'checked'; ?>>
+                                    <span class="eo-checkout-pay-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h5"/></svg>
+                                    </span>
+                                    <span class="eo-checkout-pay-copy"><strong>Credit / Debit Card</strong><small>Continue to the card payment page.</small></span>
+                                    <span class="eo-checkout-selection" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
+                                </label>
+                                <label class="eo-checkout-pay-choice">
+                                    <input type="radio" name="payment" value="Cash" <?php if ($eo_checkout_method === 'Cash') echo 'checked'; ?>>
+                                    <span class="eo-checkout-pay-icon eo-checkout-cash-icon">
+                                        <!-- The selected SINGLE US-dollar banknote icon, no extra icon package. -->
+                                        <svg viewBox="0 0 38 25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.6" y="3.7" width="34.8" height="18" rx="2.2"/><path d="M5.3 8h4M28.5 17h4"/><circle cx="19" cy="12.7" r="7"/><path d="M20.9 9.8c-.5-.8-2.9-1.1-3.8 0-.8 1.1.3 2 1.9 2.4 1.8.4 2.7 1.4 1.9 2.6-.8 1.3-3.3 1.1-4.2.3M19 8.3v8.7"/></svg>
+                                    </span>
+                                    <span class="eo-checkout-pay-copy"><strong>Cash</strong><small>Pay when collecting or receiving your order.</small></span>
+                                    <span class="eo-checkout-selection" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span>
+                                </label>
+                                <label class="eo-checkout-pay-choice<?php if (!$checkout_wallet) echo ' eo-checkout-pay-disabled'; ?>">
+                                    <input type="radio" name="payment" value="EasyOrder Wallet" <?php if ($eo_checkout_method === 'EasyOrder Wallet') echo 'checked'; ?> <?php if (!$checkout_wallet) echo 'disabled'; ?>>
+                                    <span class="eo-checkout-pay-icon">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 8V6a2 2 0 0 0-2-2H6a4 4 0 0 0-4 4v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2H6a2 2 0 0 1 0-4"/><path d="M22 13h-6a3 3 0 0 0 0 6h6"/></svg>
+                                    </span>
+                                    <span class="eo-checkout-pay-copy"><strong>Wallet</strong>
+                                        <small><?php echo $checkout_wallet ? 'Available balance: RM '.number_format((float)$checkout_wallet['wallet_balance'],2) : 'Create your wallet to use this payment option.'; ?></small>
+                                    </span>
+                                    <?php if (!$checkout_wallet): ?><span class="eo-checkout-unavailable">Unavailable</span><?php else: ?><span class="eo-checkout-selection" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg></span><?php endif; ?>
+                                </label>
+                            </div>
+                        </fieldset>
+                        <div id="eo-checkout-wallet-area" class="eo-checkout-wallet-area" <?php if ($eo_checkout_method !== 'EasyOrder Wallet') echo 'hidden'; ?>>
+                            <label for="eo-wallet-pin">Wallet PIN <span>*</span></label>
+                            <input id="eo-wallet-pin" name="wallet_pin" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="6-digit Wallet PIN">
+                            <small>Enter your PIN to pay. <a href="wallet_pin_recovery.php">Forgot PIN?</a></small>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <aside class="eo-checkout-panel eo-checkout-summary" aria-labelledby="eo-checkout-summary-heading">
+                <div class="eo-checkout-panel-title"><h2 id="eo-checkout-summary-heading">Order Summary</h2></div>
+                <div class="eo-checkout-summary-inner">
+                    <div class="eo-checkout-order-list">
+                        <?php foreach ($cart as $eo_pid => $eo_qty): ?>
+                            <?php if (!isset($cart_products[$eo_pid])) continue; $eo_item = $cart_products[$eo_pid]; ?>
+                            <div class="eo-checkout-order-product">
+                                <div class="eo-checkout-food-thumb"><img src="<?php echo checkout_html($eo_checkout_images[(string)$eo_pid] ?? 'image/logo.jpg'); ?>" alt=""></div>
+                                <div class="eo-checkout-product-info"><strong><?php echo checkout_html($eo_item['product_name']); ?></strong><small>Quantity: <?php echo (int)$eo_qty; ?></small></div>
+                                <strong class="eo-checkout-product-price">RM <?php echo number_format((float)$eo_item['product_price'] * (int)$eo_qty, 2); ?></strong>
+                            </div>
+                        <?php endforeach; ?>
+                        <?php foreach ($reward_items as $eo_reward): ?>
+                            <div class="eo-checkout-order-product">
+                                <div class="eo-checkout-food-thumb"><img src="<?php echo checkout_html($eo_checkout_images[(string)$eo_reward['redeem_product']] ?? 'image/logo.jpg'); ?>" alt=""></div>
+                                <div class="eo-checkout-product-info"><strong><?php echo checkout_html($eo_reward['redeem_reward']); ?></strong><small>Free reward · Quantity: 1</small></div>
+                                <strong class="eo-checkout-product-price">RM 0.00</strong>
+                            </div>
+                        <?php endforeach; ?>
+                    </div>
+                    <div class="eo-checkout-money-breakdown">
+                        <div class="eo-checkout-money-row"><span>Subtotal</span><strong>RM <?php echo number_format((float)$checkout_pricing['subtotal'], 2); ?></strong></div>
+                        <div class="eo-checkout-money-row"><span>SST (<?php echo checkout_html((string)(EASYORDER_SST_RATE * 100)); ?>%)</span><strong id="eo-checkout-sst">RM <?php echo number_format((float)$checkout_pricing['sst'], 2); ?></strong></div>
+                        <div class="eo-checkout-money-row"><span>Delivery Fee</span><strong id="eo-checkout-fee">RM <?php echo number_format((float)$checkout_pricing['delivery_fee'], 2); ?></strong></div>
+                    </div>
+                    <div class="eo-checkout-final-total"><span>Final Total</span><strong id="eo-checkout-total">RM <?php echo number_format((float)$checkout_pricing['total'], 2); ?></strong></div>
+                    <p id="eo-checkout-feedback" class="eo-checkout-feedback" role="alert" aria-live="assertive" hidden></p>
+                    <button type="submit" name="placeorderbtn" value="1" id="eo-checkout-submit" class="eo-checkout-main-button">
+                        <span id="eo-checkout-button-label"><?php echo $eo_checkout_method === 'Credit Card' ? 'Continue to Payment' : ($eo_checkout_method === 'EasyOrder Wallet' ? 'Pay with Wallet' : 'Place Order'); ?></span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6"/></svg>
+                    </button>
+                </div>
+            </aside>
+        </div>
+    </form>
+    <?php else: ?>
+        <div class="eo-checkout-empty">
+            <h2>Your cart is empty</h2>
+            <p>Add some food before checking out.</p>
+            <a href="category.php" class="eo-checkout-main-button">Browse Menu →</a>
+        </div>
+    <?php endif; ?>
 </div>
-<a class="checkout-return-link" href="cart.php">&larr; Return to Cart</a>
-</div>
-
-<?php if(isset($checkout_error)) { ?>
-<div class="checkout-message checkout-message-error" role="alert"><?php echo checkout_html($checkout_error); ?></div>
-<?php } ?>
-
-<?php if(count($removed_items)>0) { ?>
-<div class="checkout-message checkout-message-warning" role="status">Unavailable items removed: <?php echo checkout_html(implode(", ",$removed_items)); ?>.</div>
-<?php } ?>
-
-<?php if(count($adjusted_items)>0) { ?>
-<div class="checkout-message checkout-message-warning" role="status">Stock changed: <?php echo checkout_html(implode(", ",$adjusted_items)); ?>.</div>
-<?php } ?>
-
-<?php if($has_checkout_items) { ?>
-
-<form id="checkout-form" class="checkout-form" name="checkoutfrm" method="post" action="" novalidate>
-<input type="hidden" name="checkout_token" value="<?php echo checkout_html($checkout_token); ?>">
-
-<div class="checkout-layout">
-<div class="checkout-details-column">
-
-<section class="checkout-card" aria-labelledby="fulfilment-heading">
-<div class="checkout-card-heading">
-<span class="checkout-step-number" aria-hidden="true">1</span>
-<div>
-<h3 id="fulfilment-heading">How would you like your order?</h3>
-<p>Choose pickup or delivery for this order.</p>
-</div>
-</div>
-
-<fieldset class="checkout-fieldset">
-<legend class="checkout-visually-hidden">Fulfilment method</legend>
-<div class="checkout-choice-grid">
-<label class="checkout-choice-card">
-<input type="radio" name="delivery_method" value="Pickup" <?php if($selected_delivery_method==="Pickup") echo "checked"; ?>>
-<span class="checkout-choice-copy"><strong>Pickup</strong><small>Collect your order from the restaurant</small></span>
-<span class="checkout-choice-price">Free</span>
-</label>
-
-<label class="checkout-choice-card">
-<input type="radio" name="delivery_method" value="Delivery" <?php if($selected_delivery_method==="Delivery") echo "checked"; ?>>
-<span class="checkout-choice-copy"><strong>Delivery</strong><small>Send the order to your selected address</small></span>
-<span class="checkout-choice-price">RM 5.00</span>
-</label>
-</div>
-</fieldset>
-
-<div id="delivery-area" class="checkout-delivery-area" <?php if($selected_delivery_method!=="Delivery") echo "hidden"; ?>>
-<div class="checkout-address-title">
-<div>
-<h4>Delivery Address</h4>
-<?php if($has_saved_address) { ?>
-<p>Your saved address is filled in below. Changes apply only to this order.</p>
-<?php } else { ?>
-<p>No complete saved address was found. Enter an address for this order.</p>
-<?php } ?>
-</div>
-<?php if($has_saved_address) { ?><span class="checkout-saved-badge">Saved address</span><?php } ?>
-</div>
-
-<div class="checkout-address-grid">
-<div class="checkout-field checkout-field-full">
-<label for="delivery-address">Address <span aria-hidden="true">*</span></label>
-<input id="delivery-address" type="text" name="delivery_address" maxlength="140" autocomplete="street-address" value="<?php echo checkout_html($form_address); ?>" placeholder="House number, building, street and unit number">
-</div>
-
-<div class="checkout-field">
-<label for="delivery-city">City <span aria-hidden="true">*</span></label>
-<input id="delivery-city" type="text" name="delivery_city" maxlength="50" autocomplete="address-level2" value="<?php echo checkout_html($form_city); ?>" placeholder="e.g. Muar">
-</div>
-
-<div class="checkout-field">
-<label for="delivery-state">State <span aria-hidden="true">*</span></label>
-<select id="delivery-state" name="delivery_state" autocomplete="address-level1">
-<option value="">Select your state</option>
-<?php foreach($states as $state_name) { ?>
-<option value="<?php echo checkout_html($state_name); ?>" <?php if($form_state===$state_name) echo "selected"; ?>><?php echo checkout_html($state_name); ?></option>
-<?php } ?>
-</select>
-</div>
-
-<div class="checkout-field">
-<label for="delivery-postcode">Postcode <span aria-hidden="true">*</span></label>
-<input id="delivery-postcode" type="text" name="delivery_postcode" maxlength="5" inputmode="numeric" autocomplete="postal-code" value="<?php echo checkout_html($form_postcode); ?>" placeholder="e.g. 84000">
-<small>Enter a 5-digit Malaysian postcode.</small>
-</div>
-</div>
-</div>
-</section>
-
-<section class="checkout-card" aria-labelledby="payment-heading">
-<div class="checkout-card-heading">
-<span class="checkout-step-number" aria-hidden="true">2</span>
-<div>
-<h3 id="payment-heading">Payment Method</h3>
-<p>Select one method. Card payment remains pending until it is confirmed.</p>
-</div>
-</div>
-
-<fieldset class="checkout-fieldset">
-<legend class="checkout-visually-hidden">Payment method</legend>
-<div class="checkout-payment-options">
-<label class="checkout-choice-card">
-<input type="radio" name="payment" value="Credit Card" <?php if($selected_payment==="Credit Card") echo "checked"; ?>>
-<span class="checkout-choice-copy"><strong>Credit / Debit Card</strong><small>Continue to the secure payment step</small></span>
-</label>
-
-<label class="checkout-choice-card">
-<input type="radio" name="payment" value="Cash" <?php if($selected_payment==="Cash") echo "checked"; ?>>
-<span class="checkout-choice-copy"><strong>Cash</strong><small>Pay when collecting or receiving your order</small></span>
-</label>
-
-<label class="checkout-choice-card<?php if(!$checkout_wallet) echo " checkout-choice-disabled"; ?>">
-<input type="radio" name="payment" value="EasyOrder Wallet" <?php if($selected_payment==="EasyOrder Wallet") echo "checked"; ?> <?php if(!$checkout_wallet) echo "disabled"; ?>>
-<span class="checkout-choice-copy"><strong>EasyOrder Wallet</strong><small><?php echo $checkout_wallet ? "Available balance: RM ".number_format((float)$checkout_wallet["wallet_balance"],2) : "Create your Wallet before using this method"; ?></small></span>
-</label>
-</div>
-</fieldset>
-
-<div id="wallet-payment-area" class="checkout-wallet-payment" <?php if($selected_payment!=="EasyOrder Wallet") echo "hidden"; ?>>
-<div>
-<label for="checkout-wallet-pin">Wallet PIN <span aria-hidden="true">*</span></label>
-<input id="checkout-wallet-pin" type="password" name="wallet_pin" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="off" placeholder="6-digit PIN">
-</div>
-<p>Enter your 6-digit Wallet PIN to confirm this payment. <a href="wallet_pin_recovery.php">Forgot PIN?</a></p>
-</div>
-</section>
-
-</div>
-
-<aside class="checkout-summary-card" aria-labelledby="summary-heading">
-<h3 id="summary-heading">Order Summary</h3>
-
-<div class="checkout-summary-items">
-<?php foreach($cart as $pid => $qty) { if(!isset($cart_products[$pid])) continue; $row=$cart_products[$pid]; $sub=(float)$row["product_price"]*$qty; ?>
-<div class="checkout-summary-item">
-<div><strong><?php echo checkout_html($row["product_name"]); ?></strong><small>RM <?php echo number_format((float)$row["product_price"],2); ?> &times; <?php echo (int)$qty; ?></small></div>
-<span>RM <?php echo number_format($sub,2); ?></span>
-</div>
-<?php } ?>
-
-<?php foreach($reward_items as $reward_row) { ?>
-<div class="checkout-summary-item checkout-summary-reward">
-<div><strong><?php echo checkout_html($reward_row["redeem_reward"]); ?></strong><small>Free reward &times; 1</small></div>
-<span>RM 0.00</span>
-</div>
-<?php } ?>
-</div>
-
-<div class="checkout-total-row"><span>Subtotal</span><strong>RM <?php echo number_format($subtotal,2); ?></strong></div>
-<div class="checkout-total-row"><span>SST (6%)</span><strong id="sst-amount">RM <?php echo number_format($checkout_pricing["sst"],2); ?></strong></div>
-<div class="checkout-total-row"><span>Delivery fee</span><strong id="delivery-fee">RM <?php echo number_format($checkout_pricing["delivery_fee"],2); ?></strong></div>
-<div class="checkout-payment-status-row"><span>Payment status</span><strong id="payment-status-preview"><?php echo $selected_payment==="Cash" ? "Unpaid" : ($selected_payment==="EasyOrder Wallet" ? "Paid immediately" : ($selected_payment!=="" ? "Pending" : "Select method")); ?></strong></div>
-<div class="checkout-grand-total"><span>Final Total</span><strong id="order-total">RM <?php echo number_format($checkout_pricing["total"],2); ?></strong></div>
-
-<p id="checkout-client-message" class="checkout-client-message" role="alert" aria-live="assertive"></p>
-<button class="checkout-place-order" id="checkout-submit" type="submit" name="placeorderbtn" value="1">Place Order</button>
-<p class="checkout-confirm-note">By placing this order, you confirm that the order and delivery details are correct.</p>
-</aside>
-</div>
-</form>
-
-<?php } else { ?>
-
-<section class="checkout-empty-state">
-<div class="checkout-empty-icon" aria-hidden="true">&#128722;</div>
-<h3>Your cart is empty</h3>
-<p>Add food from the menu before proceeding to checkout.</p>
-<a class="checkout-place-order" href="category.php">Browse Menu</a>
-</section>
-
-<?php } ?>
-
 </main>
 
 <?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
-<script>
-(function()
-{
-	const checkoutForm=document.getElementById("checkout-form");
-	if(!checkoutForm)
-	{
-		return;
-	}
-
-	const subtotal=<?php echo json_encode((float)$subtotal); ?>;
-	const sst=<?php echo json_encode((float)$checkout_pricing["sst"]); ?>;
-	const deliveryArea=document.getElementById("delivery-area");
-	const deliveryFee=document.getElementById("delivery-fee");
-	const orderTotal=document.getElementById("order-total");
-	const paymentStatus=document.getElementById("payment-status-preview");
-	const checkoutSubmit=document.getElementById("checkout-submit");
-	const clientMessage=document.getElementById("checkout-client-message");
-	const walletPaymentArea=document.getElementById("wallet-payment-area");
-	const walletPin=document.getElementById("checkout-wallet-pin");
-	const addressFields=[
-		document.getElementById("delivery-address"),
-		document.getElementById("delivery-city"),
-		document.getElementById("delivery-state"),
-		document.getElementById("delivery-postcode")
-	];
-
-	function selectedValue(name)
-	{
-		const selected=checkoutForm.querySelector('input[name="'+name+'"]:checked');
-		return selected ? selected.value : "";
-	}
-
-	function updateCheckout()
-	{
-		const isDelivery=selectedValue("delivery_method")==="Delivery";
-		const fee=isDelivery ? 5 : 0;
-		deliveryArea.hidden=!isDelivery;
-		addressFields.forEach(function(field){ field.required=isDelivery; });
-		deliveryFee.textContent="RM "+fee.toFixed(2);
-		orderTotal.textContent="RM "+(subtotal+sst+fee).toFixed(2);
-
-		const payment=selectedValue("payment");
-		const isWallet=payment==="EasyOrder Wallet";
-		paymentStatus.textContent=payment==="Cash" ? "Unpaid" : (isWallet ? "Paid immediately" : (payment!=="" ? "Pending" : "Select method"));
-		checkoutSubmit.textContent=payment==="Credit Card" ? "Continue to Payment" : (isWallet ? "Pay with Wallet" : "Place Order");
-		walletPaymentArea.hidden=!isWallet;
-		walletPin.required=isWallet;
-		if(!isWallet)
-		{
-			walletPin.value="";
-		}
-		clientMessage.textContent="";
-	}
-
-	checkoutForm.querySelectorAll('input[name="delivery_method"],input[name="payment"]').forEach(function(input)
-	{
-		input.addEventListener("change",updateCheckout);
-	});
-	addressFields.forEach(function(field)
-	{
-		field.addEventListener("input",function(){ clientMessage.textContent=""; });
-		field.addEventListener("change",function(){ clientMessage.textContent=""; });
-	});
-
-	checkoutForm.addEventListener("submit",function(event)
-	{
-		clientMessage.textContent="";
-		if(selectedValue("payment")==="")
-		{
-			event.preventDefault();
-			clientMessage.textContent="Please select a payment method.";
-			checkoutForm.querySelector('input[name="payment"]').focus();
-			return;
-		}
-		if(selectedValue("payment")==="EasyOrder Wallet" && !/^\d{6}$/.test(walletPin.value))
-		{
-			event.preventDefault();
-			clientMessage.textContent="Please enter your 6-digit Wallet PIN.";
-			walletPin.focus();
-			return;
-		}
-
-		if(selectedValue("delivery_method")==="Delivery")
-		{
-			for(let i=0;i<addressFields.length;i++)
-			{
-				if(addressFields[i].value.trim()==="")
-				{
-					event.preventDefault();
-					clientMessage.textContent="Please complete every delivery address field.";
-					addressFields[i].focus();
-					return;
-				}
-			}
-
-			if(!/^\d{5}$/.test(document.getElementById("delivery-postcode").value.trim()))
-			{
-				event.preventDefault();
-				clientMessage.textContent="Please enter a valid 5-digit postcode.";
-				document.getElementById("delivery-postcode").focus();
-			}
-		}
-	});
-
-	updateCheckout();
-})();
-</script>
 
 </body>
 </html>

@@ -3,11 +3,12 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 include("dataconnection.php");
 require_once(__DIR__."/customer_navigation.php");
+require_once(__DIR__."/product_catalog_helpers.php");
 
 $mid = $_SESSION["customer_id"];
 
@@ -87,20 +88,21 @@ if(isset($_POST["redeembtn"]))
 			throw new Exception("You do not have enough points to redeem this reward.");
 		}
 
-		$stmt = mysqli_prepare($connect,"SELECT product_stock,product_status,product_isDelete FROM product WHERE product_id=? FOR UPDATE");
+		$stmt = mysqli_prepare($connect,"SELECT product_stock,product_status FROM product WHERE product_id=? FOR UPDATE");
 		mysqli_stmt_bind_param($stmt,"s",$linked_pid);
 		mysqli_stmt_execute($stmt);
 		$product_result = mysqli_stmt_get_result($stmt);
 		$product_row = mysqli_fetch_assoc($product_result);
 		mysqli_stmt_close($stmt);
-		if(!$product_row || $product_row["product_isDelete"]==1 || $product_row["product_status"]!="Active" || $product_row["product_stock"]<=0)
+		if(!$product_row || $product_row["product_status"]!="Active" || $product_row["product_stock"]<=0)
 		{
 			throw new Exception("Sorry, the product for this reward is no longer available.");
 		}
 
 		$date = date("Y-m-d");
-		$stmt = mysqli_prepare($connect,"INSERT INTO redemption(redeem_customer,redeem_reward,redeem_product,redeem_points,redeem_status,redeem_date) VALUES(?,?,?,?,'Cart',?)");
-		mysqli_stmt_bind_param($stmt,"issis",$mid,$reward_name,$linked_pid,$reward_cost,$date);
+		$position = catalog_next_cart_position($connect,$mid);
+		$stmt = mysqli_prepare($connect,"INSERT INTO redemption(redeem_customer,redeem_reward,redeem_product,redeem_points,redeem_status,redeem_date,redeem_cart_position) VALUES(?,?,?,?,'Cart',?,?)");
+		mysqli_stmt_bind_param($stmt,"issisi",$mid,$reward_name,$linked_pid,$reward_cost,$date,$position);
 		mysqli_stmt_execute($stmt);
 		mysqli_stmt_close($stmt);
 
@@ -126,8 +128,11 @@ if(isset($_POST["redeembtn"]))
 
 		mysqli_commit($connect);
 		$transaction_started = false;
-		$_SESSION["cart_notice"] = "Success! ".$reward_name." has been added to your cart as a free reward item.";
-		header("location:cart.php");
+		$_SESSION["reward_feedback"] = array(
+			"title"=>"Reward added to cart",
+			"message"=>$reward_name." has been added to your cart. ".number_format($reward_cost)." points used."
+		);
+		header("Location: reward.php",true,303);
 		exit();
 	}
 	catch(Throwable $error)
@@ -154,6 +159,12 @@ if(isset($_SESSION["reward_error"]))
 	unset($_SESSION["reward_error"]);
 }
 
+if(isset($_SESSION["reward_feedback"]))
+{
+	$reward_feedback = $_SESSION["reward_feedback"];
+	unset($_SESSION["reward_feedback"]);
+}
+
 //----- the customer's available loyalty points -----
 //read straight from the customer table; it is kept up to date (points are added when an order
 //is placed and subtracted when a reward is redeemed), so no recalculation is needed here
@@ -171,119 +182,17 @@ mysqli_stmt_close($stmt);
 ?>
 
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head><!--Loyalty rewards redemption page-->
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
-<title>Rewards</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rewards | EasyOrder</title>
+<link rel="stylesheet" href="public.css?v=20261029-rewards1">
+<link rel="stylesheet" href="customer.css?v=20261030-reward-banner1">
+<script src="customer.js?v=20261029-rewards2" defer></script>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-
-<style>
-#points-banner
-{background-color:#FFC72C;
-color:#9E0B22;
-border-radius:8px;
-box-shadow:2px 2px 5px #CCCCCC;
-padding:20px 25px 20px 25px;
-margin-bottom:25px;
-text-align:center;}
-
-#points-banner .points-caption
-{font-style:italic;
-font-size:0.95em;
-margin:0px;}
-
-#points-banner .points-number
-{font-family:"Arial Black";
-font-size:30pt;
-letter-spacing:1px;
-margin:5px 0px 0px 0px;}
-
-.reward-list
-{display:flex;
-flex-wrap:wrap;
-justify-content:center;
-margin-bottom:10px;}
-
-.reward-card
-{width:230px;
-background-color:#FFFFFF;
-border:1px solid #EEEEEE;
-border-radius:8px;
-box-shadow:2px 2px 5px #CCCCCC;
-margin:10px;
-padding:15px;
-display:flex;
-flex-direction:column;
-align-items:center;
-text-align:center;}
-
-.reward-card img
-{width:150px;
-height:110px;
-border-radius:5px;
-object-fit:cover;}
-
-.reward-card .reward-name
-{color:#C8102E;
-font-weight:bold;
-font-size:1.05em;
-margin:12px 0px 6px 0px;
-min-height:2.6em;
-display:flex;
-align-items:center;
-justify-content:center;}
-
-.reward-card .reward-desc
-{color:#666666;
-font-size:9pt;
-margin:0px 0px 12px 0px;
-flex-grow:1;}
-
-.reward-card .reward-points
-{background-color:#9E0B22;
-color:#FFFFFF;
-font-weight:bold;
-font-size:0.9em;
-border-radius:12px;
-padding:4px 14px 4px 14px;
-margin-bottom:10px;}
-
-.reward-card .redeem-btn
-{background-color:#FF7A00;
-color:#FFFFFF;
-font-weight:bold;
-text-decoration:none;
-border-radius:5px;
-padding:8px 0px 8px 0px;
-width:100%;
-box-sizing:border-box;
-border:0px;
-cursor:pointer;}
-
-.reward-card form
-{width:100%;}
-
-.reward-card .redeem-btn:hover
-{background-color:#C8102E;}
-
-.reward-card .no-points
-{background-color:#DDDDDD;
-color:#888888;
-font-weight:bold;
-border-radius:5px;
-padding:8px 0px 8px 0px;
-width:100%;
-box-sizing:border-box;}
-</style>
-
-<script>
-function confirm_redeem(name,points)//ask the customer to confirm before spending their points
-{
-	return confirm("Redeem "+name+" for "+points+" points? It will be added to your cart.");
-}
-</script>
 
 </head>
 
@@ -295,54 +204,64 @@ function confirm_redeem(name,points)//ask the customer to confirm before spendin
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
-<div id="main"><!--Main content section-->
+<main id="main" class="reward-page"><!--Rewards content only; shared header and footer are unchanged-->
 
-<h2 class="section-title">Rewards</h2>
-<p class="intro">Turn your loyalty points into free menu items! Redeem any reward below and it will be added to your cart, ready for checkout.</p>
+<div class="reward-page-heading"><h1 tabindex="-1">Rewards</h1></div>
 
 <?php
 if(isset($reward_error))
 {
 ?>
-<p class="msg"><?php echo htmlspecialchars($reward_error,ENT_QUOTES,"ISO-8859-1"); ?></p>
+<p class="reward-message" role="alert"><?php echo catalog_h($reward_error); ?></p>
 <?php
 }
 ?>
 
-<div id="points-banner"><!--Shows the customer's available loyalty points-->
-<p class="points-caption">Your Available Loyalty Points</p>
-<p class="points-number"><?php echo $available_points; ?></p>
+<div id="points-banner" aria-label="Your available loyalty points"><!-- Live balance from the customer table -->
+<div class="points-banner-message">
+<h2>Order, Earn &amp; <span>Enjoy!</span></h2>
+<p class="points-caption">Every order has its perks</p>
+</div>
+<div class="points-banner-divider" aria-hidden="true"></div>
+<div class="points" style="--points-characters: <?php echo strlen(number_format((int)$available_points)); ?>" aria-label="<?php echo number_format((int)$available_points); ?> loyalty points"><span class="points-value"><?php
+    echo number_format((int)$available_points);
+?></span><span class="points-unit">PTS</span></div>
 </div>
 
-<h2 class="section-title">Available Rewards</h2>
+<h2 class="reward-list-heading">Available Rewards</h2>
 
 <div class="reward-list"><!--Reward cards, centered and wrapping 3 per row-->
 
 <?php
 //only show rewards that are linked to a product which is active, not deleted and in stock
-$reward_result = mysqli_query($connect,"SELECT * FROM reward,product WHERE reward_product=product_id AND reward_isDelete=0 AND reward_status='Active' AND product_isDelete=0 AND product_status='Active' AND product_stock>0");
+$reward_result = mysqli_query($connect,"SELECT * FROM reward,product WHERE reward_product=product_id AND reward_isDelete=0 AND reward_status='Active' AND product_status='Active' AND product_stock>0");
 
+$reward_count = 0;
 while($reward = mysqli_fetch_assoc($reward_result))
 {
+	$reward_count++;
 	$rid = $reward["reward_id"];
 	$rname = $reward["reward_name"];
 	$rdesc = $reward["reward_desc"];
 	$rpoints = $reward["reward_points"];
 	$rimage = $reward["reward_image"];
+	$reward_image_path = substr((string)$rimage,0,6)==="image/" ? (string)$rimage : "image/".$rimage;
+	$reward_image_url = catalog_local_image_path($reward_image_path)!==null && is_file(__DIR__."/".$reward_image_path)
+		? catalog_product_image($reward_image_path) : catalog_image_placeholder();
 ?>
 
-<div class="reward-card"><!--Reward item card-->
-<img src="image/<?php echo $rimage; ?>" alt="<?php echo $rname; ?>" title="<?php echo $rname; ?>">
-<p class="reward-name"><?php echo $rname; ?></p>
-<p class="reward-desc"><?php echo $rdesc; ?></p>
-<span class="reward-points"><?php echo $rpoints; ?> points</span>
+<article class="reward-card" data-reward-id="<?php echo catalog_h($rid); ?>"><!--Reward item card-->
+<img src="<?php echo catalog_h($reward_image_url); ?>" alt="<?php echo catalog_h($rname); ?>" title="<?php echo catalog_h($rname); ?>" loading="lazy" decoding="async">
+<h3 class="reward-name"><?php echo catalog_h($rname); ?></h3>
+<p class="reward-desc"><?php echo catalog_h($rdesc); ?></p>
+<span class="reward-points"><?php echo (int)$rpoints; ?> points</span>
 
 <?php
 //enough points -> redeem; otherwise not enough points
 if($available_points >= $rpoints)
 {
 ?>
-<form method="post" action="reward.php" onsubmit="return confirm('Redeem this reward for <?php echo (int)$rpoints; ?> points? It will be added to your cart.')">
+<form method="post" action="reward.php" data-reward-redeem onsubmit="return confirm('Redeem this reward for <?php echo (int)$rpoints; ?> points? It will be added to your cart.')">
 <input type="hidden" name="reward_token" value="<?php echo htmlspecialchars($reward_token,ENT_QUOTES,"ISO-8859-1"); ?>">
 <input type="hidden" name="reward_id" value="<?php echo htmlspecialchars($rid,ENT_QUOTES,"ISO-8859-1"); ?>">
 <input class="redeem-btn" type="submit" name="redeembtn" value="Redeem">
@@ -357,26 +276,39 @@ else
 }
 ?>
 
-</div>
+</article>
 
 <?php
 }
 ?>
 
 </div>
+<?php if($reward_count===0) { ?>
+<p class="reward-empty" role="status">No rewards are available right now. Please check back later.</p>
+<?php } ?>
 
-<hr>
-
-<h2 class="section-title">How It Works</h2>
-<ol class="steps">
-<li>Earn 1 point for every RM 0.10 you spend on your orders.</li>
-<li>Browse the rewards above and pick one you have enough points for.</li>
-<li>Click "Redeem" to add the free item to your cart, then check out from your cart to enjoy it.</li>
+<section class="reward-help" aria-labelledby="reward-help-title">
+<h2 id="reward-help-title" class="reward-list-heading">How It Works</h2>
+<ol class="reward-help-steps">
+<li>Earn 1 point for every RM 0.10 spent on food. SST and delivery fees do not earn points.</li>
+<li>Browse the rewards above and choose one you have enough points for.</li>
+<li>Click "Redeem" to add the free item to your cart, then check out from your cart.</li>
+<li>Remove a redeemed reward from your cart before checkout to have its points returned to your account.</li>
 </ol>
+</section>
 
-<p style="text-align:center; margin-top:20px;"><a class="btn" href="cart.php">Go to Cart</a> &nbsp; <a class="btn" href="profile.php">Back to Profile</a></p>
+</main>
 
-</div>
+
+<div class="eo-cart-announcement" data-cart-announcement role="status" aria-live="polite" aria-atomic="true"></div>
+<aside class="eo-cart-toast<?php echo isset($reward_feedback) ? ' is-visible' : ''; ?>" data-cart-toast data-kind="success" aria-label="Cart notification"<?php echo isset($reward_feedback) ? ' data-cart-initial role="status"' : ' hidden'; ?>>
+<span class="eo-cart-toast-icon" aria-hidden="true">
+<svg class="eo-cart-success-icon" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></svg>
+<svg class="eo-cart-error-icon" viewBox="0 0 24 24"><path d="M12 7v6m0 4h.01"/><circle cx="12" cy="12" r="9"/></svg>
+</span>
+<div class="eo-cart-toast-copy"><p class="eo-cart-toast-title" data-cart-toast-title><?php echo catalog_h($reward_feedback['title'] ?? ''); ?></p><p class="eo-cart-toast-message" data-cart-toast-message><?php echo catalog_h($reward_feedback['message'] ?? ''); ?></p><a class="eo-cart-toast-action" data-cart-toast-action href="cart.php">View cart</a></div>
+<button class="eo-cart-toast-close" data-cart-toast-close type="button" aria-label="Dismiss cart notification" hidden>×</button>
+</aside>
 
 <?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 

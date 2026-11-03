@@ -51,4 +51,14 @@ if(!function_exists("easyorder_order_pricing"))
 	}
 }
 
+// Work in whole cents so a binary floating-point rounding edge cannot lose a point.
+if(!function_exists("easyorder_food_reward_points"))
+{
+	function easyorder_food_reward_points($food_subtotal)
+	{
+		$cents = (int)round(easyorder_money(max(0.00,(float)$food_subtotal))*100);
+		return intdiv($cents,10);
+	}
+}
+
 ?>

@@ -5,16 +5,14 @@ function easyorder_render_customer_navigation_links($customer_logged_in,$current
 {
 	$current_page = $current_page ?? basename($_SERVER["SCRIPT_NAME"] ?? "index.php");
 	if($current_page==="") $current_page = "index.php";
-	if($current_page==="product.php") $current_page = "category.php";
 	$links = $customer_logged_in
 		? array(
 			array("category.php","Menu"),
 			array("cart.php","Cart"),
 			array("order_history.php","Order History"),
-			array("profile.php","My Profile"),
+			array("profile.php","Profile"),
 			array("wallet.php","Wallet"),
 			array("reward.php","Rewards"),
-			array("view_review.php","View Reviews"),
 			array("about.php","About Us"),
 			array("contact.php","Contact Us"),
 			array("index.php","Home"),
