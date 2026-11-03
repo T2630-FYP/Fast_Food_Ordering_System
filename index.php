@@ -18,11 +18,10 @@ header("Expires: 0");
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyOrder - Fast Food Ordering</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<link rel="stylesheet" href="home_section.css?v=20261025-category-gold1">
-<script src="customer_navigation.js?v=20261024-shell1" defer></script>
-<script src="home_section.js?v=20261023-1" defer></script>
+<link rel="stylesheet" href="customer.css?v=20261027-consolidated1">
+<script src="customer.js?v=20261028-consolidated1" defer></script>
 </head>
 
 <body class="eo-home" data-session-aware>

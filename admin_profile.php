@@ -115,8 +115,8 @@ unset($_SESSION["admin_profile_flash"]);
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>My Admin Profile - EasyOrder</title>
-	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="admin_style.css">
+	<link rel="stylesheet" href="public.css">
+	<link rel="stylesheet" href="admin.css">
 </head>
 <body class="admin-body">
 <?php easyorder_admin_shell_start("admin_profile.php"); ?>

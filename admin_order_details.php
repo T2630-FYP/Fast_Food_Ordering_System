@@ -205,8 +205,8 @@ unset($_SESSION["admin_order_flash"]);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Order Details | EasyOrder Admin</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin_style.css">
+<link rel="stylesheet" href="public.css">
+<link rel="stylesheet" href="admin.css">
 </head>
 
 <body class="admin-body">
