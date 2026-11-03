@@ -99,34 +99,30 @@ $item_summary_rows = admin_report_query($connect,
 	$start_date,$end_date);
 $item_summary = $item_summary_rows[0] ?? array("units_sold"=>0,"product_sales"=>0);
 
-// Category totals retain historical order-item values while using the current
-// product category when the catalogue record is still available.
+// Sales categories come from order snapshots, including permanently removed products.
 $category_sales = admin_report_query($connect,
-	"SELECT COALESCE(NULLIF(p.product_category,''),'Uncategorised') AS category_name,
+	"SELECT COALESCE(NULLIF(oi.item_category,''),'Uncategorised') AS category_name,
 		COALESCE(SUM(oi.item_qty),0) AS units_sold,
 		COALESCE(SUM(oi.item_subtotal),0) AS product_sales
 	 FROM order_items oi
 	 INNER JOIN orders o ON o.order_id=oi.item_order
 	 LEFT JOIN payments pay ON pay.payment_order=o.order_id
-	 LEFT JOIN product p ON p.product_id=oi.item_product
 	 WHERE ".$paid_order_filter."
-	 GROUP BY COALESCE(NULLIF(p.product_category,''),'Uncategorised')
+	 GROUP BY COALESCE(NULLIF(oi.item_category,''),'Uncategorised')
 	 ORDER BY product_sales DESC,units_sold DESC,category_name",
 	$start_date,$end_date);
 
-// Rank products by sold quantity and then revenue, using the order-item name as
-// a stable fallback if a catalogue product is no longer available.
+// Historical names remain stable when a deleted product ID is used again.
 $best_sellers = admin_report_query($connect,
 	"SELECT oi.item_product,
-		COALESCE(NULLIF(MAX(p.product_name),''),MAX(oi.item_name)) AS product_name,
+		oi.item_name AS product_name,
 		COALESCE(SUM(oi.item_qty),0) AS units_sold,
 		COALESCE(SUM(oi.item_subtotal),0) AS product_sales
 	 FROM order_items oi
 	 INNER JOIN orders o ON o.order_id=oi.item_order
 	 LEFT JOIN payments pay ON pay.payment_order=o.order_id
-	 LEFT JOIN product p ON p.product_id=oi.item_product
 	 WHERE ".$paid_order_filter."
-	 GROUP BY oi.item_product
+	 GROUP BY oi.item_product,oi.item_name,oi.item_category
 	 ORDER BY units_sold DESC,product_sales DESC,product_name
 	 LIMIT 10",
 	$start_date,$end_date);
@@ -234,8 +230,8 @@ $month_start = date("Y-m-01");
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Sales Report - EasyOrder</title>
-	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="admin_style.css">
+	<link rel="stylesheet" href="public.css">
+	<link rel="stylesheet" href="admin.css">
 </head>
 <body class="admin-body">
 <?php easyorder_admin_shell_start("admin_report.php"); ?>

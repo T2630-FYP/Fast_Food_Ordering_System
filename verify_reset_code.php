@@ -147,9 +147,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["verify_reset_btn"]))
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Verify Reset Code</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="customer_navigation.js?v=20261024-shell1" defer></script>
+<script src="customer.js?v=20261028-consolidated1" defer></script>
 <style>
 .recovery-note strong
 {overflow-wrap:anywhere;}

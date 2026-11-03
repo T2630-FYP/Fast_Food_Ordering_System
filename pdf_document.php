@@ -184,18 +184,6 @@ class EasyOrderPdfDocument
 		$this->cursor_y += 18;
 	}
 
-	public function addParagraph($text)
-	{
-		$lines = $this->wrapText($text,$this->contentWidth(),9.5);
-		$this->ensureSpace((count($lines)*13)+8);
-		foreach($lines as $line)
-		{
-			$this->drawText($this->margin,$this->cursor_y,$line,9.5,false,array(0.22,0.22,0.22));
-			$this->cursor_y += 13;
-		}
-		$this->cursor_y += 6;
-	}
-
 	// Render labelled values without exposing fields that callers do not explicitly supply.
 	public function addDefinitionList($pairs)
 	{

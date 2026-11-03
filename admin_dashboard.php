@@ -81,7 +81,7 @@ function easyorder_dashboard_status_class($status)
 // Overview counts use active records only. Revenue is counted only after a
 // payment is marked Paid and excludes cancelled orders.
 $total_customers = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM customer WHERE customer_isDelete=0","total");
-$total_products = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM product WHERE product_isDelete=0","total");
+$total_products = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM product","total");
 $total_orders = (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM orders WHERE order_isDelete=0","total");
 $total_revenue = (float)easyorder_dashboard_scalar($connect,"SELECT COALESCE(SUM(order_total),0) AS total FROM orders WHERE order_isDelete=0 AND LOWER(order_payment_status)='paid' AND LOWER(order_status)<>'cancelled'","total",0);
 $active_staff = $is_super_admin ? (int)easyorder_dashboard_scalar($connect,"SELECT COUNT(*) AS total FROM staff WHERE staff_isDelete=0","total") : 0;
@@ -132,8 +132,8 @@ $recent_orders = easyorder_dashboard_rows($connect,"SELECT o.order_id,o.order_da
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin Dashboard | EasyOrder</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin_style.css">
+<link rel="stylesheet" href="public.css">
+<link rel="stylesheet" href="admin.css">
 </head>
 
 <body class="admin-body">

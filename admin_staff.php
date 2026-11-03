@@ -372,9 +372,9 @@ $staff_export_url = "admin_export.php?".http_build_query($staff_export_params);
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Manage Staff - EasyOrder</title>
-	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="admin_style.css">
-	<script src="password_ux.js?v=20260926-1" defer></script>
+	<link rel="stylesheet" href="public.css">
+	<link rel="stylesheet" href="admin.css">
+	<script src="public.js?v=20261028-consolidated1" defer></script>
 </head>
 <body class="admin-body">
 <?php easyorder_admin_shell_start("admin_staff.php"); ?>

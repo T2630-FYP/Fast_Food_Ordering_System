@@ -92,11 +92,10 @@ $map_embed_url = 'https://maps.google.com/maps?cid='.$store_map_cid.'&z=17&outpu
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact Us | EasyOrder</title>
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<link rel="stylesheet" href="contact_redesign.css?v=20261026-contact8">
-<script src="customer_navigation.js?v=20261025-account-check1" defer></script>
-<script src="contact_redesign.js?v=20261025-contact3" defer></script>
+<link rel="stylesheet" href="customer.css?v=20261027-consolidated1">
+<script src="customer.js?v=20261028-consolidated1" defer></script>
 </head>
 <body class="contact-page">
 <?php easyorder_render_customer_header(); ?>
