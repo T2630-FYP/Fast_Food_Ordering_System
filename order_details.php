@@ -3,8 +3,8 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 
 include("dataconnection.php");
@@ -195,7 +195,7 @@ if(strtolower((string)($_GET["download"] ?? ""))==="pdf")
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <meta charset="UTF-8">
 <title>Order Details</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 
