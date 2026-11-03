@@ -16,8 +16,8 @@ require_once("admin_shell.php");
 <head><!--Manage reward page-->
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Manage Rewards</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin_style.css">
+<link rel="stylesheet" href="public.css">
+<link rel="stylesheet" href="admin.css">
 
 <script type="text/javascript">
 function confirmation()//JavaScript confirm box shown before a reward record is deleted
@@ -253,7 +253,7 @@ if(isset($_GET["edit"]))
 <option value="">-- Select a product --</option>
 <?php
 //load the product list so the reward can be linked to a real product (for its stock)
-$prod_result = mysqli_query($connect,"SELECT * FROM product WHERE product_isDelete=0");
+$prod_result = mysqli_query($connect,"SELECT * FROM product");
 while($prod_row = mysqli_fetch_assoc($prod_result))
 {
 	$this_pid = $prod_row['product_id'];

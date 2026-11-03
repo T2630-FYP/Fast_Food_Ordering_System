@@ -10,7 +10,6 @@ if(!isset($_SESSION["admin_id"]))
 
 include("dataconnection.php");
 require_once("admin_shell.php");
-require_once("product_catalog_helpers.php");
 
 // Refresh the role from the database before applying restore permissions.
 $current_staff_id = (string)$_SESSION["admin_id"];
@@ -64,7 +63,7 @@ function admin_restore_redirect($type,$message,$resource_filter="all",$search=""
 	exit();
 }
 
-$allowed_filters = $can_restore_staff ? array("all","customer","product","staff") : array("all","customer","product");
+$allowed_filters = $can_restore_staff ? array("all","customer","staff") : array("all","customer");
 $resource_filter = strtolower(trim((string)($_GET["type"] ?? $_POST["return_type"] ?? "all")));
 
 // Reject staff recovery routes before any deleted-staff count or record query.
@@ -95,7 +94,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 	$action = (string)($_POST["action"] ?? "");
 	$resource_type = strtolower(trim((string)($_POST["resource_type"] ?? "")));
 	$resource_id = strtoupper(trim((string)($_POST["resource_id"] ?? "")));
-	if($action!=="restore_record" || !in_array($resource_type,array("customer","product","staff"),true))
+	if($action!=="restore_record" || !in_array($resource_type,array("customer","staff"),true))
 	{
 		admin_restore_redirect("error","The requested restore action is not supported.",$resource_filter,$search);
 	}
@@ -145,20 +144,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 		admin_restore_redirect($restored ? "success" : "error",$restored ? "Staff account restored successfully." : "The staff account is no longer available for restore.",$resource_filter,$search);
 	}
 
-	// Restored products remain Inactive until an administrator reviews and publishes them.
-	$restore_stmt = mysqli_prepare($connect,"UPDATE product SET product_isDelete=0,product_status='Inactive' WHERE product_id=? AND product_isDelete=1");
-	if($restore_stmt)
-	{
-		mysqli_stmt_bind_param($restore_stmt,"s",$resource_id);
-		mysqli_stmt_execute($restore_stmt);
-		$restored = mysqli_stmt_affected_rows($restore_stmt)===1;
-		mysqli_stmt_close($restore_stmt);
-	}
-	else
-	{
-		$restored = false;
-	}
-	admin_restore_redirect($restored ? "success" : "error",$restored ? "Product restored as Inactive. Review it in Products before publishing." : "The product is no longer available for restore.",$resource_filter,$search);
+
 }
 
 $restore_flash = $_SESSION["admin_restore_flash"] ?? null;
@@ -166,13 +152,12 @@ unset($_SESSION["admin_restore_flash"]);
 
 // Count all deleted records separately from the current search results.
 $count_sql = $can_restore_staff
-	? "SELECT (SELECT COUNT(*) FROM customer WHERE customer_isDelete=1) AS customer_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total,(SELECT COUNT(*) FROM staff WHERE staff_isDelete=1) AS staff_total"
-	: "SELECT (SELECT COUNT(*) FROM customer WHERE customer_isDelete=1) AS customer_total,(SELECT COUNT(*) FROM product WHERE product_isDelete=1) AS product_total";
+	? "SELECT (SELECT COUNT(*) FROM customer WHERE customer_isDelete=1) AS customer_total,(SELECT COUNT(*) FROM staff WHERE staff_isDelete=1) AS staff_total"
+	: "SELECT (SELECT COUNT(*) FROM customer WHERE customer_isDelete=1) AS customer_total";
 $count_result = mysqli_query($connect,$count_sql);
 $count_row = $count_result ? mysqli_fetch_assoc($count_result) : array();
 $deleted_counts = array(
 	"customer"=>(int)($count_row["customer_total"] ?? 0),
-	"product"=>(int)($count_row["product_total"] ?? 0),
 	"staff"=>(int)($count_row["staff_total"] ?? 0)
 );
 
@@ -194,27 +179,6 @@ if($customer_stmt)
 		$deleted_customers[] = $customer_row;
 	}
 	mysqli_stmt_close($customer_stmt);
-}
-
-$deleted_products = array();
-$product_stmt = mysqli_prepare($connect,
-	"SELECT p.product_id,p.product_name,p.product_image,p.product_category,p.product_price,p.product_stock,
-	        COALESCE(c.category_isDelete,1) AS category_is_deleted
-	 FROM product p
-	 LEFT JOIN category c ON c.category_name=p.product_category
-	 WHERE p.product_isDelete=1
-	 AND (?='' OR p.product_id LIKE ? OR p.product_name LIKE ? OR p.product_category LIKE ?)
-	 ORDER BY p.product_name");
-if($product_stmt)
-{
-	mysqli_stmt_bind_param($product_stmt,"ssss",$search,$like_search,$like_search,$like_search);
-	mysqli_stmt_execute($product_stmt);
-	$product_result = mysqli_stmt_get_result($product_stmt);
-	while($product_row = mysqli_fetch_assoc($product_result))
-	{
-		$deleted_products[] = $product_row;
-	}
-	mysqli_stmt_close($product_stmt);
 }
 
 $deleted_staff = array();
@@ -246,8 +210,8 @@ if($can_restore_staff)
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>Recycle Bin - EasyOrder</title>
-	<link rel="stylesheet" href="style.css">
-	<link rel="stylesheet" href="admin_style.css">
+	<link rel="stylesheet" href="public.css">
+	<link rel="stylesheet" href="admin.css">
 </head>
 <body class="admin-body">
 <?php easyorder_admin_shell_start("admin_restore.php"); ?>
@@ -257,7 +221,7 @@ if($can_restore_staff)
 		<div>
 			<p class="admin-eyebrow">RECOVERY MANAGEMENT</p>
 			<h1>Recycle Bin</h1>
-			<p>Review and restore deleted customer and product records<?php echo $can_restore_staff ? ", including staff accounts" : ""; ?>.</p>
+			<p>Review and restore deleted customer records<?php echo $can_restore_staff ? ", including staff accounts" : ""; ?>.</p>
 		</div>
 		<span class="admin-restore-role"><?php echo $can_restore_staff ? "Super Admin restore access" : "Standard restore access"; ?></span>
 	</section>
@@ -271,7 +235,7 @@ if($can_restore_staff)
 	<!-- Restore totals make the remaining soft-deleted records visible at a glance. -->
 	<section class="admin-restore-stat-grid" aria-label="Deleted record totals">
 		<article><span>ME</span><div><strong><?php echo $deleted_counts["customer"]; ?></strong><small>Deleted customers</small></div></article>
-		<article><span>PR</span><div><strong><?php echo $deleted_counts["product"]; ?></strong><small>Deleted products</small></div></article>
+
 		<?php if($can_restore_staff): ?><article><span>ST</span><div><strong><?php echo $deleted_counts["staff"]; ?></strong><small>Deleted staff</small></div></article><?php endif; ?>
 	</section>
 
@@ -281,15 +245,15 @@ if($can_restore_staff)
 			<label><span>Record type</span><select name="type">
 				<option value="all"<?php echo $resource_filter==="all" ? " selected" : ""; ?>>All records</option>
 				<option value="customer"<?php echo $resource_filter==="customer" ? " selected" : ""; ?>>Customers</option>
-				<option value="product"<?php echo $resource_filter==="product" ? " selected" : ""; ?>>Products</option>
+
 				<?php if($can_restore_staff): ?><option value="staff"<?php echo $resource_filter==="staff" ? " selected" : ""; ?>>Staff</option><?php endif; ?>
 			</select></label>
-			<label class="admin-restore-search"><span>Search deleted records</span><input type="search" name="search" value="<?php echo admin_restore_html($search); ?>" placeholder="ID, name, email, phone, category or role"></label>
+			<label class="admin-restore-search"><span>Search deleted records</span><input type="search" name="search" value="<?php echo admin_restore_html($search); ?>" placeholder="ID, name, email, phone or role"></label>
 			<div class="admin-restore-filter-actions"><button type="submit">Apply</button><a href="admin_restore.php">Reset</a></div>
 		</form>
 	</section>
 
-	<p class="admin-restore-note"><strong>Restore rule:</strong> Products return as Inactive for review.<?php if($can_restore_staff): ?> Staff restoration is restricted to Super Admins.<?php endif; ?></p>
+	<p class="admin-restore-note"><strong>Restore rule:</strong> Deleted customer accounts can be restored here.<?php if($can_restore_staff): ?> Staff restoration is restricted to Super Admins.<?php endif; ?></p>
 
 	<?php if($resource_filter==="all" || $resource_filter==="customer"): ?>
 	<section class="admin-restore-panel" aria-labelledby="restore-customers-title">
@@ -308,22 +272,6 @@ if($can_restore_staff)
 	</section>
 	<?php endif; ?>
 
-	<?php if($resource_filter==="all" || $resource_filter==="product"): ?>
-	<section class="admin-restore-panel" aria-labelledby="restore-products-title">
-		<div class="admin-section-heading"><div><p>CATALOG RECORDS</p><h2 id="restore-products-title">Deleted Products</h2></div><span><?php echo count($deleted_products); ?> result<?php echo count($deleted_products)===1 ? "" : "s"; ?></span></div>
-		<?php if(!$deleted_products): ?>
-			<div class="admin-empty-state"><span>0</span><strong>No deleted products found</strong><p>Deleted products that match the search will appear here.</p></div>
-		<?php else: ?>
-			<div class="admin-restore-table-wrap"><table class="admin-restore-table"><thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead><tbody>
-			<?php foreach($deleted_products as $product): ?>
-				<tr><td><div class="admin-restore-product"><img src="<?php echo admin_restore_html(catalog_product_image($product["product_image"])); ?>" width="52" height="42" alt=""><div><strong><?php echo admin_restore_html($product["product_name"]); ?></strong><small><?php echo admin_restore_html($product["product_id"]); ?></small></div></div></td><td><?php echo admin_restore_html($product["product_category"]); ?><?php if((int)$product["category_is_deleted"]===1): ?><small class="admin-restore-warning">Category inactive</small><?php endif; ?></td><td>RM <?php echo number_format((float)$product["product_price"],2); ?></td><td><?php echo (int)$product["product_stock"]; ?></td><td>
-					<form method="post" action="admin_restore.php" onsubmit="return confirm('Restore this product as Inactive?')"><input type="hidden" name="csrf_token" value="<?php echo admin_restore_html($restore_csrf); ?>"><input type="hidden" name="action" value="restore_record"><input type="hidden" name="resource_type" value="product"><input type="hidden" name="resource_id" value="<?php echo admin_restore_html($product["product_id"]); ?>"><input type="hidden" name="return_type" value="<?php echo admin_restore_html($resource_filter); ?>"><input type="hidden" name="return_search" value="<?php echo admin_restore_html($search); ?>"><button type="submit">Restore</button></form>
-				</td></tr>
-			<?php endforeach; ?>
-			</tbody></table></div>
-		<?php endif; ?>
-	</section>
-	<?php endif; ?>
 
 	<?php if($can_restore_staff && ($resource_filter==="all" || $resource_filter==="staff")): ?>
 	<section class="admin-restore-panel" aria-labelledby="restore-staff-title">

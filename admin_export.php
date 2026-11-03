@@ -154,8 +154,7 @@ else if($dataset==="products")
 	$stmt = mysqli_prepare($connect,
 		"SELECT product_id,product_name,product_desc,product_image,product_category,product_price,product_stock,product_status
 		 FROM product
-		 WHERE product_isDelete=0
-		 AND (?='' OR product_id LIKE ? OR product_name LIKE ? OR product_desc LIKE ?)
+		 WHERE (?='' OR product_id LIKE ? OR product_name LIKE ? OR product_desc LIKE ?)
 		 AND (?='' OR product_category=?)
 		 AND (?='' OR product_status=?)
 		 AND (?='' OR (?='in_stock' AND product_stock>0) OR (?='out_of_stock' AND product_stock<=0))
