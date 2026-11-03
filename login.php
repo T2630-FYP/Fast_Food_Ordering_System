@@ -1,10 +1,11 @@
 <?php
 include("dataconnection.php");
 require_once("customer_navigation.php");
+require_once(__DIR__."/customer_auth_helpers.php");
 
 if(isset($_SESSION["customer_id"]) && $_SERVER["REQUEST_METHOD"]!=="POST")
 {
-	header("location:profile.php");
+	header("Location: ".easyorder_customer_login_destination());
 	exit();
 }
 
@@ -70,7 +71,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["loginbtn"]))
 			$_SESSION["customer_name"] = $row["customer_name"];
 			unset($_SESSION["login_csrf"]);
 			session_regenerate_id(true);
-			header("location:profile.php");
+			header("Location: ".easyorder_customer_login_destination());
 			exit();
 		}
 
@@ -91,9 +92,9 @@ function login_h($value)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Customer Login</title>
-<link rel="stylesheet" href="style.css?v=20261024-auth1">
+<link rel="stylesheet" href="public.css?v=20261024-auth1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="customer_navigation.js?v=20261025-account-check1" defer></script>
+<script src="customer.js?v=20261028-consolidated1" defer></script>
 <style data-eo-auth-style="login">
 /* =========================================
    EASYORDER LOGIN V19
@@ -102,11 +103,8 @@ function login_h($value)
 
 /* MAIN COLOR PALETTE */
 #main.login-page {
-    --login-brown: #39292B;
     --login-ink: #371C23;
-    --login-red: #C8102E;
     --login-paper: #FFFCF9;
-    --login-muted: #746D69;
     color: var(--login-ink);
 }
 
@@ -157,166 +155,6 @@ function login_h($value)
     box-shadow:
         0 28px 75px rgba(65, 29, 37, 0.12),
         0 3px 10px rgba(65, 29, 37, 0.03);
-}
-
-
-/* =========================================
-   LEFT SIDE - FOOD SHOWCASE
-========================================= */
-
-.login-showcase {
-    position: relative;
-
-    display: flex;
-    flex-direction: column;
-
-    overflow: hidden;
-
-    /* TOP RIGHT BOTTOM LEFT */
-    padding: 38px 36px 30px;
-
-    background: #39292B;
-}
-
-.login-showcase-content {
-    position: relative;
-    z-index: 2;
-}
-
-
-/* LEFT MAIN HEADING */
-
-.login-showcase h2 {
-    margin: 0 0 20px;
-
-    color: #FFF8F2;
-
-    font-family: "Segoe UI", Arial, sans-serif;
-
-    font-size: clamp(32px, 3.1vw, 42px);
-
-    line-height: 1.12;
-
-    letter-spacing: -2.1px;
-
-    font-weight: 850;
-}
-
-
-/* CHAMPAGNE ITALIC TEXT */
-
-.login-showcase h2 em {
-    color: #FFD09A;
-
-    font-family: Georgia, "Times New Roman", serif;
-
-    font-size: 1.045em;
-
-    font-style: italic;
-
-    font-weight: 700;
-
-    line-height: 1.16;
-
-    letter-spacing: -1.5px;
-}
-
-
-/* =========================================
-   FOOD PHOTO
-========================================= */
-
-.login-food-stage {
-    position: relative;
-
-    overflow: hidden;
-
-    flex: 1;
-
-    min-height: 260px;
-
-    margin: 24px -36px -30px;
-
-    background: #6A4230;
-}
-
-.login-food-stage img {
-    display: block;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-
-    /* PHOTO POSITION */
-    object-position: center 25%;
-
-    position: absolute;
-    inset: 0;
-}
-
-
-/* =========================================
-   SOFT BLUR TRANSITION
-========================================= */
-
-/* BLUR LAYER */
-
-.login-food-stage::before {
-    content: "";
-
-    position: absolute;
-
-    inset: 0 0 auto;
-
-    height: 54px;
-
-    z-index: 1;
-
-    -webkit-backdrop-filter: blur(7px);
-    backdrop-filter: blur(7px);
-
-    -webkit-mask-image:
-        linear-gradient(
-            to bottom,
-            #000 0%,
-            transparent 100%
-        );
-
-    mask-image:
-        linear-gradient(
-            to bottom,
-            #000 0%,
-            transparent 100%
-        );
-
-    pointer-events: none;
-}
-
-
-/* DARK BROWN GRADIENT */
-
-.login-food-stage::after {
-    content: "";
-
-    position: absolute;
-
-    inset: 0 0 auto;
-
-    height: 56px;
-
-    z-index: 2;
-
-    background:
-        linear-gradient(
-            to bottom,
-            #39292B 0%,
-            rgba(57, 41, 43, 0.82) 16%,
-            rgba(57, 41, 43, 0.37) 54%,
-            rgba(57, 41, 43, 0) 100%
-        );
-
-    pointer-events: none;
 }
 
 
@@ -719,14 +557,6 @@ function login_h($value)
         margin: 28px auto 36px;
     }
 
-    .login-showcase {
-        padding: 34px 30px 26px;
-    }
-
-    .login-food-stage {
-        min-height: 240px;
-        margin: 20px -30px -26px;
-    }
 
     .login-form-panel {
         padding: 30px 32px;

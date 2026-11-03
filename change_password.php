@@ -2,8 +2,8 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 include("dataconnection.php");
 require_once(__DIR__."/customer_navigation.php");
@@ -103,9 +103,9 @@ if(isset($_SESSION["change_password_success"]))
 <head>
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
 <title>Change Password</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="password_ux.js?v=20260926-1" defer></script>
+<script src="public.js?v=20261028-consolidated1" defer></script>
 
 <style>
 #password-box

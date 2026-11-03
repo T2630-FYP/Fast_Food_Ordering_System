@@ -734,10 +734,10 @@ function signup_field_error($key,$id)
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create Your Account</title>
-<link rel="stylesheet" href="style.css?v=20261024-auth1">
+<link rel="stylesheet" href="public.css?v=20261024-auth1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="customer_navigation.js?v=20261025-account-check1" defer></script>
-<script src="password_ux.js?v=20260926-1" defer></script>
+<script src="customer.js?v=20261028-consolidated1" defer></script>
+<script src="public.js?v=20261028-consolidated1" defer></script>
 <style data-eo-auth-style="signup">
 
 /* ======================================
@@ -754,7 +754,6 @@ function signup_field_error($key,$id)
     --eo-red: #C8102E;
     --eo-input: #FAF6F3;
     --eo-line: #E9DFDB;
-    --eo-peach: #FFD09A;
 }
 
 /* ======================================
@@ -1403,78 +1402,6 @@ function signup_field_error($key,$id)
 }
 
 /* ======================================
-   RIGHT FOOD SHOWCASE V11
-====================================== */
-
-.eo-right-showcase {
-    position: relative;
-    min-height: 0;
-
-    background: var(--eo-brown);
-    overflow: hidden;
-
-    isolation: isolate;
-}
-
-/* EXPANDED RESTAURANT PHOTO */
-
-.eo-right-showcase::before {
-    content: "";
-
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-
-    background-image:
-        linear-gradient(
-            180deg,
-            #39292B 0%,
-            #39292B 12%,
-            rgba(57,41,43,.94) 22%,
-            rgba(57,41,43,.60) 32%,
-            rgba(57,41,43,.02) 51%,
-            rgba(57,41,43,0) 61%
-        ),
-        url("image/login.jpg?v=20261024-signup1");
-
-    background-position: center bottom;
-    background-size: 100% auto;
-    background-repeat: no-repeat;
-}
-
-/* RIGHT HEADING */
-
-.eo-showcase-title {
-    position: relative;
-    z-index: 2;
-
-    padding: 70px 52px 0;
-}
-
-.eo-showcase-title h2 {
-    margin: 0;
-
-    color: #FFF8F2;
-    font-size: clamp(38px,3.6vw,54px);
-    font-weight: 800;
-    line-height: 1.13;
-    letter-spacing: -1.6px;
-}
-
-/* CHAMPAGNE ITALIC */
-
-.eo-showcase-title h2 em {
-    color: var(--eo-peach);
-
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 1.02em;
-    font-style: italic;
-    font-weight: 700;
-
-    letter-spacing: -1.3px;
-}
-
-/* ======================================
    MESSAGES AND SMALL TEXT
 ====================================== */
 
@@ -1515,10 +1442,6 @@ function signup_field_error($key,$id)
         padding-right: 38px;
     }
 
-    .eo-showcase-title {
-        padding-left: 34px;
-        padding-right: 25px;
-    }
 
     .eo-progress {
         gap: 18px;
