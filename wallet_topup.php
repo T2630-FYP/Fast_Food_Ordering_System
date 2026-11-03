@@ -3,8 +3,8 @@
 session_start();
 if(!isset($_SESSION["customer_id"]))
 {
-	header("location:login.php");
-	exit();
+	require_once(__DIR__."/customer_auth_helpers.php");
+	easyorder_redirect_customer_to_login();
 }
 
 include("dataconnection.php");
@@ -55,7 +55,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["topup_wallet"]))
 	}
 	else if(strlen($card_number)<13 || strlen($card_number)>19)
 	{
-		$topup_error = "Please enter a valid card number.";
+		$topup_error = "Please enter a card number with 13 to 19 digits.";
 	}
 	else if(!preg_match("/^(0[1-9]|1[0-2])\/(\d{2})$/",$expiry,$expiry_parts))
 	{
@@ -71,9 +71,9 @@ if($_SERVER["REQUEST_METHOD"]==="POST" && isset($_POST["topup_wallet"]))
 		{
 			$topup_error = "This card has expired. Please use another card.";
 		}
-		else if(!preg_match("/^\d{3,4}$/",$cvv))
+		else if(!preg_match("/^\d{3}$/",$cvv))
 		{
-			$topup_error = "Please enter a valid 3 or 4-digit CVV.";
+			$topup_error = "Please enter a valid 3-digit CVV.";
 		}
 	}
 
@@ -183,7 +183,8 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Top Up Wallet</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261102-wallet-topup1">
+<link rel="stylesheet" href="customer.css?v=20261102-wallet-topup3">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
 </head>
 <body>
@@ -192,31 +193,41 @@ $wallet = easyorder_wallet_load($connect,$mid);
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
-<main id="main" class="wallet-page">
-<div class="wallet-page-heading"><div><h2 class="section-title">Top Up Wallet</h2><p class="intro">Add funds to your EasyOrder Wallet using the secure simulated card flow.</p></div><a class="checkout-return-link" href="wallet.php">&larr; Back to Wallet</a></div>
+<main id="main" class="wallet-page eo-wallet-topup">
+<div class="eo-topup-heading">
+<h1>Top Up Wallet</h1>
+<a class="eo-topup-back" href="wallet.php"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M19 12H5m6-6-6 6 6 6"/></svg>Back to Wallet</a>
+</div>
 <?php if($topup_error!=="") { ?><div class="checkout-message checkout-message-error" role="alert"><?php echo easyorder_wallet_html($topup_error); ?></div><?php } ?>
 <?php if($topup_notice_error!=="") { ?><div class="checkout-message checkout-message-error" role="status"><?php echo easyorder_wallet_html($topup_notice_error); ?></div><?php } ?>
 <?php if($topup_success!=="") { ?><div class="wallet-message-success" role="status"><?php echo easyorder_wallet_html($topup_success); ?></div><?php } ?>
 
-<div class="wallet-topup-layout">
-<section class="wallet-access-card" aria-labelledby="topup-title">
-<h3 id="topup-title">Card Details</h3>
-<p>Card information is validated for this request only and is never stored.</p>
-<form class="wallet-form" method="post" action="wallet_topup.php" autocomplete="off">
-<input type="hidden" name="wallet_topup_token" value="<?php echo easyorder_wallet_html($wallet_topup_token); ?>">
-<div class="wallet-field"><label for="topup-amount">Top-Up Amount (RM)</label><input id="topup-amount" type="number" name="topup_amount" min="1" max="1000" step="0.01" value="<?php echo easyorder_wallet_html($amount_value); ?>" required placeholder="50.00"></div>
-<div class="wallet-field"><label for="cardholder">Cardholder Name</label><input id="cardholder" type="text" name="cardholder" maxlength="60" value="<?php echo easyorder_wallet_html($cardholder); ?>" required autocomplete="cc-name"></div>
-<div class="wallet-field"><label for="card-number">Card Number</label><input id="card-number" type="text" name="card_number" inputmode="numeric" maxlength="23" required autocomplete="off" placeholder="4966 2312 3456 7890"></div>
-<div class="wallet-field-row">
-<div class="wallet-field"><label for="expiry">Expiry (MM/YY)</label><input id="expiry" type="text" name="expiry" inputmode="numeric" maxlength="5" required autocomplete="off" placeholder="12/30"></div>
-<div class="wallet-field"><label for="cvv">CVV</label><input id="cvv" type="password" name="cvv" inputmode="numeric" maxlength="4" required autocomplete="off" placeholder="123"></div>
+<section class="eo-topup-balance" aria-labelledby="eo-topup-balance-title">
+<svg class="eo-topup-balance-wave" viewBox="0 0 1000 130" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path d="M540 130C735 130 825 18 1000 18V130Z"/></svg>
+<span class="eo-topup-wallet-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" focusable="false"><path d="M20 8V6a2 2 0 0 0-2-2H6a4 4 0 0 0-4 4v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2H6a2 2 0 0 1 0-4"/><path d="M22 13h-6a3 3 0 0 0 0 6h6"/></svg></span>
+<span class="eo-topup-balance-divider" aria-hidden="true"></span>
+<div class="eo-topup-balance-copy">
+<h2 id="eo-topup-balance-title">Current Balance</h2>
+<p>RM <?php echo number_format((float)$wallet["wallet_balance"],2); ?></p>
 </div>
-<button class="wallet-primary-button" type="submit" name="topup_wallet" value="1">Confirm Top-Up</button>
-</form>
 </section>
 
-<aside class="wallet-topup-summary"><p class="checkout-step-label">CURRENT BALANCE</p><h3>RM <?php echo number_format((float)$wallet["wallet_balance"],2); ?></h3><p>A successful top-up is credited exactly once and appears in Wallet Transaction History.</p><ul><li>Minimum RM 1.00</li><li>Maximum RM 1,000.00 per top-up</li><li>No card number or CVV is saved</li></ul></aside>
+<section class="wallet-access-card eo-topup-card" aria-labelledby="topup-title">
+<form class="wallet-form eo-topup-form" method="post" action="wallet_topup.php" autocomplete="off">
+<input type="hidden" name="wallet_topup_token" value="<?php echo easyorder_wallet_html($wallet_topup_token); ?>">
+<div class="eo-topup-fields">
+<h2 id="topup-title">Card Details</h2>
+<div class="eo-field"><label for="topup-amount">Top-Up Amount (RM)</label><input id="topup-amount" type="number" name="topup_amount" min="1" max="1000" step="0.01" value="<?php echo easyorder_wallet_html($amount_value); ?>" required placeholder="50.00" aria-describedby="eo-topup-amount-hint"><small class="eo-field-hint" id="eo-topup-amount-hint">Enter an amount from RM 1.00 to RM 1,000.00.</small></div>
+<div class="eo-field"><label for="cardholder">Cardholder Name</label><input id="cardholder" type="text" name="cardholder" maxlength="60" value="<?php echo easyorder_wallet_html($cardholder); ?>" required autocomplete="cc-name" placeholder="Your full name"></div>
+<div class="eo-field"><label for="card-number">Card Number</label><input id="card-number" type="text" name="card_number" inputmode="numeric" maxlength="23" pattern="[0-9](?: ?[0-9]){12,18}" title="Enter 13 to 19 digits." required autocomplete="off" placeholder="4966 2312 3456 7890" aria-describedby="eo-topup-card-hint"><small class="eo-field-hint" id="eo-topup-card-hint">Enter a card number with 13 to 19 digits.</small></div>
+<div class="eo-field-row">
+<div class="eo-field"><label for="expiry">Expiry (MM/YY)</label><input id="expiry" type="text" name="expiry" inputmode="numeric" maxlength="5" required autocomplete="off" placeholder="12/30"></div>
+<div class="eo-field"><label for="cvv">CVV</label><input id="cvv" type="password" name="cvv" inputmode="numeric" minlength="3" maxlength="3" pattern="[0-9]{3}" title="Enter a 3-digit CVV." required autocomplete="off" placeholder="123"></div>
 </div>
+</div>
+<button class="wallet-primary-button eo-topup-confirm" type="submit" name="topup_wallet" value="1">Confirm Top-Up</button>
+</form>
+</section>
 </main>
 <?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
@@ -225,8 +236,10 @@ $wallet = easyorder_wallet_load($connect,$mid);
 	// Formatting is visual only; the server repeats every validation rule.
 	const card=document.getElementById("card-number");
 	const expiry=document.getElementById("expiry");
+	const cvv=document.getElementById("cvv");
 	card.addEventListener("input",function(){ this.value=this.value.replace(/\D/g,"").slice(0,19).replace(/(.{4})/g,"$1 ").trim(); });
 	expiry.addEventListener("input",function(){ const digits=this.value.replace(/\D/g,"").slice(0,4); this.value=digits.length>2 ? digits.slice(0,2)+"/"+digits.slice(2) : digits; });
+	cvv.addEventListener("input",function(){ this.value=this.value.replace(/\D/g,"").slice(0,3); });
 })();
 </script>
 </body>
