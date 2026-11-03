@@ -78,24 +78,22 @@ function easyorder_wallet_load($connect,$customer_id,$lock=false)
 	return $wallet ?: null;
 }
 
-// Wallet access is time-limited and bound to the current customer. The raw PIN
-// is never placed in the session.
+// Wallet access remains open for this customer session until explicitly locked.
+// The raw PIN is never placed in the session.
 function easyorder_wallet_is_unlocked($customer_id)
 {
-	return isset($_SESSION["wallet_unlocked_customer"],$_SESSION["wallet_unlocked_until"])
-		&& (int)$_SESSION["wallet_unlocked_customer"]===(int)$customer_id
-		&& (int)$_SESSION["wallet_unlocked_until"]>=time();
+	return isset($_SESSION["wallet_unlocked_customer"])
+		&& (int)$_SESSION["wallet_unlocked_customer"]===(int)$customer_id;
 }
 
 function easyorder_wallet_unlock($customer_id)
 {
 	$_SESSION["wallet_unlocked_customer"] = (int)$customer_id;
-	$_SESSION["wallet_unlocked_until"] = time()+900;
 }
 
 function easyorder_wallet_lock()
 {
-	unset($_SESSION["wallet_unlocked_customer"],$_SESSION["wallet_unlocked_until"]);
+	unset($_SESSION["wallet_unlocked_customer"]);
 }
 
 // Transaction references contain no customer or card data.
