@@ -6,74 +6,18 @@ header("Pragma: no-cache");
 header("Expires: 0");
 ?>
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head><!--About EasyOrder and group member information page-->
 <link rel="icon" type="image/jpeg" href="image/logo.jpg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>About Us</title>
-<link rel="stylesheet" href="style.css?v=20261024-shell1">
+<link rel="stylesheet" href="public.css?v=20261024-shell1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&amp;display=swap">
-<script src="customer_navigation.js?v=20261024-shell1" defer></script>
-
-<style>
-.team-members
-{display:flex;
-justify-content:center;
-align-items:center;
-gap:18px;
-margin:26px 0px 32px 0px;}
-
-.member
-{box-sizing:border-box;
-width:260px;
-background-color:#FFFFFF;
-border:1px solid #E6DFD9;
-border-radius:12px;
-box-shadow:0px 1px 3px rgba(30,25,21,0.03),0px 5px 16px rgba(30,25,21,0.06);
-padding:20px 16px;
-text-align:center;}
-
-.member img
-{display:block;
-width:150px;
-height:150px;
-border-radius:8px;
-margin:0px auto;}
-
-.member h4,
-.member p.role
-{font-family:"Segoe UI",Tahoma,Arial,sans-serif;}
-
-.member h4
-{color:#252A30;
-font-size:19px;
-font-weight:700;
-line-height:1.35;
-letter-spacing:-0.15px;
-margin:18px 0px 7px 0px;}
-
-.member p.role
-{color:#756257;
-font-size:15px;
-font-weight:500;
-line-height:1.45;
-letter-spacing:0.3px;
-margin:0px;}
-
-.member.member-featured
-{width:320px;
-background-color:#FFFFFF;
-border-color:#DAD4CE;
-box-shadow:0px 2px 6px rgba(30,25,21,0.04),0px 10px 26px rgba(30,25,21,0.10);
-padding:28px 22px;}
-
-.member-featured img
-{width:184px;
-height:184px;}
-
-.member-featured h4
-{font-size:21px;}
-</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Charis+SIL:wght@400;700&amp;family=PT+Serif:wght@400;700&amp;display=swap">
+<link rel="stylesheet" href="customer.css?v=20261027-consolidated1">
+<script src="customer.js?v=20261028-consolidated1" defer></script>
 
 </head>
 
@@ -85,59 +29,95 @@ height:184px;}
 <?php easyorder_render_customer_navigation_links(isset($_SESSION["customer_id"])); ?>
 </div>
 
-<div id="main"><!--Main content section-->
+<main id="main" class="eo-about-brown">
+<div class="eo-about-wrap">
+<h1 class="eo-about-page-title">About Us</h1>
 
-<h2 class="section-title">About EasyOrder</h2>
-<p class="intro">Get to know who we are and the team behind your favourite fast food ordering website.</p>
-
-<p style="text-align:center;"><img src="image/about-store.jpg" width="500px" height="280px" alt="EasyOrder Store" title="EasyOrder Store" style="border-radius:8px;"></p>
-
-<p>EasyOrder is an online fast food ordering website that lets you enjoy your favourite meals without the wait. We started with one simple goal: to make ordering food as quick and easy as a few clicks. From crispy fried chicken and juicy burgers to refreshing drinks and sweet desserts, our full menu is just a tap away.</p>
-
-<p>Whether you are craving a quick lunch, feeding the whole family, or grabbing a late-night snack, EasyOrder brings hot and fresh meals straight to your doorstep. No more waiting in long queues or being put on hold over the phone. Simply browse the menu, add your items to the cart, and check out in minutes.</p>
-
-<hr>
-
-<h2 class="section-title">Our Mission</h2>
-<p>Our mission is to deliver a fast, friendly and reliable food ordering experience for everyone. We are committed to serving freshly cooked meals at affordable prices, while making sure every order reaches you quickly and exactly the way you like it.</p>
-
-<ul class="features">
-<li>To make online food ordering simple and stress-free.</li>
-<li>To serve freshly cooked, good quality meals every single time.</li>
-<li>To offer affordable prices and great daily deals.</li>
-<li>To deliver every order quickly and safely to your door.</li>
-</ul>
-
-<hr>
-
-<h2 class="section-title">Meet Our Team</h2>
-<p class="intro">Meet the founders behind EasyOrder, united by a passion for great food and warm hospitality.</p>
-
-<div class="team-members">
-
-<div class="member"><!--Group member profile card section-->
-<img src="image/member2.jpg" width="150px" height="150px" alt="Member 2 Photo" title="Member 2">
-<h4>Ho Kwun Yan</h4>
-<p class="role">Co-Founder</p>
+<section class="eo-about-hero" aria-labelledby="about-story-title">
+<figure class="eo-about-photo-frame">
+<div class="eo-about-photo">
+<img src="image/about.jpg" width="1200" height="1000" alt="The EasyOrder kitchen team preparing freshly made burgers">
+</div>
+</figure>
+<div class="eo-about-copy">
+<h2 id="about-story-title">Good food.<br>Made easy.</h2>
+<p>Founded in 2024, EasyOrder was created with a simple belief that good food should be easy to enjoy. We take pride in freshly prepared meals, friendly service, and a convenient ordering experience. From a quick lunch to dinner with family, our goal is to make every meal satisfying and memorable.</p>
+</div>
+</section>
 </div>
 
-<div class="member member-featured">
-<img src="image/member1.jpg" width="150px" height="150px" alt="Member 1 Photo" title="Member 1">
-<h4>Eric Ong Yong Zhen</h4>
-<p class="role">CEO and Founder</p>
+<section class="eo-orbit" data-eo-orbit aria-labelledby="about-team-title" aria-roledescription="carousel">
+<h2 id="about-team-title" class="eo-orbit-title">Our Teams</h2>
+<div class="eo-orbit-carousel">
+<div class="eo-orbit-floor" aria-hidden="true">
+<svg viewBox="0 0 1200 170" preserveAspectRatio="none" focusable="false" aria-hidden="true">
+<defs>
+<radialGradient id="about-orbit-shadow">
+<stop offset="0" stop-color="#97703E" stop-opacity=".24"/>
+<stop offset=".45" stop-color="#A98555" stop-opacity=".14"/>
+<stop offset="1" stop-color="#B89A73" stop-opacity="0"/>
+</radialGradient>
+<linearGradient id="about-orbit-back" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0" stop-color="#DBB786" stop-opacity="0"/>
+<stop offset=".25" stop-color="#DCB782" stop-opacity=".44"/>
+<stop offset=".65" stop-color="#D7AD72" stop-opacity=".5"/>
+<stop offset="1" stop-color="#DBB786" stop-opacity=".04"/>
+</linearGradient>
+<linearGradient id="about-orbit-gold" x1="0%" y1="0%" x2="100%" y2="0%">
+<stop offset="0" stop-color="#E3C297" stop-opacity=".06"/>
+<stop offset=".18" stop-color="#D6A052" stop-opacity=".72"/>
+<stop offset=".5" stop-color="#D9A65D" stop-opacity=".9"/>
+<stop offset=".78" stop-color="#D8AA65" stop-opacity=".65"/>
+<stop offset="1" stop-color="#E3C297" stop-opacity=".04"/>
+</linearGradient>
+</defs>
+<ellipse cx="600" cy="88" rx="430" ry="54" fill="url(#about-orbit-shadow)"/>
+<path d="M95 89C274 13 900 10 1110 76" fill="none" stroke="url(#about-orbit-back)" stroke-width="1.1" vector-effect="non-scaling-stroke"/>
+<ellipse cx="600" cy="87" rx="484" ry="45" fill="none" stroke="url(#about-orbit-back)" stroke-width=".8" vector-effect="non-scaling-stroke"/>
+<path d="M40 100C185 139 350 151 566 153M606 153C810 154 996 140 1148 116" fill="none" stroke="url(#about-orbit-gold)" stroke-width="1.3" vector-effect="non-scaling-stroke"/>
+<path d="M159 111C395 145 785 147 1044 109M1132 105C1168 95 1185 86 1191 79" fill="none" stroke="url(#about-orbit-back)" stroke-width=".8" vector-effect="non-scaling-stroke"/>
+</svg>
 </div>
+<div id="about-team-cards" class="eo-orbit-stage">
 
-<div class="member">
-<img src="image/member3.jpg" width="150px" height="150px" alt="Member 3 Photo" title="Member 3">
-<h4>Ng Kai Jie</h4>
-<p class="role">Co-Founder</p>
+<article class="eo-orbit-card" data-orbit-card>
+<div class="eo-orbit-photo">
+<img src="image/member2.jpg" width="414" height="420" alt="Ho Kwun Yan" draggable="false">
 </div>
+<h3 class="eo-orbit-name">Ho Kwun Yan</h3>
+<span class="eo-orbit-divider" aria-hidden="true"></span>
+<p class="eo-orbit-role">Co-Founder</p>
+</article>
+
+<article class="eo-orbit-card" data-orbit-card data-orbit-initial>
+<div class="eo-orbit-photo eo-orbit-photo--eric">
+<img src="image/member1.jpg" width="1024" height="1024" alt="Eric Ong Yong Zhen" draggable="false">
+</div>
+<h3 class="eo-orbit-name">Eric Ong Yong Zhen</h3>
+<span class="eo-orbit-divider" aria-hidden="true"></span>
+<p class="eo-orbit-role">CEO &amp; Founder</p>
+</article>
+
+<article class="eo-orbit-card" data-orbit-card>
+<div class="eo-orbit-photo">
+<img src="image/member3.jpg" width="420" height="420" alt="Ng Kai Jie" draggable="false">
+</div>
+<h3 class="eo-orbit-name">Ng Kai Jie</h3>
+<span class="eo-orbit-divider" aria-hidden="true"></span>
+<p class="eo-orbit-role">Co-Founder</p>
+</article>
 
 </div>
-
-<p style="text-align:center;"><a class="btn" href="category.php">View Our Menu</a></p>
-
+<button class="eo-orbit-arrow eo-orbit-prev" type="button" data-orbit-prev aria-label="Previous member" aria-controls="about-team-cards">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m15.5 4.5-7.5 7.5 7.5 7.5"/></svg>
+</button>
+<button class="eo-orbit-arrow eo-orbit-next" type="button" data-orbit-next aria-label="Next member" aria-controls="about-team-cards">
+<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="m8.5 4.5 7.5 7.5-7.5 7.5"/></svg>
+</button>
 </div>
+<p class="eo-orbit-status" data-orbit-status aria-live="polite" aria-atomic="true">Eric Ong Yong Zhen, CEO &amp; Founder. Member 2 of 3.</p>
+</section>
+</main>
 
 <?php easyorder_render_customer_footer(isset($_SESSION["customer_id"])); ?>
 
