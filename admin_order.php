@@ -202,7 +202,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 		mysqli_begin_transaction($connect);
 		try
 		{
-			$order_stmt = mysqli_prepare($connect,"SELECT order_customer,order_total FROM orders WHERE order_id=? AND order_isDelete=0 FOR UPDATE");
+			$order_stmt = mysqli_prepare($connect,"SELECT order_customer,order_points_earned FROM orders WHERE order_id=? AND order_isDelete=0 FOR UPDATE");
 			if(!$order_stmt)
 			{
 				throw new Exception("The order could not be prepared.");
@@ -221,7 +221,7 @@ if($_SERVER["REQUEST_METHOD"]==="POST")
 			}
 
 			$customer_id = (int)$order_row["order_customer"];
-			$earned_points = (int)floor((float)$order_row["order_total"]*10);
+			$earned_points = (int)$order_row["order_points_earned"];
 			$points_stmt = mysqli_prepare($connect,"UPDATE customer SET customer_points=GREATEST(0,customer_points-?) WHERE customer_id=?");
 			if(!$points_stmt)
 			{
@@ -349,8 +349,8 @@ $order_pdf_url = "admin_export.php?".http_build_query($order_pdf_params);
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Manage Orders | EasyOrder</title>
-<link rel="stylesheet" href="style.css">
-<link rel="stylesheet" href="admin_style.css">
+<link rel="stylesheet" href="public.css">
+<link rel="stylesheet" href="admin.css">
 </head>
 
 <body class="admin-body">
